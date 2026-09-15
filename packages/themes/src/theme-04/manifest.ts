@@ -1,6 +1,6 @@
 import type { ThemeManifest } from '../contract';
 
-export const theme4: ThemeManifest = {
+export const theme04: ThemeManifest = {
   id: 'theme-04',
   name: 'Ocean Editorial',
   version: '1.0.0',

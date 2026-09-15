@@ -1,8 +1,8 @@
-import { theme6 } from './manifest';
+import { theme06 } from './manifest';
 
-const t = theme6.tokens;
+const t = theme06.tokens;
 
-export const theme6Css = `
+export const theme06Css = `
 :root {
   --varka-bg: ${t.bg};
   --varka-ink: ${t.ink};
@@ -12,8 +12,8 @@ export const theme6Css = `
   --varka-border: ${t.border};
   --varka-font-serif: ${t.fontSerif};
   --varka-font-sans: ${t.fontSans};
-}
   color-scheme: dark;
+}
 body {
   margin: 0;
   background: var(--varka-bg);
