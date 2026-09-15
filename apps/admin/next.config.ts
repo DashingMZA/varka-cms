@@ -11,12 +11,12 @@ const nextConfig: NextConfig = {
     '@varka/i18n',
     '@varka/media',
     '@varka/permissions',
+    '@varka/queue',
     '@varka/security',
     '@varka/seo',
     '@varka/themes',
     '@varka/types',
     '@varka/validation',
-    '@varka/queue',
   ],
   serverExternalPackages: ['@prisma/client', 'pg', '@prisma/adapter-pg'],
 };

@@ -29,7 +29,10 @@ export function createMemoryQueue(): Queue {
         const idx = jobs.indexOf(job);
         if (idx >= 0) jobs.splice(idx, 1);
         const handler = handlers.get(job.name);
-        if (!handler) continue;
+        if (!handler) {
+          console.warn('[varka/queue] no handler for', job.name);
+          continue;
+        }
         job.attempts += 1;
         try {
           await handler(job);
@@ -44,6 +47,9 @@ export function createMemoryQueue(): Queue {
         }
       }
       return processed;
+    },
+    size() {
+      return jobs.length;
     },
   };
 }
