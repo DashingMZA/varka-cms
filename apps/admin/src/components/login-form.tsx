@@ -2,11 +2,6 @@
 
 import { useState, type CSSProperties, type FormEvent } from 'react';
 
-/**
- * Login form posts to Better Auth email/password endpoint.
- * OAuth buttons only show when providers are configured server-side
- * (client still shows links; server returns error if not configured).
- */
 export function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -18,6 +13,18 @@ export function LoginForm() {
     setError(null);
     setLoading(true);
     try {
+      const rate = await fetch('/api/auth/rate-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      if (rate.status === 429) {
+        const data = (await rate.json()) as { retryAfterSec?: number };
+        setError(`Too many attempts. Retry in ${data.retryAfterSec ?? 60}s`);
+        setLoading(false);
+        return;
+      }
+
       const res = await fetch('/api/auth/sign-in/email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -25,6 +32,11 @@ export function LoginForm() {
         credentials: 'include',
       });
       if (!res.ok) {
+        await fetch('/api/auth/rate-check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, failed: true }),
+        });
         const data = (await res.json().catch(() => ({}))) as { message?: string };
         setError(data.message ?? `Sign-in failed (${res.status})`);
         setLoading(false);
@@ -79,7 +91,8 @@ export function LoginForm() {
         </a>
       </div>
       <p style={{ margin: 0, fontSize: 12, color: 'var(--muted)' }}>
-        OAuth works only when client IDs are set in env.
+        OAuth works only when client IDs are set in env. First owner: use Better Auth sign-up or seed
+        + set password.
       </p>
     </form>
   );

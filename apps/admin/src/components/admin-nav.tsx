@@ -1,4 +1,9 @@
-const NAV = [
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+
+const links = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/content', label: 'Content' },
   { href: '/media', label: 'Media' },
@@ -7,31 +12,60 @@ const NAV = [
   { href: '/languages', label: 'Languages' },
   { href: '/seo', label: 'SEO' },
   { href: '/users', label: 'Users' },
-  { href: '/system', label: 'System' },
   { href: '/settings', label: 'Settings' },
-] as const;
+  { href: '/system', label: 'System' },
+];
 
 export function AdminNav() {
+  const pathname = usePathname();
+
+  async function signOut() {
+    await fetch('/api/auth/sign-out', {
+      method: 'POST',
+      credentials: 'include',
+    }).catch(() => undefined);
+    window.location.href = '/login';
+  }
+
   return (
-    <nav aria-label="Admin">
-      <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 4 }}>
-        {NAV.map((item) => (
-          <li key={item.href}>
-            <a
-              href={item.href}
-              style={{
-                display: 'block',
-                padding: '8px 12px',
-                borderRadius: 8,
-                color: 'var(--ink)',
-                fontSize: 14,
-              }}
-            >
-              {item.label}
-            </a>
-          </li>
-        ))}
-      </ul>
+    <nav style={{ display: 'grid', gap: 4 }}>
+      {links.map((l) => {
+        const active = pathname === l.href || pathname.startsWith(l.href + '/');
+        return (
+          <Link
+            key={l.href}
+            href={l.href}
+            style={{
+              padding: '8px 10px',
+              borderRadius: 8,
+              textDecoration: 'none',
+              color: active ? 'var(--accent)' : 'var(--ink)',
+              background: active ? 'rgba(0,0,0,0.04)' : 'transparent',
+              fontWeight: active ? 600 : 400,
+              fontSize: 14,
+            }}
+          >
+            {l.label}
+          </Link>
+        );
+      })}
+      <button
+        type="button"
+        onClick={signOut}
+        style={{
+          marginTop: 12,
+          padding: '8px 10px',
+          borderRadius: 8,
+          border: '1px solid var(--border)',
+          background: 'transparent',
+          cursor: 'pointer',
+          textAlign: 'left',
+          fontSize: 13,
+          color: 'var(--muted)',
+        }}
+      >
+        Sign out
+      </button>
     </nav>
   );
 }

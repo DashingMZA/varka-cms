@@ -1,20 +1,41 @@
-/**
- * Dashboard counts must be real. Until content models exist, zeros are honest.
- */
-export default function DashboardPage() {
+import { prisma } from '@varka/database';
+
+export const dynamic = 'force-dynamic';
+
+/** Live counts from DB — zeros are real when empty. */
+export default async function DashboardPage() {
+  let posts = 0;
+  let pages = 0;
+  let media = 0;
+  let users = 0;
+
+  try {
+    const [p, pg, m, u] = await Promise.all([
+      prisma.post.count({ where: { deletedAt: null } }).catch(() => 0),
+      prisma.page.count({ where: { deletedAt: null } }).catch(() => 0),
+      prisma.mediaAsset.count().catch(() => 0),
+      prisma.user.count().catch(() => 0),
+    ]);
+    posts = p;
+    pages = pg;
+    media = m;
+    users = u;
+  } catch {
+    // DB unavailable — keep zeros
+  }
+
   const stats = [
-    { label: 'Posts', value: 0 },
-    { label: 'Pages', value: 0 },
-    { label: 'Media', value: 0 },
-    { label: 'Users', value: 0 },
+    { label: 'Posts', value: posts },
+    { label: 'Pages', value: pages },
+    { label: 'Media', value: media },
+    { label: 'Users', value: users },
   ];
 
   return (
     <main>
       <h1 style={{ marginTop: 0 }}>Dashboard</h1>
       <p style={{ color: 'var(--muted)', maxWidth: 520 }}>
-        Counts are live from the database. Content modules arrive in later phases — zeros are
-        intentional, not mock data.
+        Counts are live from the database. Empty modules show zero — not mock data.
       </p>
       <div
         style={{

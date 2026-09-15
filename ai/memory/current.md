@@ -1,22 +1,10 @@
-# Current (read every session)
+# Current
 
-**Updated:** 2026-09-15T19:50Z  
-**Product:** VARKA  
+**Updated:** 2026-09-15T20:00Z  
 **Active phase:** Phase 2 next  
-**Last task:** Lock **pnpm 12.4.2** + **Node >= 24** (fixed packageManager quote typo)  
-**Next task:** Phase 2 content harden + Vercel green
+**Last task:** Phase 1 gaps closed (auth secret, rate-limit, users create, audit AuthZ, live dashboard, sign-out)  
+**Tooling:** pnpm 12.4.2 · Node ≥24 · eslint 10.10.0
 
-## Tooling (locked)
+## Next
 
-- pnpm **12.4.2**
-- Node **>= 24**
-- eslint **10.10.0**
-
-```bash
-corepack enable && corepack prepare pnpm@12.4.2 --activate
-```
-
-## Snapshot
-
-- Phase 0–1: done (source)
-- Operator: reinstall with pnpm 12.4.2 and commit lockfile
+Phase 2 content E2E · Vercel green deploy

@@ -27,6 +27,36 @@ export async function listUsers(ctx: AuthContext, opts: { cursor?: string; limit
   };
 }
 
+/** Create user row + optional role. Password is set via Better Auth sign-up / reset — not stored here. */
+export async function createUser(
+  ctx: AuthContext,
+  input: { email: string; name?: string; roleSlug?: string },
+) {
+  requirePermission(ctx, 'users.create');
+  const email = input.email.trim().toLowerCase();
+  const existing = await prisma.user.findUnique({ where: { email } });
+  if (existing) throw new Error('User already exists');
+
+  const user = await prisma.user.create({
+    data: {
+      email,
+      name: input.name ?? null,
+      emailVerified: false,
+    },
+  });
+
+  if (input.roleSlug) {
+    const role = await prisma.role.findUnique({ where: { slug: input.roleSlug } });
+    if (role) {
+      await prisma.userRole.create({
+        data: { userId: user.id, roleId: role.id },
+      });
+    }
+  }
+
+  return user;
+}
+
 export async function setUserDisabled(ctx: AuthContext, userId: string, disabled: boolean) {
   requirePermission(ctx, 'users.disable');
   if (ctx.userId === userId) {

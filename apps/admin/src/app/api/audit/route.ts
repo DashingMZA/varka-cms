@@ -1,20 +1,13 @@
 import { NextResponse } from 'next/server';
 import { listAudit } from '@varka/security';
-
-async function getCtx() {
-  return {
-    userId: 'dev-user',
-    roles: ['owner'],
-    permissions: ['audit.read', 'security.read'],
-  };
-}
+import { requirePermission } from '@varka/permissions';
+import { getAuthContext } from '@/lib/auth-context';
 
 export async function GET(req: Request) {
   try {
-    const ctx = await getCtx();
-    if (!ctx.permissions.includes('audit.read')) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    const ctx = await getAuthContext(req);
+    requirePermission(ctx, 'audit.read');
+
     const { prisma } = await import('@varka/database');
     const site = await prisma.site.findFirst({ where: { slug: 'varka' } });
     const url = new URL(req.url);
@@ -26,6 +19,8 @@ export async function GET(req: Request) {
     return NextResponse.json(result);
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Error';
-    return NextResponse.json({ error: message }, { status: 400 });
+    const status =
+      message === 'Unauthorized' ? 401 : message.includes('Forbidden') ? 403 : 400;
+    return NextResponse.json({ error: message }, { status });
   }
 }

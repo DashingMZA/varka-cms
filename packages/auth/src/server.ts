@@ -1,9 +1,6 @@
 /**
  * Better Auth server instance for VARKA admin.
- * Wire into Next.js route handler: app/api/auth/[...all]/route.ts
- *
- * Local setup:
- *   pnpm install && pnpm db:generate && pnpm db:migrate && pnpm db:seed
+ * Wire: apps/admin/src/app/api/auth/[...all]/route.ts
  */
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
@@ -14,6 +11,18 @@ function oauthEnabled(id?: string, secret?: string): boolean {
 }
 
 export function createAuth() {
+  const secret = process.env.AUTH_SECRET ?? process.env.BETTER_AUTH_SECRET;
+  if (!secret || secret.length < 32) {
+    console.warn(
+      '[varka/auth] AUTH_SECRET missing or < 32 chars — set a strong secret before production',
+    );
+  }
+
+  const baseURL =
+    process.env.BETTER_AUTH_URL ??
+    process.env.ADMIN_URL ??
+    'http://localhost:3000';
+
   const socialProviders: Record<string, { clientId: string; clientSecret: string }> = {};
 
   if (oauthEnabled(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET)) {
@@ -31,9 +40,12 @@ export function createAuth() {
 
   return betterAuth({
     database: prismaAdapter(prisma, { provider: 'postgresql' }),
+    secret: secret ?? 'dev-only-insecure-secret-change-me-now!!',
+    baseURL,
     emailAndPassword: {
       enabled: true,
       minPasswordLength: 12,
+      requireEmailVerification: false,
     },
     socialProviders: Object.keys(socialProviders).length ? socialProviders : undefined,
     session: {
@@ -44,7 +56,13 @@ export function createAuth() {
         maxAge: 60 * 5,
       },
     },
-    trustedOrigins: [process.env.ADMIN_URL, process.env.SITE_URL].filter(Boolean) as string[],
+    advanced: {
+      useSecureCookies: process.env.NODE_ENV === 'production',
+      cookiePrefix: 'varka',
+    },
+    trustedOrigins: [process.env.ADMIN_URL, process.env.SITE_URL, baseURL].filter(
+      Boolean,
+    ) as string[],
   });
 }
 

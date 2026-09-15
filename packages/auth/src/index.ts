@@ -1,6 +1,6 @@
 export { createAuth, type Auth } from './server';
 export { loadAuthContext } from './session';
-export { listUsers, setUserDisabled, revokeAllSessions } from './users';
+export { listUsers, createUser, setUserDisabled, revokeAllSessions } from './users';
 export {
   checkRateLimit,
   createMemoryStore,
