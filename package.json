@@ -14,7 +14,7 @@
     "dev:web": "pnpm --filter @varka/web dev",
     "build": "pnpm db:generate && pnpm -r --filter \"./packages/**\" build && pnpm --filter @varka/admin build",
     "typecheck": "pnpm -r --filter @varka/config --filter @varka/types --filter @varka/validation --filter @varka/permissions --filter @varka/auth --filter @varka/database --filter @varka/admin typecheck",
-    "lint": "pnpm -r lint",
+    "lint": "eslint .",
     "test": "pnpm --filter @varka/config test && pnpm --filter @varka/permissions test && pnpm --filter @varka/auth test",
     "db:generate": "pnpm --filter @varka/database generate",
     "db:migrate": "pnpm --filter @varka/database migrate",
@@ -22,9 +22,11 @@
     "db:seed": "pnpm --filter @varka/database seed",
     "db:studio": "pnpm --filter @varka/database studio",
     "format": "prettier --write \"**/*.{ts,tsx,js,mjs,cjs,json,md,yml,yaml}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,mjs,cjs,json,md,yml,yaml}\""
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,mjs,cjs,json,md,yml,yaml}\"",
+    "gates": "pnpm lint && pnpm typecheck && pnpm test"
   },
   "devDependencies": {
+    "eslint": "^9.28.0",
     "prettier": "^3.6.2",
     "typescript": "^5.9.2"
   }

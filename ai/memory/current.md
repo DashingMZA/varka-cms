@@ -1,27 +1,20 @@
 # Current (read every session)
 
-**Updated:** 2026-09-15T19:15Z  
+**Updated:** 2026-09-15T19:30Z  
 **Product:** VARKA  
-**Mode:** fix-forward — make admin deploy + phase gaps real  
-**Active phase:** Phase 0–1 verification (Vercel build)  
-**Last task:** TS/build fixes + themes registry; STATUS.md truth audit  
-**Next task:** Green Vercel deploy; wire real session AuthZ on admin APIs
+**Mode:** phase-forward  
+**Active phase:** Phase 1 (Auth / RBAC / admin shell)  
+**Last task:** Phase 0 closed — quality gates + memory; lockfile operator commit  
+**Next task:** Phase 1 — real session AuthZ; Vercel green build
 
 ## Snapshot
 
-- Repo: `zuhanzaheer/varka` `main`
-- Scaffold for phases 0–12 exists; **not all verified**
-- See `ai/memory/STATUS.md` for honest matrix
-- Recent: theme export fix, TS build fixes, `postinstall` prisma generate
+- Phase 0: **done** (source) — see `ai/phase0/COMPLETE.md`
+- Honest matrix: `ai/memory/STATUS.md`
+- Operator: run `pnpm install` and commit `pnpm-lock.yaml` if missing
 
 ## Open blockers
 
-1. Vercel admin green build (operator redeploy latest `main`)
-2. `DATABASE_URL` + `AUTH_SECRET` on Vercel
-3. DB migrate + seed against production Postgres
-4. Replace `dev-user` API context with Better Auth session
-
-## Notes
-
-- Do not invent owner contact values (`ai/owner.md`)
-- Claude/Grok share this memory protocol
+1. Commit `pnpm-lock.yaml` from a full install machine
+2. Vercel admin green build + `DATABASE_URL` / `AUTH_SECRET`
+3. Phase 1: replace remaining `dev-user` API contexts
