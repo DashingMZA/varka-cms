@@ -3,13 +3,29 @@ export {
   createPostInput,
   updatePostInput,
   listPosts,
+  getPost,
   createPost,
   updatePost,
   publishPost,
+  trashPost,
   type CreatePostInput,
   type UpdatePostInput,
   type ContentDb,
 } from './posts';
+export {
+  createPageInput,
+  listPages,
+  createPage,
+  type CreatePageInput,
+  type PagesDb,
+} from './pages';
+export {
+  listCategories,
+  listTags,
+  createCategory,
+  createTag,
+  type TaxonomyDb,
+} from './taxonomies';
 export {
   submitCommentInput,
   submitComment,

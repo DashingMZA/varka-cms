@@ -1,10 +1,11 @@
 # Current
 
-**Updated:** 2026-09-15T20:00Z  
-**Active phase:** Phase 2 next  
-**Last task:** Phase 1 gaps closed (auth secret, rate-limit, users create, audit AuthZ, live dashboard, sign-out)  
+**Updated:** 2026-09-15T20:10Z  
+**Active phase:** Phase 3 (Media) next  
+**Last task:** Phase 2 close — posts AuthZ, pages/taxonomies APIs, trash, getPost  
 **Tooling:** pnpm 12.4.2 · Node ≥24 · eslint 10.10.0
 
-## Next
+## Snapshot
 
-Phase 2 content E2E · Vercel green deploy
+- Phase 0–2: done (source)
+- Next: media adapters / Phase 3

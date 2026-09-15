@@ -90,6 +90,19 @@ export async function listPosts(
   };
 }
 
+export async function getPost(db: ContentDb, ctx: AuthContext, postId: string) {
+  requirePermission(ctx, 'posts.read');
+  const post = await db.post.findUnique({
+    where: { id: postId },
+    include: {
+      translations: true,
+      author: { select: { id: true, name: true, email: true } },
+    },
+  });
+  if (!post) throw new Error('Post not found');
+  return post;
+}
+
 export async function createPost(db: ContentDb, ctx: AuthContext, raw: CreatePostInput) {
   requirePermission(ctx, 'posts.create');
   const input = createPostInput.parse(raw);
@@ -114,11 +127,13 @@ export async function createPost(db: ContentDb, ctx: AuthContext, raw: CreatePos
   if (existing) throw new Error(`Slug already exists: ${slug}`);
 
   const contentHtml = stripDangerousHtml(input.contentHtml ?? '');
+  const authorId =
+    input.authorId ?? (ctx.userId && ctx.userId !== 'dev-user' ? ctx.userId : undefined);
 
   return db.post.create({
     data: {
       siteId: input.siteId,
-      authorId: input.authorId ?? ctx.userId,
+      authorId,
       status: 'DRAFT',
       translations: {
         create: {
@@ -149,6 +164,7 @@ export async function updatePost(
     include: { translations: true },
   })) as {
     id: string;
+    siteId: string;
     version: number;
     status: string;
     translations: Array<{ id: string; languageId: string; slug: string; title: string; contentHtml: string }>;
@@ -171,7 +187,7 @@ export async function updatePost(
     await tx.revision.create({
       data: {
         postId,
-        authorId: ctx.userId,
+        authorId: ctx.userId === 'dev-user' ? undefined : ctx.userId,
         languageId: input.languageId,
         title: input.title ?? translation.title,
         contentHtml: nextHtml,
@@ -197,6 +213,7 @@ export async function updatePost(
       requirePermission(ctx, 'posts.publish');
       publishFields.status = 'PUBLISHED';
       publishFields.publishedAt = new Date();
+      publishFields.deletedAt = null;
     } else if (input.status) {
       if (input.status === 'TRASHED') requirePermission(ctx, 'posts.delete');
       publishFields.status = input.status;
@@ -220,5 +237,22 @@ export async function publishPost(db: ContentDb, ctx: AuthContext, postId: strin
     version: post.version,
     languageId,
     status: 'PUBLISHED',
+  });
+}
+
+export async function trashPost(
+  db: ContentDb,
+  ctx: AuthContext,
+  postId: string,
+  languageId: string,
+) {
+  const post = (await db.post.findUnique({ where: { id: postId } })) as {
+    version: number;
+  } | null;
+  if (!post) throw new Error('Post not found');
+  return updatePost(db, ctx, postId, {
+    version: post.version,
+    languageId,
+    status: 'TRASHED',
   });
 }
