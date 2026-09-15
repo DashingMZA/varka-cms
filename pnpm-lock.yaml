@@ -193,6 +193,9 @@ importers:
       '@varka/database':
         specifier: workspace:*
         version: link:../../packages/database
+      '@varka/media':
+        specifier: workspace:*
+        version: link:../../packages/media
       '@varka/permissions':
         specifier: workspace:*
         version: link:../../packages/permissions
