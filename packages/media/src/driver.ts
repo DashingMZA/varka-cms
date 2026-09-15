@@ -1,6 +1,9 @@
+import { createRequire } from 'node:module';
 import { createLocalAdapter } from './local-adapter';
 import { createS3Adapter, type S3LikeClient } from './s3-adapter';
 import type { StorageAdapter, StorageDriverName } from './types';
+
+const require = createRequire(import.meta.url);
 
 export function resolveStorageDriver(): StorageDriverName {
   const d = (process.env.STORAGE_DRIVER ?? 'local').toLowerCase();
@@ -11,7 +14,7 @@ export function resolveStorageDriver(): StorageDriverName {
 /**
  * Build adapter from env.
  * - local: LOCAL_STORAGE_PATH (default .storage), served via /api/media/file/*
- * - s3/r2: needs S3_BUCKET + credentials; uses optional @aws-sdk/client-s3 if installed
+ * - s3/r2: needs S3_BUCKET + credentials; optional @aws-sdk/client-s3
  */
 export function createStorageAdapterFromEnv(): StorageAdapter {
   const driver = resolveStorageDriver();
@@ -28,9 +31,7 @@ export function createStorageAdapterFromEnv(): StorageAdapter {
     throw new Error('S3/R2 requires S3_BUCKET and MEDIA_PUBLIC_URL (or S3_PUBLIC_URL)');
   }
 
-  // Lazy optional AWS SDK — avoid hard dependency until operator installs it
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const mod = require('@aws-sdk/client-s3') as {
       S3Client: new (c: unknown) => { send: (cmd: unknown) => Promise<unknown> };
       PutObjectCommand: new (i: unknown) => unknown;
