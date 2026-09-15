@@ -1,14 +1,15 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { activeTheme } from '../lib/theme';
+import { activeThemeWithCss } from '../lib/theme';
 import { fetchPublishedPosts } from '../lib/content-api';
 
-const theme = activeTheme();
+const theme = await activeThemeWithCss();
 const posts = await fetchPublishedPosts(10);
+const themeName = theme.manifest?.name ?? 'Clean Editorial';
 ---
 <BaseLayout title="VARKA" description="Modern editorial publishing" path="/" type="website">
   <h1 class="post-title">VARKA</h1>
-  <p class="post-meta">Public site · {theme.manifest.name}</p>
+  <p class="post-meta">Public site · {themeName}</p>
   <div class="prose">
     {posts.length === 0 ? (
       <p>

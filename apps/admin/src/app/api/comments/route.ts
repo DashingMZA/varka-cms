@@ -1,16 +1,11 @@
 import { NextResponse } from 'next/server';
 import { commentCounts, moderateList, submitComment } from '@varka/content';
+import { getAuthContext } from '@/lib/auth-context';
 
-async function getCtx() {
-  return {
-    userId: 'dev-user',
-    roles: ['owner'],
-    permissions: [
-      'comments.read',
-      'comments.moderate',
-      'comments.delete',
-    ],
-  };
+function errStatus(message: string): number {
+  if (message === 'Unauthorized' || message.includes('Unauthorized')) return 401;
+  if (message.includes('Forbidden') || message.includes('permission')) return 403;
+  return 400;
 }
 
 async function getSiteId(db: {
@@ -24,7 +19,7 @@ async function getSiteId(db: {
 export async function GET(req: Request) {
   try {
     const { prisma } = await import('@varka/database');
-    const ctx = await getCtx();
+    const ctx = await getAuthContext(req);
     const siteId = await getSiteId(prisma as never);
     const url = new URL(req.url);
     if (url.searchParams.get('counts') === '1') {
@@ -36,13 +31,17 @@ export async function GET(req: Request) {
     return NextResponse.json(result);
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Error';
-    return NextResponse.json({ error: message }, { status: 400 });
+    return NextResponse.json({ error: message }, { status: errStatus(message) });
   }
 }
 
-/** Staff can also create a comment (e.g. reply as admin) */
+/** Staff can create a comment (e.g. reply as admin) — still goes through moderation rules */
 export async function POST(req: Request) {
   try {
+    const ctx = await getAuthContext(req);
+    if (!ctx.userId || ctx.disabled) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     const { prisma } = await import('@varka/database');
     const siteId = await getSiteId(prisma as never);
     const body = await req.json();
@@ -50,6 +49,6 @@ export async function POST(req: Request) {
     return NextResponse.json(comment, { status: 201 });
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Error';
-    return NextResponse.json({ error: message }, { status: 400 });
+    return NextResponse.json({ error: message }, { status: errStatus(message) });
   }
 }

@@ -2,13 +2,13 @@ import { NextResponse } from 'next/server';
 import { deleteComment, setCommentStatus } from '@varka/content';
 import { writeAudit } from '@varka/security';
 import { clientIp } from '@varka/cache';
+import { getAuthContext } from '@/lib/auth-context';
 
-async function getCtx() {
-  return {
-    userId: 'dev-user',
-    roles: ['owner'],
-    permissions: ['comments.read', 'comments.moderate', 'comments.delete'],
-  };
+function errStatus(message: string): number {
+  if (message === 'Unauthorized' || message.includes('Unauthorized')) return 401;
+  if (message.includes('Forbidden') || message.includes('permission')) return 403;
+  if (message.includes('Not found')) return 404;
+  return 400;
 }
 
 export async function PATCH(
@@ -23,10 +23,10 @@ export async function PATCH(
       return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
     }
     const { prisma } = await import('@varka/database');
-    const ctx = await getCtx();
+    const ctx = await getAuthContext(req);
     const updated = await setCommentStatus(prisma as never, ctx, id, status);
     void writeAudit(prisma as never, {
-      actorId: ctx.userId,
+      actorId: ctx.userId === 'dev-user' ? undefined : ctx.userId,
       action: `comment.${status.toLowerCase()}`,
       entityType: 'Comment',
       entityId: id,
@@ -36,22 +36,22 @@ export async function PATCH(
     return NextResponse.json(updated);
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Error';
-    return NextResponse.json({ error: message }, { status: 400 });
+    return NextResponse.json({ error: message }, { status: errStatus(message) });
   }
 }
 
 export async function DELETE(
-  _req: Request,
+  req: Request,
   ctxParams: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await ctxParams.params;
     const { prisma } = await import('@varka/database');
-    const ctx = await getCtx();
+    const ctx = await getAuthContext(req);
     const result = await deleteComment(prisma as never, ctx, id);
     return NextResponse.json(result);
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Error';
-    return NextResponse.json({ error: message }, { status: 400 });
+    return NextResponse.json({ error: message }, { status: errStatus(message) });
   }
 }

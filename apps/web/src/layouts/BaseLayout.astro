@@ -1,8 +1,8 @@
 ---
-import { activeTheme } from '../lib/theme';
+import { activeThemeWithCss } from '../lib/theme';
 import { siteSeo } from '../lib/seo';
 
-const theme = activeTheme();
+const theme = await activeThemeWithCss();
 const {
   title = 'VARKA',
   description = 'Editorial publishing with VARKA',
@@ -13,6 +13,7 @@ const {
 } = Astro.props;
 
 const seo = siteSeo({ title, description, path, type, noindex, locale });
+const themeName = theme.manifest?.name ?? theme.id ?? 'theme-01';
 ---
 <!doctype html>
 <html lang={locale}>
@@ -45,7 +46,7 @@ const seo = siteSeo({ title, description, path, type, noindex, locale });
       <slot />
     </main>
     <footer class="container" style="border-top:1px solid var(--varka-border);padding:1.5rem 0;color:var(--varka-muted);font-size:0.875rem;">
-      Theme: {theme.manifest.name} · VARKA
+      Theme: {themeName} · VARKA
     </footer>
   </body>
 </html>
