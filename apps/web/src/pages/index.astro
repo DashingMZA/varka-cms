@@ -3,6 +3,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { activeThemeWithCss } from '../lib/theme';
 import { fetchPublishedPosts } from '../lib/content-api';
 
+// Live list — no static prerender of empty shell
+export const prerender = false;
+
+Astro.response.headers.set(
+  'Cache-Control',
+  'public, s-maxage=30, stale-while-revalidate=120',
+);
+
 const theme = await activeThemeWithCss();
 const posts = await fetchPublishedPosts(10);
 const themeName = theme.manifest?.name ?? 'Clean Editorial';

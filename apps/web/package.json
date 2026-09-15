@@ -7,14 +7,16 @@
     "dev": "astro dev --port 4321",
     "build": "astro build",
     "preview": "astro preview --port 4321",
+    "start": "node ./dist/server/entry.mjs",
     "typecheck": "astro check",
     "lint": "echo lint:@varka/web"
   },
   "dependencies": {
-    "@varka/themes": "workspace:*",
-    "astro": "7.3.2",
+    "@astrojs/node": "^9.5.0",
+    "@varka/i18n": "workspace:*",
     "@varka/seo": "workspace:*",
-    "@varka/i18n": "workspace:*"
+    "@varka/themes": "workspace:*",
+    "astro": "7.3.2"
   },
   "devDependencies": {
     "typescript": "^5.9.2"

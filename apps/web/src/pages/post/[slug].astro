@@ -1,25 +1,29 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import CommentSection from '../../components/CommentSection.astro';
-import { fetchPostBySlug, fetchPublishedPosts, fetchComments } from '../../lib/content-api';
+import { fetchPostBySlug, fetchComments } from '../../lib/content-api';
 import { postPath } from '@varka/i18n';
 
-export async function getStaticPaths() {
-  const posts = await fetchPublishedPosts(100);
-  const paths = posts.map((p) => ({ params: { slug: p.slug } }));
-  if (paths.length === 0) {
-    return [{ params: { slug: 'hello-world' } }];
-  }
-  return paths;
-}
+// Dynamic SSR — new published slugs work without rebuild
+export const prerender = false;
+
+Astro.response.headers.set(
+  'Cache-Control',
+  'public, s-maxage=60, stale-while-revalidate=300',
+);
 
 const { slug } = Astro.params;
 const post = slug ? await fetchPostBySlug(String(slug)) : null;
+
+if (!post && slug) {
+  Astro.response.status = 404;
+}
+
 const title = post?.seoTitle || post?.title || String(slug);
 const description = post?.seoDescription || post?.excerpt || '';
 const path =
   post?.path ||
-  postPath({ defaultLanguage: true, locale: 'en', urlPrefix: '' }, String(slug));
+  postPath({ defaultLanguage: true, locale: 'en', urlPrefix: '' }, String(slug ?? ''));
 const comments = post ? await fetchComments(post.id) : [];
 ---
 <BaseLayout
@@ -39,7 +43,7 @@ const comments = post ? await fetchComments(post.id) : [];
       <div class="prose" set:html={post.contentHtml} />
     ) : (
       <div class="prose">
-        <p>Post not found in API. Publish it in admin or check PUBLIC_API_URL.</p>
+        <p>Post not found. Publish it in admin or check PUBLIC_API_URL.</p>
       </div>
     )}
   </article>

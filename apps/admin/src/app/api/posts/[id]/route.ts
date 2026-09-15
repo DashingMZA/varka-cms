@@ -11,6 +11,27 @@ function statusFromError(message: string): number {
   return 400;
 }
 
+async function bustPostCache(post: unknown) {
+  try {
+    const cache = await getCache();
+    const siteId = (post as { siteId?: string }).siteId;
+    const tr = (
+      post as {
+        translations?: Array<{ slug: string; language?: { locale?: string } }>;
+      }
+    ).translations?.[0];
+    if (siteId) {
+      await invalidatePostCache(cache, {
+        siteId,
+        slug: tr?.slug,
+        locale: tr?.language?.locale,
+      });
+    }
+  } catch {
+    /* non-blocking */
+  }
+}
+
 export async function GET(req: Request, ctxParams: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await ctxParams.params;
@@ -31,24 +52,7 @@ export async function PATCH(req: Request, ctxParams: { params: Promise<{ id: str
     const ctx = await getAuthContext(req);
     const { prisma } = await import('@varka/database');
     const post = await updatePost(prisma as never, ctx, id, body);
-    try {
-      const cache = await getCache();
-      const siteId = (post as { siteId?: string }).siteId;
-      const tr = (
-        post as {
-          translations?: Array<{ slug: string; language?: { locale?: string } }>;
-        }
-      ).translations?.[0];
-      if (siteId) {
-        await invalidatePostCache(cache, {
-          siteId,
-          slug: tr?.slug,
-          locale: tr?.language?.locale,
-        });
-      }
-    } catch {
-      /* non-blocking */
-    }
+    await bustPostCache(post);
     return NextResponse.json(post);
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Error';
@@ -64,11 +68,17 @@ export async function DELETE(req: Request, ctxParams: { params: Promise<{ id: st
     const { prisma } = await import('@varka/database');
 
     let languageId = body.languageId;
+    let existing: {
+      siteId: string;
+      translations: Array<{ languageId: string; slug: string; language?: { locale?: string } }>;
+    } | null = null;
+
+    existing = (await prisma.post.findUnique({
+      where: { id },
+      include: { translations: { include: { language: true } } },
+    })) as typeof existing;
+
     if (!languageId) {
-      const existing = (await prisma.post.findUnique({
-        where: { id },
-        include: { translations: true },
-      })) as { translations: Array<{ languageId: string }> } | null;
       languageId = existing?.translations[0]?.languageId;
     }
     if (!languageId) {
@@ -76,6 +86,10 @@ export async function DELETE(req: Request, ctxParams: { params: Promise<{ id: st
     }
 
     const post = await trashPost(prisma as never, ctx, id, languageId);
+    await bustPostCache({
+      siteId: existing?.siteId,
+      translations: existing?.translations,
+    });
     return NextResponse.json({ ok: true, post });
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Error';
