@@ -27,7 +27,7 @@ export async function listUsers(ctx: AuthContext, opts: { cursor?: string; limit
   };
 }
 
-/** Create user row + optional role. Password is set via Better Auth sign-up / reset — not stored here. */
+/** Create user row + optional role. Password via Better Auth sign-up / reset. */
 export async function createUser(
   ctx: AuthContext,
   input: { email: string; name?: string; roleSlug?: string },
@@ -37,10 +37,12 @@ export async function createUser(
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) throw new Error('User already exists');
 
+  const name = (input.name?.trim() || email.split('@')[0] || 'User').slice(0, 120);
+
   const user = await prisma.user.create({
     data: {
       email,
-      name: input.name ?? null,
+      name,
       emailVerified: false,
     },
   });
