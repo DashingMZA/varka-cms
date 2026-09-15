@@ -1,16 +1,15 @@
 import type { ThemeManifest } from '../contract';
 
-/** Dark Editorial */
 export const theme02: ThemeManifest = {
   id: 'theme-02',
   name: 'Dark Editorial',
   version: '1.0.0',
-  description: 'Dark ink background, soft paper text, amber accent.',
+  description: 'Dark canvas, light type, muted accent.',
   supports: { rtl: true, darkMode: true },
   tokens: {
     bg: '#0c0a09',
-    ink: '#f5f5f4',
-    accent: '#f59e0b',
+    ink: '#fafaf9',
+    accent: '#a8a29e',
     muted: '#a8a29e',
     card: '#1c1917',
     border: '#292524',
@@ -19,3 +18,6 @@ export const theme02: ThemeManifest = {
   },
   templates: ['home', 'post', 'page', 'category', 'tag', 'author', 'search', '404'],
 };
+
+/** @deprecated use theme02 */
+export const theme2 = theme02;

@@ -18,3 +18,6 @@ export const theme05: ThemeManifest = {
   },
   templates: ['home', 'post', 'page', 'category', 'tag', 'author', 'search', '404'],
 };
+
+/** @deprecated use theme05 */
+export const theme5 = theme05;
