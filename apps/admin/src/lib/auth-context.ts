@@ -1,4 +1,5 @@
 import type { AuthContext } from '@varka/permissions';
+import { getAuth } from '@/lib/auth';
 
 /**
  * Resolve AuthContext for admin API routes.
@@ -7,12 +8,12 @@ import type { AuthContext } from '@varka/permissions';
  */
 export async function getAuthContext(req?: Request): Promise<AuthContext> {
   try {
-    const { createAuth, loadAuthContext } = await import('@varka/auth');
-    const auth = createAuth();
+    const auth = getAuth();
     const session = await auth.api.getSession({
       headers: req?.headers ?? new Headers(),
     });
     if (session?.user?.id) {
+      const { loadAuthContext } = await import('@varka/auth');
       const ctx = await loadAuthContext(session.user.id);
       if (ctx && !ctx.disabled) return ctx;
     }
