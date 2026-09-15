@@ -41,3 +41,6 @@ body {
 .prose img { max-width: 100%; height: auto; }
 .container { width: min(720px, 92vw); margin: 0 auto; padding: 1.5rem 0 3rem; }
 `.trim();
+
+/** @deprecated use theme03Css */
+export const theme3Css = theme03Css;
