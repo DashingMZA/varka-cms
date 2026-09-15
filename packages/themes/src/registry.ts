@@ -20,6 +20,7 @@ import { theme09Css } from './theme-09/styles.css';
 import { theme10 } from './theme-10/manifest';
 import { theme10Css } from './theme-10/styles.css';
 
+/** All theme modules — export names are zero-padded (theme01, theme01Css, …). */
 export const THEME_REGISTRY: Record<string, ThemeModule> = {
   'theme-01': { manifest: theme01, css: theme01Css },
   'theme-02': { manifest: theme02, css: theme02Css },
