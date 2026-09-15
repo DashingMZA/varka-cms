@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useState, type CSSProperties, type FormEvent } from 'react';
 
 /**
  * Login form posts to Better Auth email/password endpoint.
@@ -85,14 +85,14 @@ export function LoginForm() {
   );
 }
 
-const inputStyle = {
+const inputStyle: CSSProperties = {
   padding: '10px 12px',
   borderRadius: 8,
   border: '1px solid var(--border)',
   background: '#fff',
 };
 
-const btnStyle = {
+const btnStyle: CSSProperties = {
   padding: '10px 14px',
   borderRadius: 8,
   border: 'none',
@@ -101,7 +101,7 @@ const btnStyle = {
   fontWeight: 600,
 };
 
-const oauthStyle = {
+const oauthStyle: CSSProperties = {
   flex: 1,
   textAlign: 'center',
   padding: '8px 10px',

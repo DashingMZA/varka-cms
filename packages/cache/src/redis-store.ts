@@ -1,17 +1,35 @@
 import type { CacheStore } from './types';
 
+/** Minimal shape used from node-redis (optional dependency). */
+type RedisClient = {
+  on(event: string, cb: (err: Error) => void): void;
+  connect(): Promise<void>;
+  get(key: string): Promise<string | null>;
+  set(key: string, value: string, opts?: { EX?: number }): Promise<unknown>;
+  del(key: string): Promise<unknown>;
+  incr(key: string): Promise<number>;
+  expire(key: string, sec: number): Promise<unknown>;
+  ping(): Promise<string>;
+};
+
+type RedisModule = {
+  createClient: (opts: { url: string }) => RedisClient;
+};
+
 /**
- * Minimal Redis store via fetch to Redis REST is NOT assumed.
- * This uses dynamic import of `redis` (node-redis) when installed.
- *
- * Install: pnpm add redis
- * Env: REDIS_URL=redis://...
+ * Redis store via optional `redis` package.
+ * Install: pnpm add redis — Env: REDIS_URL=redis://...
+ * Without redis, getCache() falls back to memory.
  */
 export async function createRedisStore(url: string): Promise<CacheStore> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let redisMod: any;
+  let redisMod: RedisModule;
   try {
-    redisMod = await import(/* webpackIgnore: true */ 'redis');
+    // Dynamic import — package is optional; avoid hard type dependency
+    redisMod = (await import(
+      /* webpackIgnore: true */
+      /* @vite-ignore */
+      'redis'
+    )) as RedisModule;
   } catch {
     throw new Error('Package "redis" not installed — use memory store or pnpm add redis');
   }

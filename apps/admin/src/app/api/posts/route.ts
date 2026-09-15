@@ -7,7 +7,6 @@ import { createPost, listPosts } from '@varka/content';
  * Dev fallback uses owner-like context when AUTH is not fully wired.
  */
 async function getCtx() {
-  // TODO: replace with real session from Better Auth
   return {
     userId: 'dev-user',
     roles: ['owner'],
@@ -26,7 +25,9 @@ async function getDb() {
   return prisma;
 }
 
-async function getSiteId(db: { site: { findFirst: (a: unknown) => Promise<{ id: string } | null> } }) {
+async function getSiteId(db: {
+  site: { findFirst: (a: unknown) => Promise<{ id: string } | null> };
+}) {
   const site = await db.site.findFirst({ where: { slug: 'varka' } });
   if (!site) throw new Error('Site not found — run seed');
   return site.id;
@@ -47,13 +48,14 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const body = (await req.json()) as { title?: string };
+    const body = (await req.json()) as { title?: string; contentHtml?: string };
     const db = await getDb();
     const ctx = await getCtx();
     const siteId = await getSiteId(db as never);
     const post = await createPost(db as never, ctx, {
       siteId,
       title: body.title ?? 'Untitled',
+      contentHtml: body.contentHtml ?? '',
       authorId: ctx.userId === 'dev-user' ? undefined : ctx.userId,
     });
     return NextResponse.json(post, { status: 201 });

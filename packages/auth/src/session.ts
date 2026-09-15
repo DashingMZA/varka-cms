@@ -21,10 +21,14 @@ export async function loadAuthContext(userId: string): Promise<AuthContext | nul
   });
   if (!user) return null;
 
-  const roles = user.roles.map((ur) => ur.role.slug);
-  const permissions = [
+  const roles: string[] = user.roles.map(
+    (ur: { role: { slug: string } }) => ur.role.slug,
+  );
+  const permissions: string[] = [
     ...new Set(
-      user.roles.flatMap((ur) => ur.role.permissions.map((rp) => rp.permission.key)),
+      user.roles.flatMap((ur: { role: { permissions: { permission: { key: string } }[] } }) =>
+        ur.role.permissions.map((rp: { permission: { key: string } }) => rp.permission.key),
+      ),
     ),
   ];
 

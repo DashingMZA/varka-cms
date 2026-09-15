@@ -8,10 +8,11 @@
     "node": ">=22"
   },
   "scripts": {
+    "postinstall": "pnpm db:generate || true",
     "dev": "pnpm -r --parallel --filter @varka/admin --filter @varka/web dev",
     "dev:admin": "pnpm --filter @varka/admin dev",
     "dev:web": "pnpm --filter @varka/web dev",
-    "build": "pnpm -r --filter \"./packages/**\" build && pnpm --filter @varka/admin build",
+    "build": "pnpm db:generate && pnpm -r --filter \"./packages/**\" build && pnpm --filter @varka/admin build",
     "typecheck": "pnpm -r --filter @varka/config --filter @varka/types --filter @varka/validation --filter @varka/permissions --filter @varka/auth --filter @varka/database --filter @varka/admin typecheck",
     "lint": "pnpm -r lint",
     "test": "pnpm --filter @varka/config test && pnpm --filter @varka/permissions test && pnpm --filter @varka/auth test",
