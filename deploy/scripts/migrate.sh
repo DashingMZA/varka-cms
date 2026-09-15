@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 set -eu
 cd "$(dirname "$0")/../.."
+corepack enable 2>/dev/null || true
 pnpm db:generate
 pnpm db:migrate
-pnpm db:seed
-echo "migrate+seed done"
+echo "migrate done (seed separately: pnpm db:seed)"
