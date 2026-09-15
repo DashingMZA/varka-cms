@@ -28,10 +28,14 @@ export async function GET(req: Request) {
       }
     }
     const themes = listThemes().map((t) => ({
-      ...t.manifest,
+      id: t.manifest.id,
+      name: t.manifest.name,
+      description: t.manifest.description,
+      tokens: t.manifest.tokens,
+      supports: t.manifest.supports,
       active: t.manifest.id === active,
     }));
-    return NextResponse.json({ themes, active });
+    return NextResponse.json({ themes, active, count: themes.length });
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Error';
     const status =

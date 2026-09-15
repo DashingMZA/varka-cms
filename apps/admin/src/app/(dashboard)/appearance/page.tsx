@@ -5,7 +5,8 @@ export default function AppearancePage() {
     <main>
       <h1 style={{ marginTop: 0 }}>Appearance</h1>
       <p style={{ color: 'var(--muted)' }}>
-        V1 ships Clean Editorial and Dark Editorial. More themes share the same contract.
+        Ten editorial themes under one contract (tokens + CSS). Activate here — public site loads
+        active theme via <code>/api/public/theme</code>.
       </p>
       <ThemePicker />
     </main>
