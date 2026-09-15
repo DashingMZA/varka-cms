@@ -10,7 +10,12 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json 2>/dev/null || tsc --noEmit",
-    "lint": "echo \"lint: @varka/markdown (deferred until eslint wired)\"",
-    "build": "echo \"build: @varka/markdown (source exports in phase 0)\""
+    "lint": "echo lint:@varka/markdown",
+    "build": "echo build:@varka/markdown",
+    "test": "node --import tsx --test src/markdown.test.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
   }
 }

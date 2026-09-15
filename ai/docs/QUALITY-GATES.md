@@ -1,17 +1,18 @@
 # Quality gates — VARKA
 
-Phase 0 defines the minimum commands every later phase must keep green.
+Minimum commands every phase should keep green.
 
 ## Commands (repo root)
 
 ```bash
-corepack enable && corepack prepare pnpm@11.27.0 --activate
+corepack enable && corepack prepare pnpm@12.4.2 --activate
 pnpm install          # generates/updates pnpm-lock.yaml (commit the lockfile)
 pnpm db:generate      # Prisma client
 pnpm typecheck        # workspace packages + admin
-pnpm lint             # eslint.config.mjs
-pnpm test             # unit tests (config, permissions, auth, …)
+pnpm lint             # eslint 10.10.0
+pnpm test             # unit tests across packages
 pnpm build            # packages then @varka/admin
+pnpm gates            # lint + typecheck + test
 ```
 
 ## Gate policy
@@ -23,11 +24,12 @@ pnpm build            # packages then @varka/admin
 | `pnpm typecheck` | TypeScript regressions |
 | `pnpm lint` | style / basic safety rules |
 | `pnpm test` | unit regressions |
-| `pnpm build` | Next admin (or selected apps) cannot ship |
+| `pnpm build` | Next admin cannot ship |
 
 ## Notes
 
-- **Lockfile:** always commit `pnpm-lock.yaml`. CI and Vercel must use `pnpm install --frozen-lockfile` when lockfile is present.
-- **No fake green:** do not disable eslint rules or `ignoreBuildErrors` to pass gates.
-- **DB:** migrate/seed require a live `DATABASE_URL`; not part of pure compile gates.
+- **Lockfile:** commit `pnpm-lock.yaml`. Prefer `pnpm install --frozen-lockfile` in CI when present.
+- **No fake green:** do not disable eslint or `ignoreBuildErrors` to pass gates.
+- **DB:** migrate/seed need live `DATABASE_URL`; not part of pure compile gates.
 - **Vercel:** install from monorepo root; build runs `pnpm db:generate && pnpm --filter @varka/admin build`.
+- **Node / pnpm:** ≥24 / 12.4.2 (see root `package.json`).

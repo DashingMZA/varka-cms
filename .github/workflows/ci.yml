@@ -28,18 +28,8 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile || pnpm install
 
-      - name: Unit tests (pure packages)
-        run: |
-          pnpm --filter @varka/permissions test
-          pnpm --filter @varka/auth test || true
-          pnpm --filter @varka/content test
-          pnpm --filter @varka/media test || true
-          pnpm --filter @varka/themes test || true
-          pnpm --filter @varka/seo test
-          pnpm --filter @varka/i18n test
-          pnpm --filter @varka/cache test
-          pnpm --filter @varka/queue test
-          pnpm --filter @varka/security test
+      - name: Unit tests
+        run: pnpm test
 
       - name: Typecheck packages
         run: pnpm typecheck || true
