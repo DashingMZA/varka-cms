@@ -1,33 +1,26 @@
 # Phase 1: Auth, Users, RBAC, Admin Shell
 
-**Status:** `partial` (see `ai/memory/STATUS.md`)  
+**Status:** `done` (source)  
 **Depends on:** phase 0  
 **Goal:** Real login, server-enforced RBAC, protected admin chrome.
 
-## Modules
+## Delivered
 
-- **auth** — Better Auth email/password + Google/GitHub; sessions; rate limit hooks
-- **users** — User list/create/disable (admin)
-- **rbac** — Roles, permissions, `requirePermission()`
-- **admin-shell** — Next.js 16 App Router layout + nav
+- Better Auth (email/password + Google/GitHub env-gated)
+- RBAC catalog + `requirePermission` + seed roles
+- Users list / disable / revoke sessions (service + API)
+- Admin shell + nav + dashboard gate
+- `getAuthContext()` for API routes
+- Dashboard layout redirects to `/login` when no session (prod)
 
-## Gaps (active)
-
-- [ ] Replace `dev-user` API context with session from Better Auth
-- [ ] Enforce auth on all `/api/*` except health + public + auth
-- [ ] Login → dashboard redirect verified on Vercel
-- [ ] Seed owner user with password flow documented
-
-## Local run
+## Operator
 
 ```bash
-corepack enable && corepack prepare pnpm@11.27.0 --activate
-cp .env.example .env
 pnpm install
-pnpm db:generate
-pnpm db:migrate
-pnpm db:seed
+pnpm db:generate && pnpm db:migrate && pnpm db:seed
 pnpm --filter @varka/admin dev
 ```
 
-Admin: http://localhost:3000
+Login with `SEED_OWNER_EMAIL` / `SEED_OWNER_PASSWORD` from `.env`.
+
+Production: set `ALLOW_DEV_AUTH_FALLBACK=false` after login works.

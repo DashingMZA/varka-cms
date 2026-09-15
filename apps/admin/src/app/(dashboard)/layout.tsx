@@ -1,11 +1,28 @@
 import type { ReactNode } from 'react';
+import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { AdminNav } from '@/components/admin-nav';
+import { getAuth } from '@/lib/auth';
 
 /**
- * Dashboard chrome. Session gate is enforced in middleware / server layouts
- * once Better Auth session helpers are connected after local install.
+ * Dashboard chrome + session gate.
+ * Unauthenticated users → /login (unless ALLOW_DEV_AUTH_FALLBACK=true).
  */
-export default function DashboardLayout({ children }: { children: ReactNode }) {
+export default async function DashboardLayout({ children }: { children: ReactNode }) {
+  const allowFallback =
+    process.env.ALLOW_DEV_AUTH_FALLBACK === 'true' ||
+    process.env.NODE_ENV !== 'production';
+
+  try {
+    const h = await headers();
+    const session = await getAuth().api.getSession({ headers: h });
+    if (!session?.user && !allowFallback) {
+      redirect('/login');
+    }
+  } catch {
+    if (!allowFallback) redirect('/login');
+  }
+
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', minHeight: '100vh' }}>
       <aside

@@ -1,20 +1,19 @@
 # Current (read every session)
 
-**Updated:** 2026-09-15T19:30Z  
+**Updated:** 2026-09-15T19:40Z  
 **Product:** VARKA  
-**Mode:** phase-forward  
-**Active phase:** Phase 1 (Auth / RBAC / admin shell)  
-**Last task:** Phase 0 closed — quality gates + memory; lockfile operator commit  
-**Next task:** Phase 1 — real session AuthZ; Vercel green build
+**Active phase:** Phase 2 (Content) next  
+**Last task:** Phase 1 close — eslint 10.10.0, users API, dashboard gate, themes AuthZ  
+**Next task:** Phase 2 posts/pages E2E harden
 
 ## Snapshot
 
-- Phase 0: **done** (source) — see `ai/phase0/COMPLETE.md`
-- Honest matrix: `ai/memory/STATUS.md`
-- Operator: run `pnpm install` and commit `pnpm-lock.yaml` if missing
+- Phase 0: done (source)
+- Phase 1: done (source)
+- ESLint: **10.10.0**
 
-## Open blockers
+## Open
 
-1. Commit `pnpm-lock.yaml` from a full install machine
-2. Vercel admin green build + `DATABASE_URL` / `AUTH_SECRET`
-3. Phase 1: replace remaining `dev-user` API contexts
+1. Commit `pnpm-lock.yaml` after local install (eslint 10.10.0 will resolve)
+2. Vercel green deploy
+3. Phase 2 content verification
