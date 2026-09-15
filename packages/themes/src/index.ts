@@ -5,6 +5,7 @@ export {
   listThemes,
   getTheme,
   isThemeId,
+  getThemeCss,
 } from './registry';
 export { theme01 } from './theme-01/manifest';
 export { theme02 } from './theme-02/manifest';
