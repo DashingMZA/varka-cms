@@ -1,18 +1,18 @@
 import type { ThemeManifest } from '../contract';
 
-export const theme9: ThemeManifest = {
+export const theme09: ThemeManifest = {
   id: 'theme-09',
-  name: 'High Contrast',
+  name: 'Amber Editorial',
   version: '1.0.0',
-  description: 'Pure white / pure black, hard accessibility-first contrast.',
+  description: 'Cream paper, deep brown ink, amber accent.',
   supports: { rtl: true, darkMode: false },
   tokens: {
-    bg: '#ffffff',
-    ink: '#000000',
-    accent: '#0000ee',
-    muted: '#444444',
+    bg: '#fffbeb',
+    ink: '#292524',
+    accent: '#d97706',
+    muted: '#a8a29e',
     card: '#ffffff',
-    border: '#000000',
+    border: '#fde68a',
     fontSerif: 'Georgia, "Times New Roman", serif',
     fontSans: 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif',
   },

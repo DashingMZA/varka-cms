@@ -1,18 +1,18 @@
 import type { ThemeManifest } from '../contract';
 
-export const theme8: ThemeManifest = {
+export const theme08: ThemeManifest = {
   id: 'theme-08',
-  name: 'Slate Magazine',
+  name: 'Slate Editorial',
   version: '1.0.0',
-  description: 'Cool slate gray magazine feel, indigo accent.',
+  description: 'Cool slate paper, graphite ink, indigo accent.',
   supports: { rtl: true, darkMode: false },
   tokens: {
-    bg: '#f4f4f5',
-    ink: '#18181b',
+    bg: '#f1f5f9',
+    ink: '#0f172a',
     accent: '#4338ca',
-    muted: '#71717a',
+    muted: '#64748b',
     card: '#ffffff',
-    border: '#e4e4e7',
+    border: '#e2e8f0',
     fontSerif: 'Georgia, "Times New Roman", serif',
     fontSans: 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif',
   },

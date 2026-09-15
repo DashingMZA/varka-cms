@@ -1,18 +1,18 @@
 import type { ThemeManifest } from '../contract';
 
-export const theme7: ThemeManifest = {
+export const theme07: ThemeManifest = {
   id: 'theme-07',
-  name: 'Rose Paper',
+  name: 'Rose Editorial',
   version: '1.0.0',
-  description: 'Blush paper, charcoal ink, rose accent.',
+  description: 'Soft blush paper, charcoal ink, rose accent.',
   supports: { rtl: true, darkMode: false },
   tokens: {
-    bg: '#fdf6f7',
+    bg: '#fdf2f4',
     ink: '#1c1917',
     accent: '#be123c',
-    muted: '#9a7b82',
+    muted: '#9f7a85',
     card: '#ffffff',
-    border: '#f0dfe3',
+    border: '#f0d5dc',
     fontSerif: 'Georgia, "Times New Roman", serif',
     fontSans: 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif',
   },

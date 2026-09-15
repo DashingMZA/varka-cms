@@ -1,8 +1,8 @@
-import { theme7 } from './manifest';
+import { theme07 } from './manifest';
 
-const t = theme7.tokens;
+const t = theme07.tokens;
 
-export const theme7Css = `
+export const theme07Css = `
 :root {
   --varka-bg: ${t.bg};
   --varka-ink: ${t.ink};
