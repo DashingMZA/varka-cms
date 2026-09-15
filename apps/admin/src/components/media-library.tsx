@@ -71,6 +71,11 @@ export function MediaLibrary() {
     await load();
   }
 
+  function previewUrl(a: Asset): string | null {
+    if (a.storage === 'local') return `/api/media/file/${a.key}`;
+    return null;
+  }
+
   return (
     <div style={{ display: 'grid', gap: 16, marginTop: 16 }}>
       <label
@@ -92,6 +97,7 @@ export function MediaLibrary() {
           type="file"
           hidden
           disabled={uploading}
+          accept="image/*,application/pdf,video/mp4,audio/mpeg"
           onChange={(e) => void onFile(e.target.files?.[0] ?? null)}
         />
       </label>
@@ -110,44 +116,58 @@ export function MediaLibrary() {
         {items.length === 0 ? (
           <p style={{ color: 'var(--muted)' }}>No media yet.</p>
         ) : (
-          items.map((a) => (
-            <div
-              key={a.id}
-              style={{
-                background: 'var(--card)',
-                border: '1px solid var(--border)',
-                borderRadius: 12,
-                padding: 12,
-                display: 'grid',
-                gap: 6,
-              }}
-            >
-              <div style={{ fontSize: 13, fontWeight: 600, wordBreak: 'break-all' }}>
-                {a.filename}
-              </div>
-              <div style={{ fontSize: 12, color: 'var(--muted)' }}>
-                {a.mimeType} · {(a.sizeBytes / 1024).toFixed(1)} KB · {a.storage}
-              </div>
-              <div style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--muted)' }}>
-                {a.key}
-              </div>
-              <button
-                type="button"
-                onClick={() => void remove(a.id)}
+          items.map((a) => {
+            const url = previewUrl(a);
+            const isImage = a.mimeType.startsWith('image/');
+            return (
+              <div
+                key={a.id}
                 style={{
-                  marginTop: 4,
-                  padding: '6px 10px',
-                  borderRadius: 6,
+                  background: 'var(--card)',
                   border: '1px solid var(--border)',
-                  background: '#fff',
-                  color: 'var(--danger)',
-                  fontSize: 12,
+                  borderRadius: 12,
+                  padding: 12,
+                  display: 'grid',
+                  gap: 6,
                 }}
               >
-                Delete
-              </button>
-            </div>
-          ))
+                {isImage && url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={url}
+                    alt={a.alt ?? a.filename}
+                    style={{
+                      width: '100%',
+                      height: 100,
+                      objectFit: 'cover',
+                      borderRadius: 8,
+                    }}
+                  />
+                ) : null}
+                <div style={{ fontSize: 13, fontWeight: 600, wordBreak: 'break-all' }}>
+                  {a.filename}
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--muted)' }}>
+                  {a.mimeType} · {(a.sizeBytes / 1024).toFixed(1)} KB · {a.storage}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void remove(a.id)}
+                  style={{
+                    marginTop: 4,
+                    padding: '6px 10px',
+                    borderRadius: 6,
+                    border: '1px solid var(--border)',
+                    background: '#fff',
+                    color: 'var(--danger)',
+                    fontSize: 12,
+                  }}
+                >
+                  Delete
+                </button>
+              </div>
+            );
+          })
         )}
       </div>
     </div>
