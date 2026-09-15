@@ -1,19 +1,27 @@
-# Stack lock — VARKA
+# VARKA stack (locked)
 
-**Researched:** 2026-09-14
+| Layer | Choice |
+|-------|--------|
+| Package manager | **pnpm 12.4.2** (`packageManager` field) |
+| Node | **>= 24** |
+| Public site | Astro 7 HTML-first |
+| Admin / API | Next.js 16.3 App Router |
+| Language | TypeScript strict |
+| DB | PostgreSQL + Prisma **7.10.x** |
+| Auth | Better Auth |
+| Validation | Zod |
+| Lint | **ESLint 10.10.0** |
+| Format | Prettier 3.x |
+| Cache | Redis optional; memory default |
+| Media | local + S3/R2 (`STORAGE_DRIVER`) |
+| Editor | Tiptap (admin content) |
+| CSS | Tailwind + shadcn/ui (admin); theme CSS tokens (public) |
 
-| Runtime / lib | Version | Notes |
-|---|---|---|
-| Node.js | 22+ (24 OK) | |
-| pnpm | **11.27.0** | `packageManager` field |
-| Next.js | **16.3.5** | Admin + API; not 16.4 canary |
-| Astro | **7.3.x** | Public site |
-| Prisma | **7.10.x** | Not 8 RC (`latest` may point at RC) |
-| Better Auth | latest stable w/ Next 16.3 | Phase 1 |
-| Zod | **4.x** | |
-| TypeScript | **5.9.x** | strict |
-| Tailwind | **4.x** | Phase 1+ |
-| Redis | 7.x | Phase 9 |
-| PostgreSQL | 16+ | |
+Activate tooling:
 
-Re-verify on install day.
+```bash
+corepack enable
+corepack prepare pnpm@12.4.2 --activate
+node -v   # >= 24
+pnpm -v   # 12.4.2
+```

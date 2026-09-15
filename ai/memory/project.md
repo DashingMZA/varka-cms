@@ -13,7 +13,7 @@ Status: `locked` | `recommended` | `unlocked`
 | D07 | Theme model | locked | One contract, 10 implementations; V1 ships theme-01 + theme-08 first |
 | D08 | i18n | locked | 18 languages DB-driven; language ≠ script (script is a field) |
 | D09 | Punjabi | locked | One language row (`pa`) + `script` field (not two rows) |
-| D10 | Package manager | locked | pnpm 11.27.0 workspaces |
+| D10 | Package manager | locked | **pnpm 12.4.2** workspaces |
 | D11 | Target | locked | Portable production monorepo (Next + Astro) |
 | D12 | Admin URL | locked | Configurable host; default subdomain `adminzb` in prod |
 | D13 | Default language | locked | English (`en`) |
@@ -24,5 +24,7 @@ Status: `locked` | `recommended` | `unlocked`
 | D18 | V1 themes | locked | theme-01 Clean Editorial + theme-08 Dark Editorial first |
 | D19 | Brand | locked | **VARKA** (see `ai/owner.md`) |
 | D20 | Topology | locked | Two apps / two hosts; local admin:3000, web:4321 |
+| D21 | Node | locked | **Node.js >= 24** |
+| D22 | ESLint | locked | **eslint 10.10.0** |
 
 Do not invent owner contact or domain values — those stay in `ai/owner.md` until verified.

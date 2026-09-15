@@ -3,9 +3,9 @@
   "private": true,
   "version": "0.1.0",
   "description": "VARKA — production WordPress-style Blog CMS",
-  "packageManager": "pnpm@11.27.0",
+  "packageManager": "pnpm@12.4.2",
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   },
   "scripts": {
     "postinstall": "pnpm db:generate || true",
