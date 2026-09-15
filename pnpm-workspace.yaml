@@ -1,0 +1,9 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+  - "packages/themes/*"
+  - "workers/*"
+allowBuilds:
+  '@prisma/engines': true
+  esbuild: true
+  prisma: true

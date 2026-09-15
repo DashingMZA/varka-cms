@@ -1,0 +1,30 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { postPath } from '@varka/i18n';
+
+export function getStaticPaths() {
+  return [{ params: { slug: 'hello-world' } }];
+}
+
+const { slug } = Astro.params;
+const title = String(slug);
+const path = postPath(
+  { defaultLanguage: false, locale: 'pa', urlPrefix: 'pa' },
+  String(slug),
+);
+---
+<BaseLayout
+  title={title}
+  description={`ਪੰਜਾਬੀ: ${title}`}
+  path={path}
+  type="article"
+  locale="pa"
+>
+  <article>
+    <h1 class="post-title">{title}</h1>
+    <p class="post-meta">{path} · pa · script Guru</p>
+    <div class="prose">
+      <p>Punjabi URL prefix example. Enable language in admin Languages when ready.</p>
+    </div>
+  </article>
+</BaseLayout>

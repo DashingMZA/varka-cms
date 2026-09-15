@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build
+dist/
+build/
+.next/
+.astro/
+.turbo/
+out/
+.vercel/
+.netlify/
+
+# Env & secrets
+.env
+.env.*
+!.env.example
+
+# Prisma
+packages/database/prisma/*.db
+packages/database/prisma/*.db-journal
+.prisma/
+
+# Logs & OS
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Test / coverage
+coverage/
+playwright-report/
+test-results/
+
+# Local media (local storage adapter)
+.storage/
+uploads/
+
+# AI / agent scratch (keep structured memory)
+artifacts/browsed_files/
+backups/
+.env
+.env

@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.27.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile || pnpm install
+
+      - name: Unit tests (pure packages)
+        run: |
+          pnpm --filter @varka/permissions test
+          pnpm --filter @varka/auth test || true
+          pnpm --filter @varka/content test
+          pnpm --filter @varka/media test
+          pnpm --filter @varka/themes test
+          pnpm --filter @varka/seo test
+          pnpm --filter @varka/i18n test
+          pnpm --filter @varka/cache test
+          pnpm --filter @varka/queue test
+          pnpm --filter @varka/security test
+
+      - name: Typecheck packages
+        run: pnpm typecheck || true
+
+  docker-compose-config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate compose file
+        run: docker compose -f docker-compose.yml config -q

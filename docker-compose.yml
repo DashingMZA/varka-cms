@@ -1,0 +1,92 @@
+# VARKA local/prod-like stack
+# Usage:
+#   cp .env.example .env   # set secrets
+#   docker compose up -d postgres redis
+#   pnpm install && pnpm db:generate && pnpm db:migrate:dev && pnpm db:seed
+#   docker compose up -d admin web
+#
+# Or full stack after images built:
+#   docker compose up -d
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: varka
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-varka}
+      POSTGRES_DB: varka
+    ports:
+      - "5432:5432"
+    volumes:
+      - varka_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U varka -d varka"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - varka_redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  admin:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.admin
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://varka:${POSTGRES_PASSWORD:-varka}@postgres:5432/varka?schema=public
+      REDIS_URL: redis://redis:6379
+      ADMIN_URL: ${ADMIN_URL:-http://localhost:3000}
+      SITE_URL: ${SITE_URL:-http://localhost:4321}
+      PORT: "3000"
+    ports:
+      - "3000:3000"
+    volumes:
+      - varka_storage:/app/.storage
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  web:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.web
+      args:
+        PUBLIC_SITE_URL: ${SITE_URL:-http://localhost:4321}
+        PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:3000}
+        PUBLIC_SITE_NAME: ${PUBLIC_SITE_NAME:-VARKA}
+        PUBLIC_THEME_ID: ${PUBLIC_THEME_ID:-theme-01}
+    restart: unless-stopped
+    depends_on:
+      - admin
+    ports:
+      - "4321:4321"
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "4321"
+
+volumes:
+  varka_pg:
+  varka_redis:
+  varka_storage:

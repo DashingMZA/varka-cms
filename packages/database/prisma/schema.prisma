@@ -1,0 +1,513 @@
+// VARKA — Prisma 7.10 schema
+// Phase 0: Site / Language / SiteSetting
+// Phase 1: Auth + RBAC
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Tenancy ───────────────────────────────────────────────
+
+model Site {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  domain    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  settings   SiteSetting[]
+  languages  Language[]
+  users      User[]
+  posts      Post[]
+  pages      Page[]
+  categories Category[]
+  tags       Tag[]
+  authors    AuthorProfile[]
+  comments    Comment[]
+  mediaAssets MediaAsset[]
+  auditLogs   AuditLog[]
+}
+
+model SiteSetting {
+  id        String   @id @default(cuid())
+  siteId    String
+  key       String
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@unique([siteId, key])
+  @@index([siteId])
+}
+
+model Language {
+  id              String   @id @default(cuid())
+  siteId          String
+  name            String
+  nativeName      String
+  locale          String
+  languageCode    String
+  script          String
+  direction       String   @default("ltr")
+  enabled         Boolean  @default(true)
+  defaultLanguage Boolean  @default(false)
+  urlPrefix       String   @default("")
+  dateFormat      String   @default("YYYY-MM-DD")
+  numberFormat    String   @default("en-US")
+  displayOrder    Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  postTranslations     PostTranslation[]
+  pageTranslations     PageTranslation[]
+  categoryTranslations CategoryTranslation[]
+  tagTranslations      TagTranslation[]
+
+  @@unique([siteId, locale])
+  @@unique([siteId, languageCode, script])
+  @@index([siteId, enabled])
+}
+
+// ─── Auth (Better Auth compatible) ─────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  siteId        String?
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  /// disabled users cannot sign in
+  disabled      Boolean   @default(false)
+  /// failed login counter for lockout
+  failedLogins  Int       @default(0)
+  lockedUntil   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  site     Site?     @relation(fields: [siteId], references: [id], onDelete: SetNull)
+  sessions Session[]
+  accounts Account[]
+  roles    UserRole[]
+  authorProfile AuthorProfile?
+  posts    Post[]
+  pages    Page[]
+  revisions Revision[]
+  comments Comment[]
+  uploadedMedia MediaAsset[]
+
+  @@index([siteId])
+  @@index([disabled])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  userId                String
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  idToken               String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+}
+
+// ─── RBAC ──────────────────────────────────────────────────
+
+model Role {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  permissions RolePermission[]
+  users       UserRole[]
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+
+  roles RolePermission[]
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+model UserRole {
+  userId String
+  roleId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+}
+
+// ─── Content (Phase 2) ─────────────────────────────────────
+
+enum ContentStatus {
+  DRAFT
+  PENDING_REVIEW
+  SCHEDULED
+  PUBLISHED
+  TRASHED
+}
+
+model AuthorProfile {
+  id        String   @id @default(cuid())
+  siteId    String
+  userId    String   @unique
+  slug      String
+  displayName String
+  bio       String?
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  site  Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  user  User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  posts Post[]
+
+  @@unique([siteId, slug])
+  @@index([siteId])
+}
+
+model Post {
+  id          String        @id @default(cuid())
+  siteId      String
+  authorId    String?
+  authorProfileId String?
+  status      ContentStatus @default(DRAFT)
+  publishedAt DateTime?
+  scheduledAt DateTime?
+  deletedAt   DateTime?
+  commentsEnabled Boolean   @default(true)
+  /// optimistic concurrency
+  version     Int           @default(1)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  site          Site           @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  author        User?          @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  authorProfile AuthorProfile? @relation(fields: [authorProfileId], references: [id], onDelete: SetNull)
+  translations  PostTranslation[]
+  categories    PostCategory[]
+  tags          PostTag[]
+  revisions     Revision[]
+  comments      Comment[]
+
+  @@index([siteId, status])
+  @@index([siteId, publishedAt])
+  @@index([authorId])
+}
+
+model PostTranslation {
+  id          String        @id @default(cuid())
+  postId      String
+  languageId  String
+  title       String
+  slug        String
+  excerpt     String?
+  contentHtml String        @default("")
+  contentJson Json?
+  status      ContentStatus @default(DRAFT)
+  seoTitle    String?
+  seoDescription String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  post     Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, languageId])
+  @@unique([languageId, slug])
+  @@index([postId])
+  @@index([status])
+}
+
+model Page {
+  id          String        @id @default(cuid())
+  siteId      String
+  authorId    String?
+  parentId    String?
+  status      ContentStatus @default(DRAFT)
+  sortOrder   Int           @default(0)
+  template    String        @default("default")
+  publishedAt DateTime?
+  deletedAt   DateTime?
+  version     Int           @default(1)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  site         Site              @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  author       User?             @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  parent       Page?             @relation("PageTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children     Page[]            @relation("PageTree")
+  translations PageTranslation[]
+  revisions    Revision[]
+
+  @@index([siteId, status])
+  @@index([parentId])
+}
+
+model PageTranslation {
+  id          String        @id @default(cuid())
+  pageId      String
+  languageId  String
+  title       String
+  slug        String
+  contentHtml String        @default("")
+  contentJson Json?
+  status      ContentStatus @default(DRAFT)
+  seoTitle    String?
+  seoDescription String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  page     Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@unique([pageId, languageId])
+  @@unique([languageId, slug])
+  @@index([pageId])
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  siteId    String
+  parentId  String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  site         Site                  @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  parent       Category?             @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children     Category[]            @relation("CategoryTree")
+  translations CategoryTranslation[]
+  posts        PostCategory[]
+
+  @@index([siteId])
+  @@index([parentId])
+}
+
+model CategoryTranslation {
+  id         String @id @default(cuid())
+  categoryId String
+  languageId String
+  name       String
+  slug       String
+  description String?
+
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, languageId])
+  @@unique([languageId, slug])
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  siteId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  site         Site              @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  translations TagTranslation[]
+  posts        PostTag[]
+
+  @@index([siteId])
+}
+
+model TagTranslation {
+  id         String @id @default(cuid())
+  tagId      String
+  languageId String
+  name       String
+  slug       String
+
+  tag      Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@unique([tagId, languageId])
+  @@unique([languageId, slug])
+}
+
+model PostCategory {
+  postId     String
+  categoryId String
+
+  post     Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([postId, categoryId])
+}
+
+model PostTag {
+  postId String
+  tagId  String
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+}
+
+model Revision {
+  id          String   @id @default(cuid())
+  postId      String?
+  pageId      String?
+  authorId    String?
+  languageId  String?
+  title       String?
+  contentHtml String
+  contentJson Json?
+  note        String?
+  createdAt   DateTime @default(now())
+
+  post   Post? @relation(fields: [postId], references: [id], onDelete: Cascade)
+  page   Page? @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  author User? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([postId, createdAt])
+  @@index([pageId, createdAt])
+}
+
+enum CommentStatus {
+  PENDING
+  APPROVED
+  SPAM
+  TRASH
+}
+
+model Comment {
+  id           String        @id @default(cuid())
+  siteId       String
+  postId       String
+  parentId     String?
+  authorUserId String?
+  authorName   String
+  authorEmail  String?
+  body         String
+  status       CommentStatus @default(PENDING)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  site   Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  post   Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parent Comment? @relation("CommentThread", fields: [parentId], references: [id], onDelete: SetNull)
+  replies Comment[] @relation("CommentThread")
+  author User?    @relation(fields: [authorUserId], references: [id], onDelete: SetNull)
+
+  @@index([postId, status])
+  @@index([siteId, status])
+}
+
+// ─── Media (Phase 3) ───────────────────────────────────────
+
+model MediaAsset {
+  id           String   @id @default(cuid())
+  siteId       String
+  uploadedById String?
+  /// local | s3 | r2
+  storage      String   @default("local")
+  /// object key / relative path
+  key          String
+  filename     String
+  mimeType     String
+  sizeBytes    Int
+  width        Int?
+  height       Int?
+  alt          String?
+  title        String?
+  checksum     String?
+  folder       String   @default("/")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  site       Site  @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  uploadedBy User? @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  @@unique([siteId, key])
+  @@index([siteId, folder])
+  @@index([siteId, mimeType])
+  @@index([uploadedById])
+}
+
+// ─── Security / Audit (Phase 8) ─────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  siteId     String?
+  actorId    String?
+  actorEmail String?
+  action     String
+  entityType String?
+  entityId   String?
+  ip         String?
+  userAgent  String?
+  meta       Json?
+  createdAt  DateTime @default(now())
+
+  site Site? @relation(fields: [siteId], references: [id], onDelete: SetNull)
+
+  @@index([siteId, createdAt])
+  @@index([actorId, createdAt])
+  @@index([action, createdAt])
+  @@index([entityType, entityId])
+}

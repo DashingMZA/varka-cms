@@ -1,0 +1,51 @@
+---
+import { activeTheme } from '../lib/theme';
+import { siteSeo } from '../lib/seo';
+
+const theme = activeTheme();
+const {
+  title = 'VARKA',
+  description = 'Editorial publishing with VARKA',
+  path = Astro.url.pathname,
+  type = 'website',
+  noindex = false,
+  locale = 'en',
+} = Astro.props;
+
+const seo = siteSeo({ title, description, path, type, noindex, locale });
+---
+<!doctype html>
+<html lang={locale}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{seo.title}</title>
+    <meta name="description" content={seo.description} />
+    <meta name="robots" content={seo.robots} />
+    <link rel="canonical" href={seo.canonical} />
+    {Object.entries(seo.openGraph).map(([k, v]) => (
+      <meta property={k} content={v} />
+    ))}
+    {Object.entries(seo.twitter).map(([k, v]) => (
+      <meta name={k} content={v} />
+    ))}
+    <script type="application/ld+json" set:html={JSON.stringify(seo.jsonLd)} />
+    <style set:html={theme.css}></style>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container" style="display:flex;align-items:center;justify-content:space-between;padding-block:1rem;">
+        <a class="site-title" href="/">VARKA</a>
+        <nav aria-label="Primary">
+          <a href="/">Home</a>
+        </nav>
+      </div>
+    </header>
+    <main class="container">
+      <slot />
+    </main>
+    <footer class="container" style="border-top:1px solid var(--varka-border);padding:1.5rem 0;color:var(--varka-muted);font-size:0.875rem;">
+      Theme: {theme.manifest.name} · VARKA
+    </footer>
+  </body>
+</html>

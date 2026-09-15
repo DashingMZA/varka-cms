@@ -1,0 +1,29 @@
+{
+  "name": "@varka/content",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "echo lint:@varka/content",
+    "build": "echo build:@varka/content",
+    "test": "node --import tsx --test src/slug.test.ts src/comments.test.ts"
+  },
+  "dependencies": {
+    "@varka/database": "workspace:*",
+    "@varka/permissions": "workspace:*",
+    "@varka/validation": "workspace:*",
+    "zod": "^4.1.5",
+    "@varka/cache": "workspace:*",
+    "@varka/i18n": "workspace:*"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  }
+}

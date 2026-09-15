@@ -1,0 +1,13 @@
+node_modules
+**/node_modules
+.git
+.next
+**/.next
+dist
+browsed_files
+.storage
+backups
+.env
+**/.env
+*.zip
+ai/memory/**/tasks

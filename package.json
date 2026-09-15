@@ -1,0 +1,30 @@
+{
+  "name": "varka",
+  "private": true,
+  "version": "0.1.0",
+  "description": "VARKA — production WordPress-style Blog CMS",
+  "packageManager": "pnpm@11.27.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel --filter @varka/admin --filter @varka/web dev",
+    "dev:admin": "pnpm --filter @varka/admin dev",
+    "dev:web": "pnpm --filter @varka/web dev",
+    "build": "pnpm -r --filter \"./packages/**\" build && pnpm --filter @varka/admin build",
+    "typecheck": "pnpm -r --filter @varka/config --filter @varka/types --filter @varka/validation --filter @varka/permissions --filter @varka/auth --filter @varka/database --filter @varka/admin typecheck",
+    "lint": "pnpm -r lint",
+    "test": "pnpm --filter @varka/config test && pnpm --filter @varka/permissions test && pnpm --filter @varka/auth test",
+    "db:generate": "pnpm --filter @varka/database generate",
+    "db:migrate": "pnpm --filter @varka/database migrate",
+    "db:migrate:dev": "pnpm --filter @varka/database migrate:dev",
+    "db:seed": "pnpm --filter @varka/database seed",
+    "db:studio": "pnpm --filter @varka/database studio",
+    "format": "prettier --write \"**/*.{ts,tsx,js,mjs,cjs,json,md,yml,yaml}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,mjs,cjs,json,md,yml,yaml}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.2"
+  }
+}

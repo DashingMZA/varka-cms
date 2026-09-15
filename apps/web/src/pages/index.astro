@@ -1,0 +1,29 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { activeTheme } from '../lib/theme';
+import { fetchPublishedPosts } from '../lib/content-api';
+
+const theme = activeTheme();
+const posts = await fetchPublishedPosts(10);
+---
+<BaseLayout title="VARKA" description="Modern editorial publishing" path="/" type="website">
+  <h1 class="post-title">VARKA</h1>
+  <p class="post-meta">Public site · {theme.manifest.name}</p>
+  <div class="prose">
+    {posts.length === 0 ? (
+      <p>
+        No published posts yet (or API offline). Publish from admin, ensure{" "}
+        <code>PUBLIC_API_URL</code> points at the admin host.
+      </p>
+    ) : (
+      <ul>
+        {posts.map((p) => (
+          <li>
+            <a href={p.path}>{p.title}</a>
+            {p.excerpt ? <span style="color:var(--varka-muted)"> — {p.excerpt}</span> : null}
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+</BaseLayout>
