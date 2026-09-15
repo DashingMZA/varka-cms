@@ -8,17 +8,45 @@ import {
   writeAudit,
 } from '@varka/security';
 
+function corsHeaders(req: Request): HeadersInit {
+  const origin = req.headers.get('origin');
+  const allowed = allowedOriginsFromEnv();
+  const headers: Record<string, string> = {
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  };
+  if (origin && allowed.map((o) => o.replace(/\/$/, '')).includes(origin.replace(/\/$/, ''))) {
+    headers['Access-Control-Allow-Origin'] = origin;
+    headers['Vary'] = 'Origin';
+  }
+  return headers;
+}
+
+export async function OPTIONS(req: Request) {
+  return new NextResponse(null, { status: 204, headers: corsHeaders(req) });
+}
+
 export async function GET(req: Request) {
   try {
     const url = new URL(req.url);
     const postId = url.searchParams.get('postId');
-    if (!postId) return NextResponse.json({ error: 'postId required' }, { status: 400 });
+    if (!postId) {
+      return NextResponse.json({ error: 'postId required' }, { status: 400, headers: corsHeaders(req) });
+    }
     const { prisma } = await import('@varka/database');
     const items = await listCommentsForPost(prisma as never, { postId });
-    return NextResponse.json({ items });
+    return NextResponse.json(
+      { items },
+      {
+        headers: {
+          ...corsHeaders(req),
+          'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+        },
+      },
+    );
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Error';
-    return NextResponse.json({ error: message }, { status: 400 });
+    return NextResponse.json({ error: message }, { status: 400, headers: corsHeaders(req) });
   }
 }
 
@@ -28,7 +56,7 @@ export async function POST(req: Request) {
       assertSameOrigin(req, allowedOriginsFromEnv());
     } catch (e) {
       if (e instanceof OriginError) {
-        return NextResponse.json({ error: e.message }, { status: 403 });
+        return NextResponse.json({ error: e.message }, { status: 403, headers: corsHeaders(req) });
       }
       throw e;
     }
@@ -44,13 +72,18 @@ export async function POST(req: Request) {
     if (!rl.allowed) {
       return NextResponse.json(
         { error: 'Too many comments — try later', retryAfterSec: rl.retryAfterSec },
-        { status: 429, headers: { 'Retry-After': String(rl.retryAfterSec) } },
+        {
+          status: 429,
+          headers: { ...corsHeaders(req), 'Retry-After': String(rl.retryAfterSec) },
+        },
       );
     }
 
     const { prisma } = await import('@varka/database');
     const site = await prisma.site.findFirst({ where: { slug: 'varka' } });
-    if (!site) return NextResponse.json({ error: 'Site not found' }, { status: 404 });
+    if (!site) {
+      return NextResponse.json({ error: 'Site not found' }, { status: 404, headers: corsHeaders(req) });
+    }
     const body = await req.json();
     const comment = await submitComment(prisma as never, {
       ...body,
@@ -73,10 +106,10 @@ export async function POST(req: Request) {
         status: (comment as { status?: string }).status ?? 'PENDING',
         message: 'Comment submitted for moderation',
       },
-      { status: 201 },
+      { status: 201, headers: corsHeaders(req) },
     );
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Error';
-    return NextResponse.json({ error: message }, { status: 400 });
+    return NextResponse.json({ error: message }, { status: 400, headers: corsHeaders(req) });
   }
 }

@@ -20,6 +20,14 @@ export type PublicPostDetail = PublicPostCard & {
   seoDescription: string | null;
 };
 
+export type PublicComment = {
+  id: string;
+  authorName: string;
+  body: string;
+  createdAt: string;
+  replies?: PublicComment[];
+};
+
 export async function fetchPublishedPosts(limit = 20): Promise<PublicPostCard[]> {
   try {
     const res = await fetch(`${API}/api/public/posts?limit=${limit}`, {
@@ -43,4 +51,22 @@ export async function fetchPostBySlug(slug: string): Promise<PublicPostDetail | 
   } catch {
     return null;
   }
+}
+
+export async function fetchComments(postId: string): Promise<PublicComment[]> {
+  try {
+    const res = await fetch(
+      `${API}/api/public/comments?postId=${encodeURIComponent(postId)}`,
+      { headers: { Accept: 'application/json' } },
+    );
+    if (!res.ok) return [];
+    const data = (await res.json()) as { items: PublicComment[] };
+    return data.items ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export function publicApiBase(): string {
+  return API;
 }

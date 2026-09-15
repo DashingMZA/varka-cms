@@ -34,6 +34,7 @@ export {
   setCommentStatus,
   deleteComment,
   commentCounts,
+  looksLikeSpam,
   type SubmitCommentInput,
   type CommentsDb,
 } from './comments';

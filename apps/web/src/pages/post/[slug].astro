@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { fetchPostBySlug, fetchPublishedPosts } from '../../lib/content-api';
+import CommentSection from '../../components/CommentSection.astro';
+import { fetchPostBySlug, fetchPublishedPosts, fetchComments } from '../../lib/content-api';
 import { postPath } from '@varka/i18n';
 
 export async function getStaticPaths() {
@@ -16,7 +17,10 @@ const { slug } = Astro.params;
 const post = slug ? await fetchPostBySlug(String(slug)) : null;
 const title = post?.seoTitle || post?.title || String(slug);
 const description = post?.seoDescription || post?.excerpt || '';
-const path = post?.path || postPath({ defaultLanguage: true, locale: 'en', urlPrefix: '' }, String(slug));
+const path =
+  post?.path ||
+  postPath({ defaultLanguage: true, locale: 'en', urlPrefix: '' }, String(slug));
+const comments = post ? await fetchComments(post.id) : [];
 ---
 <BaseLayout
   title={title}
@@ -39,4 +43,5 @@ const path = post?.path || postPath({ defaultLanguage: true, locale: 'en', urlPr
       </div>
     )}
   </article>
+  {post ? <CommentSection postId={post.id} comments={comments} /> : null}
 </BaseLayout>

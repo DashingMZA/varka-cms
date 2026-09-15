@@ -21,8 +21,10 @@ export const submitCommentInput = z.object({
   postId: z.string().min(1),
   parentId: z.string().optional(),
   authorName: z.string().min(1).max(120),
-  authorEmail: z.string().email().max(200).optional(),
+  authorEmail: z.string().email().max(200).optional().or(z.literal('')),
   body: z.string().min(1).max(5000),
+  /** Honeypot — bots fill this; humans leave empty */
+  website: z.string().max(200).optional(),
 });
 
 export type SubmitCommentInput = z.infer<typeof submitCommentInput>;
@@ -32,9 +34,11 @@ const SPAM_PATTERNS = [
   /\bcrypto\s*pump\b/i,
   /\[url=/i,
   /<script/i,
+  /\bseo\s*service\b/i,
 ];
 
-function looksLikeSpam(body: string, name: string): boolean {
+/** Exported for unit tests */
+export function looksLikeSpam(body: string, name: string): boolean {
   const sample = `${name} ${body}`;
   if ((sample.match(/https?:\/\//gi) ?? []).length >= 3) return true;
   return SPAM_PATTERNS.some((re) => re.test(sample));
@@ -47,7 +51,7 @@ function sanitizeBody(body: string): string {
     .trim();
 }
 
-/** Public submit — no auth required; moderation gate */
+/** Public submit — no auth; moderation gate + spam heuristics */
 export async function submitComment(db: CommentsDb, raw: SubmitCommentInput) {
   const input = submitCommentInput.parse(raw);
   const post = (await db.post.findUnique({
@@ -64,11 +68,28 @@ export async function submitComment(db: CommentsDb, raw: SubmitCommentInput) {
   if (!post.commentsEnabled) throw new Error('Comments disabled');
   if (post.status !== 'PUBLISHED') throw new Error('Comments only on published posts');
 
+  if (input.parentId) {
+    const parent = (await db.comment.findUnique({
+      where: { id: input.parentId },
+    })) as { id: string; postId: string; parentId: string | null } | null;
+    if (!parent || parent.postId !== input.postId) {
+      throw new Error('Invalid parent comment');
+    }
+    // one-level replies only
+    if (parent.parentId) {
+      throw new Error('Replies to replies are not allowed');
+    }
+  }
+
   const body = sanitizeBody(input.body);
   if (!body) throw new Error('Empty comment');
 
-  const spam = looksLikeSpam(body, input.authorName);
+  const honeypot = Boolean(input.website && input.website.trim());
+  const spam = honeypot || looksLikeSpam(body, input.authorName);
   const status = spam ? 'SPAM' : 'PENDING';
+
+  const email =
+    input.authorEmail && input.authorEmail.length > 0 ? input.authorEmail : undefined;
 
   return db.comment.create({
     data: {
@@ -76,7 +97,7 @@ export async function submitComment(db: CommentsDb, raw: SubmitCommentInput) {
       postId: input.postId,
       parentId: input.parentId,
       authorName: input.authorName.slice(0, 120),
-      authorEmail: input.authorEmail,
+      authorEmail: email,
       body,
       status,
     },
@@ -122,7 +143,12 @@ export async function moderateList(
     ...(opts.cursor ? { cursor: { id: opts.cursor }, skip: 1 } : {}),
     orderBy: { createdAt: 'desc' },
     include: {
-      post: { select: { id: true, translations: { select: { title: true, slug: true }, take: 1 } } },
+      post: {
+        select: {
+          id: true,
+          translations: { select: { title: true, slug: true }, take: 1 },
+        },
+      },
     },
   })) as Array<{ id: string }>;
 

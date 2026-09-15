@@ -1,0 +1,102 @@
+---
+import type { PublicComment } from '../lib/content-api';
+import { publicApiBase } from '../lib/content-api';
+
+interface Props {
+  postId: string;
+  comments: PublicComment[];
+}
+
+const { postId, comments } = Astro.props;
+const apiBase = publicApiBase();
+---
+<section class="comments" style="margin-top: 2.5rem; border-top: 1px solid var(--varka-border); padding-top: 1.5rem;">
+  <h2 style="font-family: var(--varka-font-serif); font-size: 1.35rem; margin: 0 0 1rem;">Comments</h2>
+
+  {comments.length === 0 ? (
+    <p style="color: var(--varka-muted); font-size: 0.95rem;">No comments yet.</p>
+  ) : (
+    <ul style="list-style: none; padding: 0; margin: 0 0 1.5rem; display: grid; gap: 1rem;">
+      {comments.map((c) => (
+        <li style="background: var(--varka-card); border: 1px solid var(--varka-border); border-radius: 10px; padding: 12px 14px;">
+          <div style="font-size: 0.85rem; color: var(--varka-muted);">
+            <strong style="color: var(--varka-ink);">{c.authorName}</strong>
+            {c.createdAt ? ` · ${new Date(c.createdAt).toLocaleString()}` : ''}
+          </div>
+          <p style="margin: 0.5rem 0 0; white-space: pre-wrap;">{c.body}</p>
+          {c.replies && c.replies.length > 0 ? (
+            <ul style="list-style: none; padding: 0.75rem 0 0 1rem; margin: 0.75rem 0 0; border-left: 2px solid var(--varka-border); display: grid; gap: 0.75rem;">
+              {c.replies.map((r) => (
+                <li>
+                  <div style="font-size: 0.85rem; color: var(--varka-muted);">
+                    <strong style="color: var(--varka-ink);">{r.authorName}</strong>
+                  </div>
+                  <p style="margin: 0.35rem 0 0; white-space: pre-wrap;">{r.body}</p>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </li>
+      ))}
+    </ul>
+  )}
+
+  <form id="comment-form" style="display: grid; gap: 10px; max-width: 480px;">
+    <input type="hidden" name="postId" value={postId} />
+    {/* honeypot */}
+    <label style="position:absolute;left:-9999px;" aria-hidden="true">
+      Website
+      <input type="text" name="website" tabindex="-1" autocomplete="off" />
+    </label>
+    <label style="display:grid;gap:4px;font-size:0.875rem;">
+      Name
+      <input name="authorName" required maxlength="120" style="padding:8px 10px;border-radius:8px;border:1px solid var(--varka-border);" />
+    </label>
+    <label style="display:grid;gap:4px;font-size:0.875rem;">
+      Email (optional)
+      <input name="authorEmail" type="email" maxlength="200" style="padding:8px 10px;border-radius:8px;border:1px solid var(--varka-border);" />
+    </label>
+    <label style="display:grid;gap:4px;font-size:0.875rem;">
+      Comment
+      <textarea name="body" required maxlength="5000" rows="4" style="padding:8px 10px;border-radius:8px;border:1px solid var(--varka-border);"></textarea>
+    </label>
+    <button type="submit" style="padding:10px 14px;border-radius:8px;border:none;background:var(--varka-accent);color:#fff;font-weight:600;width:fit-content;cursor:pointer;">
+      Submit comment
+    </button>
+    <p id="comment-msg" style="margin:0;font-size:0.875rem;color:var(--varka-muted);"></p>
+  </form>
+</section>
+
+<script define:vars={{ apiBase }}>
+  const form = document.getElementById('comment-form');
+  const msg = document.getElementById('comment-msg');
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!msg) return;
+    msg.textContent = 'Sending…';
+    const fd = new FormData(form);
+    const payload = {
+      postId: fd.get('postId'),
+      authorName: fd.get('authorName'),
+      authorEmail: fd.get('authorEmail') || undefined,
+      body: fd.get('body'),
+      website: fd.get('website') || '',
+    };
+    try {
+      const res = await fetch(apiBase + '/api/public/comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        msg.textContent = data.error || 'Failed (' + res.status + ')';
+        return;
+      }
+      msg.textContent = data.message || 'Submitted for moderation.';
+      form.reset();
+    } catch {
+      msg.textContent = 'Network error';
+    }
+  });
+</script>
