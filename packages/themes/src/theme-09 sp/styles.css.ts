@@ -1,8 +1,8 @@
-import { theme10 } from './manifest';
+import { theme09 } from './manifest';
 
-const t = theme10.tokens;
+const t = theme09.tokens;
 
-export const theme10Css = `
+export const theme09Css = `
 :root {
   --varka-bg: ${t.bg};
   --varka-ink: ${t.ink};
@@ -41,3 +41,6 @@ body {
 .prose img { max-width: 100%; height: auto; }
 .container { width: min(720px, 92vw); margin: 0 auto; padding: 1.5rem 0 3rem; }
 `.trim();
+
+/** @deprecated use theme09Css */
+export const theme9Css = theme09Css;
