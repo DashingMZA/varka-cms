@@ -18,10 +18,7 @@ const nextConfig: NextConfig = {
     '@varka/validation',
     '@varka/queue',
   ],
-  // Prefer TS sources for workspace packages (Turbopack on Windows)
-  experimental: {
-    // keep empty — transpilePackages is the main lever
-  },
+  serverExternalPackages: ['@prisma/client', 'pg', '@prisma/adapter-pg'],
 };
 
 export default nextConfig;

@@ -31,11 +31,11 @@ export const createPostInput = z.object({
   languageId: z.string().min(1).optional(),
   locale: z.string().optional(),
   excerpt: z.string().max(2000).optional(),
-  contentHtml: z.string().default(''),
+  contentHtml: z.string().optional().default(''),
   authorId: z.string().optional(),
 });
 
-export type CreatePostInput = z.infer<typeof createPostInput>;
+export type CreatePostInput = z.input<typeof createPostInput>;
 
 export const updatePostInput = z.object({
   title: z.string().min(1).max(300).optional(),

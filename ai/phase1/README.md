@@ -1,7 +1,7 @@
 # Phase 1: Auth, Users, RBAC, Admin Shell
 
-**Status:** `in-progress`  
-**Depends on:** phase 0 (source complete; local install required)  
+**Status:** `partial` (see `ai/memory/STATUS.md`)  
+**Depends on:** phase 0  
 **Goal:** Real login, server-enforced RBAC, protected admin chrome.
 
 ## Modules
@@ -11,14 +11,21 @@
 - **rbac** — Roles, permissions, `requirePermission()`
 - **admin-shell** — Next.js 16 App Router layout + nav
 
-## Local run (after extract)
+## Gaps (active)
+
+- [ ] Replace `dev-user` API context with session from Better Auth
+- [ ] Enforce auth on all `/api/*` except health + public + auth
+- [ ] Login → dashboard redirect verified on Vercel
+- [ ] Seed owner user with password flow documented
+
+## Local run
 
 ```bash
 corepack enable && corepack prepare pnpm@11.27.0 --activate
-cp .env.example .env   # set DATABASE_URL, AUTH_SECRET, SITE_URL, ADMIN_URL
+cp .env.example .env
 pnpm install
 pnpm db:generate
-pnpm db:migrate        # needs Postgres
+pnpm db:migrate
 pnpm db:seed
 pnpm --filter @varka/admin dev
 ```
