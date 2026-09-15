@@ -1,47 +1,48 @@
 import { NextResponse } from 'next/server';
-import { checkRateLimit, shouldLockout, LOCKOUT_THRESHOLD } from '@varka/auth';
+import { CacheKeys, clientIp, getCache, rateLimit } from '@varka/cache';
+import { writeAudit } from '@varka/security';
 
 /**
- * Pre-login rate limit / lockout check.
- * Client should call before sign-in; also increments failure bucket on ?failed=1.
+ * Pre-auth rate limit probe for login form.
+ * Client may call before Better Auth sign-in.
  */
 export async function POST(req: Request) {
   try {
-    const body = (await req.json().catch(() => ({}))) as {
-      email?: string;
-      failed?: boolean;
-    };
-    const ip =
-      req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-      req.headers.get('x-real-ip') ||
-      'unknown';
-    const email = (body.email ?? '').toLowerCase().trim();
-    const key = `login:${ip}:${email || 'anon'}`;
+    const store = await getCache();
+    const ip = clientIp(req);
+    const rl = await rateLimit({
+      key: CacheKeys.rateLogin(ip),
+      limit: 10,
+      windowSec: 900,
+      store,
+    });
 
-    if (body.failed) {
-      const r = checkRateLimit(key, { limit: LOCKOUT_THRESHOLD, windowSec: 15 * 60 });
-      if (!r.allowed) {
-        return NextResponse.json(
-          { allowed: false, retryAfterSec: r.retryAfterSec, locked: true },
-          { status: 429 },
-        );
+    if (!rl.allowed) {
+      try {
+        const { prisma } = await import('@varka/database');
+        void writeAudit(prisma as never, {
+          action: 'auth.login_rate_limited',
+          entityType: 'Auth',
+          ip,
+          userAgent: req.headers.get('user-agent'),
+        }).catch(() => {});
+      } catch {
+        /* ignore */
       }
-      const locked = shouldLockout(LOCKOUT_THRESHOLD - (r.remaining ?? 0));
-      return NextResponse.json({
-        allowed: !locked,
-        remaining: r.remaining,
-        locked,
-      });
-    }
-
-    const r = checkRateLimit(key, { limit: 20, windowSec: 60 });
-    if (!r.allowed) {
       return NextResponse.json(
-        { allowed: false, retryAfterSec: r.retryAfterSec },
-        { status: 429 },
+        { allowed: false, retryAfterSec: rl.retryAfterSec },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(rl.retryAfterSec) },
+        },
       );
     }
-    return NextResponse.json({ allowed: true, remaining: r.remaining });
+
+    return NextResponse.json({
+      allowed: true,
+      remaining: rl.remaining,
+      limit: rl.limit,
+    });
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Error';
     return NextResponse.json({ error: message }, { status: 400 });

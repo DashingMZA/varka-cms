@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { listThemes, isThemeId, DEFAULT_THEME_ID } from '@varka/themes';
 import { requirePermission } from '@varka/permissions';
+import { writeAudit } from '@varka/security';
+import { clientIp } from '@varka/cache';
 import { getAuthContext } from '@/lib/auth-context';
 
 export async function GET(req: Request) {
@@ -56,6 +58,17 @@ export async function POST(req: Request) {
       update: { value: body.themeId },
       create: { siteId: site.id, key: 'theme.active', value: body.themeId },
     });
+
+    void writeAudit(prisma as never, {
+      siteId: site.id,
+      actorId: ctx.userId === 'dev-user' ? undefined : ctx.userId,
+      action: 'theme.activate',
+      entityType: 'Theme',
+      entityId: body.themeId,
+      ip: clientIp(req),
+      userAgent: req.headers.get('user-agent'),
+      meta: { themeId: body.themeId },
+    }).catch(() => {});
 
     return NextResponse.json({ ok: true, active: body.themeId });
   } catch (e) {

@@ -49,8 +49,11 @@ export async function getAuthContext(req?: Request): Promise<AuthContext> {
       'pages.publish',
       'media.read',
       'media.upload',
+      'media.update',
+      'media.delete',
       'comments.read',
       'comments.moderate',
+      'comments.delete',
       'themes.read',
       'themes.activate',
       'seo.read',
@@ -58,7 +61,10 @@ export async function getAuthContext(req?: Request): Promise<AuthContext> {
       'settings.read',
       'settings.update',
       'users.read',
+      'languages.read',
+      'languages.manage',
       'audit.read',
+      'security.read',
     ],
   };
 }

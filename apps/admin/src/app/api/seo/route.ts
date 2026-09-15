@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requirePermission } from '@varka/permissions';
+import { writeAudit } from '@varka/security';
+import { clientIp } from '@varka/cache';
 import { getAuthContext } from '@/lib/auth-context';
 
 function errStatus(message: string): number {
@@ -46,15 +48,28 @@ export async function POST(req: Request) {
     const site = await prisma.site.findFirst({ where: { slug: 'varka' } });
     if (!site) return NextResponse.json({ error: 'Site not found' }, { status: 404 });
 
+    const keys: string[] = [];
     for (const [key, value] of Object.entries(body)) {
       if (!key.startsWith('seo.')) continue;
-      // Prisma Json accepts primitives
+      keys.push(key);
       await prisma.siteSetting.upsert({
         where: { siteId_key: { siteId: site.id, key } },
         update: { value: value as never },
         create: { siteId: site.id, key, value: value as never },
       });
     }
+
+    void writeAudit(prisma as never, {
+      siteId: site.id,
+      actorId: ctx.userId === 'dev-user' ? undefined : ctx.userId,
+      action: 'seo.update',
+      entityType: 'SiteSetting',
+      entityId: site.id,
+      ip: clientIp(req),
+      userAgent: req.headers.get('user-agent'),
+      meta: { keys },
+    }).catch(() => {});
+
     return NextResponse.json({ ok: true });
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Error';
