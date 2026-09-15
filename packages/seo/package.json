@@ -16,7 +16,7 @@
     "@varka/i18n": "workspace:*"
   },
   "devDependencies": {
-    "tsx": "^4.20.5",
-    "typescript": "^5.9.2"
+    "tsx": "^4.23.3",
+    "typescript": "^7.0.2"
   }
 }
