@@ -2,32 +2,29 @@ import type { AuthContext } from '@varka/permissions';
 
 /**
  * Resolve AuthContext for admin API routes.
- * 1) Try Better Auth session → loadAuthContext(userId)
- * 2) Dev/deploy fallback: owner-like context when AUTH is not wired
- *    (set ALLOW_DEV_AUTH_FALLBACK=false in production once login works).
+ * 1) Better Auth session → loadAuthContext(userId)
+ * 2) Fallback owner context when ALLOW_DEV_AUTH_FALLBACK=true (or non-production)
  */
 export async function getAuthContext(req?: Request): Promise<AuthContext> {
   try {
-    const { auth } = await import('@varka/auth');
-    // better-auth API: getSession from headers
+    const { createAuth, loadAuthContext } = await import('@varka/auth');
+    const auth = createAuth();
     const session = await auth.api.getSession({
       headers: req?.headers ?? new Headers(),
     });
     if (session?.user?.id) {
-      const { loadAuthContext } = await import('@varka/auth');
       const ctx = await loadAuthContext(session.user.id);
       if (ctx && !ctx.disabled) return ctx;
     }
   } catch {
-    // auth package or session unavailable
+    // session unavailable
   }
 
   const allowFallback =
-    process.env.ALLOW_DEV_AUTH_FALLBACK !== 'false' &&
+    process.env.ALLOW_DEV_AUTH_FALLBACK === 'true' ||
     process.env.NODE_ENV !== 'production';
 
-  if (!allowFallback && process.env.ALLOW_DEV_AUTH_FALLBACK !== 'true') {
-    // Production without session: empty permissions (callers must 401)
+  if (!allowFallback) {
     return {
       userId: '',
       roles: [],
