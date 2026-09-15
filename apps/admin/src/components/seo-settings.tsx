@@ -5,27 +5,29 @@ import { useEffect, useState } from 'react';
 export function SeoSettings() {
   const [description, setDescription] = useState('');
   const [titleTemplate, setTitleTemplate] = useState('%s · VARKA');
+  const [robotsIndex, setRobotsIndex] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     void (async () => {
       const res = await fetch('/api/seo', { credentials: 'include' });
-      if (!res.ok) return;
+      if (!res.ok) {
+        setError(`Load failed (${res.status})`);
+        return;
+      }
       const data = (await res.json()) as {
         settings: Record<string, unknown>;
         defaults: Record<string, unknown>;
       };
       const d =
-        (data.settings['seo.defaultDescription'] as string) ??
-        (data.defaults['seo.defaultDescription'] as string) ??
-        '';
+        data.settings['seo.defaultDescription'] ?? data.defaults['seo.defaultDescription'] ?? '';
       const t =
-        (data.settings['seo.titleTemplate'] as string) ??
-        (data.defaults['seo.titleTemplate'] as string) ??
-        '%s · VARKA';
+        data.settings['seo.titleTemplate'] ?? data.defaults['seo.titleTemplate'] ?? '%s · VARKA';
+      const r = data.settings['seo.robotsIndex'] ?? data.defaults['seo.robotsIndex'] ?? true;
       setDescription(typeof d === 'string' ? d : String(d ?? ''));
       setTitleTemplate(typeof t === 'string' ? t : '%s · VARKA');
+      setRobotsIndex(r === true || r === 'true');
     })();
   }, []);
 
@@ -39,6 +41,7 @@ export function SeoSettings() {
       body: JSON.stringify({
         'seo.defaultDescription': description,
         'seo.titleTemplate': titleTemplate,
+        'seo.robotsIndex': robotsIndex,
       }),
     });
     if (!res.ok) {
@@ -56,6 +59,7 @@ export function SeoSettings() {
           value={titleTemplate}
           onChange={(e) => setTitleTemplate(e.target.value)}
           style={field}
+          placeholder="%s · VARKA"
         />
       </label>
       <label style={{ display: 'grid', gap: 4, fontSize: 13 }}>
@@ -67,6 +71,14 @@ export function SeoSettings() {
           style={field}
         />
       </label>
+      <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 13 }}>
+        <input
+          type="checkbox"
+          checked={robotsIndex}
+          onChange={(e) => setRobotsIndex(e.target.checked)}
+        />
+        Allow search engines to index (seo.robotsIndex)
+      </label>
       <button type="button" onClick={() => void save()} style={btn}>
         Save SEO defaults
       </button>
@@ -77,7 +89,8 @@ export function SeoSettings() {
         </p>
       ) : null}
       <p style={{ fontSize: 12, color: 'var(--muted)' }}>
-        Public site exposes <code>/sitemap.xml</code> and <code>/robots.txt</code> via Astro.
+        Public site: <code>/sitemap.xml</code>, <code>/robots.txt</code>. Set{" "}
+        <code>PUBLIC_SITE_URL</code> on Astro.
       </p>
     </div>
   );

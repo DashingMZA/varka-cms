@@ -1,15 +1,18 @@
 import { NextResponse } from 'next/server';
+import { requirePermission } from '@varka/permissions';
+import { getAuthContext } from '@/lib/auth-context';
 
-async function getCtx() {
-  return {
-    userId: 'dev-user',
-    roles: ['owner'],
-    permissions: ['seo.read', 'seo.update', 'settings.update'],
-  };
+function errStatus(message: string): number {
+  if (message === 'Unauthorized' || message.includes('Unauthorized')) return 401;
+  if (message.includes('Forbidden') || message.includes('permission')) return 403;
+  return 400;
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const ctx = await getAuthContext(req);
+    requirePermission(ctx, 'seo.read');
+
     const { prisma } = await import('@varka/database');
     const site = await prisma.site.findFirst({ where: { slug: 'varka' } });
     if (!site) return NextResponse.json({ error: 'Site not found' }, { status: 404 });
@@ -29,16 +32,15 @@ export async function GET() {
     });
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Error';
-    return NextResponse.json({ error: message }, { status: 400 });
+    return NextResponse.json({ error: message }, { status: errStatus(message) });
   }
 }
 
 export async function POST(req: Request) {
   try {
-    const ctx = await getCtx();
-    if (!ctx.permissions.includes('seo.update')) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    const ctx = await getAuthContext(req);
+    requirePermission(ctx, 'seo.update');
+
     const body = (await req.json()) as Record<string, unknown>;
     const { prisma } = await import('@varka/database');
     const site = await prisma.site.findFirst({ where: { slug: 'varka' } });
@@ -46,15 +48,16 @@ export async function POST(req: Request) {
 
     for (const [key, value] of Object.entries(body)) {
       if (!key.startsWith('seo.')) continue;
+      // Prisma Json accepts primitives
       await prisma.siteSetting.upsert({
         where: { siteId_key: { siteId: site.id, key } },
-        update: { value: value as object },
-        create: { siteId: site.id, key, value: value as object },
+        update: { value: value as never },
+        create: { siteId: site.id, key, value: value as never },
       });
     }
     return NextResponse.json({ ok: true });
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Error';
-    return NextResponse.json({ error: message }, { status: 400 });
+    return NextResponse.json({ error: message }, { status: errStatus(message) });
   }
 }

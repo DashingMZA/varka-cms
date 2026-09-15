@@ -1,5 +1,5 @@
 /**
- * Seed: Site VARKA, English language, RBAC roles/permissions, optional owner.
+ * Seed: Site VARKA, English + optional Punjabi, RBAC, optional owner.
  * Prisma 7 + driver adapter (pg).
  */
 import path from 'node:path';
@@ -35,7 +35,6 @@ if (!connectionString) {
   throw new Error('DATABASE_URL is not set. Put it in the repository root .env file.');
 }
 
-/** Avoid indefinite hang on bad network/SSL */
 function createPool(url: string): Pool {
   const needsSsl =
     url.includes('sslmode=') ||
@@ -52,7 +51,6 @@ function createPool(url: string): Pool {
     ...(needsSsl
       ? {
           ssl: {
-            // Hosted Postgres (Prisma/Neon/etc.) — verify-full can hang without CA bundle
             rejectUnauthorized: false,
           },
         }
@@ -102,7 +100,7 @@ const ROLE_PERMS: Record<string, readonly string[]> = {
   contributor: ['posts.read', 'posts.create', 'posts.update', 'media.read'],
   seo_manager: ['posts.read', 'pages.read', 'seo.read', 'seo.update', 'languages.read'],
   translator: ['posts.read', 'posts.update', 'pages.read', 'pages.update', 'languages.read'],
-  reader: ['posts.read', 'pages.read', 'media.read', 'comments.read', 'seo.read'],
+  reader: ['posts.read', 'pages.read', 'media.read', 'comments.read', 'seo.read', 'languages.read'],
 };
 
 async function main() {
@@ -135,10 +133,50 @@ async function main() {
     },
   });
 
+  // Punjabi: one language row + script field (not two language rows)
+  await prisma.language.upsert({
+    where: { siteId_locale: { siteId: site.id, locale: 'pa' } },
+    update: { enabled: true, urlPrefix: 'pa', script: 'Arab' },
+    create: {
+      siteId: site.id,
+      name: 'Punjabi',
+      nativeName: 'پنجابی',
+      locale: 'pa',
+      languageCode: 'pa',
+      script: 'Arab',
+      direction: 'rtl',
+      enabled: true,
+      defaultLanguage: false,
+      urlPrefix: 'pa',
+      displayOrder: 1,
+    },
+  });
+  console.log('Languages: en (default), pa (prefix /pa)');
+
   await prisma.siteSetting.upsert({
     where: { siteId_key: { siteId: site.id, key: 'brand.name' } },
     update: { value: 'VARKA' },
     create: { siteId: site.id, key: 'brand.name', value: 'VARKA' },
+  });
+
+  await prisma.siteSetting.upsert({
+    where: { siteId_key: { siteId: site.id, key: 'seo.titleTemplate' } },
+    update: {},
+    create: { siteId: site.id, key: 'seo.titleTemplate', value: '%s · VARKA' },
+  });
+  await prisma.siteSetting.upsert({
+    where: { siteId_key: { siteId: site.id, key: 'seo.defaultDescription' } },
+    update: {},
+    create: {
+      siteId: site.id,
+      key: 'seo.defaultDescription',
+      value: 'Editorial publishing with VARKA',
+    },
+  });
+  await prisma.siteSetting.upsert({
+    where: { siteId_key: { siteId: site.id, key: 'seo.robotsIndex' } },
+    update: {},
+    create: { siteId: site.id, key: 'seo.robotsIndex', value: true },
   });
 
   for (const key of PERMISSIONS) {

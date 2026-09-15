@@ -10,6 +10,8 @@ export type SeoInput = {
   noindex?: boolean;
   publishedAt?: string;
   modifiedAt?: string;
+  /** e.g. "%s · VARKA" — %s replaced with page title */
+  titleTemplate?: string;
 };
 
 export type SeoTags = {
@@ -28,10 +30,17 @@ function abs(siteUrl: string, path: string): string {
   return `${base}${p}`;
 }
 
+function formatTitle(pageTitle: string, siteName: string, template?: string): string {
+  if (pageTitle === siteName) return pageTitle;
+  if (template && template.includes('%s')) {
+    return template.replace(/%s/g, pageTitle);
+  }
+  return `${pageTitle} · ${siteName}`;
+}
+
 export function buildSeo(input: SeoInput): SeoTags {
   const description = (input.description ?? '').slice(0, 320);
-  const title =
-    input.title === input.siteName ? input.title : `${input.title} · ${input.siteName}`;
+  const title = formatTitle(input.title, input.siteName, input.titleTemplate);
   const canonical = abs(input.siteUrl, input.path);
   const robots = input.noindex ? 'noindex, nofollow' : 'index, follow';
   const type = input.type ?? 'website';
