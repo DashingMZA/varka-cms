@@ -1,53 +1,42 @@
 # VARKA — current memory (agent status)
 
-**Updated:** 2026-09-17
+**Updated:** 2026-09-17 (autosave settings, revisions, WebP media)
 
 ## Product
 
-- Name: **VARKA**
-- Stack: Astro public (`apps/web`) + Next.js 16.3.5 admin (`apps/admin`) + Prisma 7.10 + PostgreSQL
-- Monorepo pnpm workspaces; TypeScript **7.0.2** (do not downgrade); ESLint path uses **oxlint** where TS-eslint conflicts
-- Package manager: **pnpm@12.4.2**, Node **>=24**
+- **VARKA** — Astro public + Next 16.3.5 admin + Prisma 7.10 + PostgreSQL
+- pnpm 12.4.2 · Node ≥24 · TypeScript 7.0.2 (no downgrade)
 
-## Data access
+## Media pipeline
 
-- **Web reads:** direct Prisma + `@varka/content` (no HTTP to admin for posts)
-- **Admin reads:** RSC / packages where possible; client mutations via `/api/*` → same DB
-- Shared root `.env` `DATABASE_URL`
+- Upload images: **magic-byte security** (JPEG/PNG/GIF/WebP only)
+- Convert to **WebP** (sharp)
+- Generate sizes: **thumbnail (150)** · **medium (300)** · **large (1024)** · **full**
+- Stored in `MediaAsset.sizes` JSON + primary `key` = full WebP
+- Non-images (pdf/video/audio) stored as-is
 
-## Admin CMS (WordPress-like)
+## Revisions
 
-### Posts
-- List: status tabs, bulk trash, search, columns Image · Title · Author · Categories · Tags · Status · Date
-- **Add New** → `/content/posts/new` — **no DB row while title empty**
-- Title → auto permalink (until user edits slug)
-- **Autosave** (~2.5s) only when title non-empty
-- Full sidebar: Publish, Featured image (upload + media library), Categories, Tags, Excerpt, SEO
-- Edit: same panels + Tiptap + version/optimistic lock
+- Every post `updatePost` writes `Revision` row
+- API: `GET/POST /api/posts/[id]/revisions` (list + restore)
+- UI: Revisions panel on post editor
 
-### Pages
-- List / new / edit mirrors posts (template, SEO, trash)
-- Page editor blocks: Hero, Columns, CTA, Quote (+ standard formatting)
-- Autosave rules same as posts (no empty title)
+## Autosave
 
-### Media
-- Grid + list, filter, search, dropzone
-- Dimensions on upload (PNG/JPEG/GIF/WebP)
-- Attachment SEO: title + alt (PATCH `/api/media/[id]`)
-- Lazy-loaded grid images
+- Empty title → never save
+- Interval from `SiteSetting` key `admin.autosaveIntervalMs` (default 2500)
+- Customize: **Settings → Autosave** (`/settings`)
+- `useAutosave` loads interval from `/api/settings/autosave`
 
-### Other admin
-- Dashboard counts (direct Prisma)
-- Comments moderation, themes, SEO settings, audit, auth
+## Admin CMS (summary)
 
-## Public site
-- Astro lists/detail from DB via `apps/web/src/lib/content-api.ts`
-- Sitemap uses same
+Posts/pages WP list + full editor sidebars; media grid + SEO alt/title; direct DB for public site.
 
-## Known / later
-- `pg` parallel query deprecation warning (non-blocking)
-- Full Gutenberg block package still optional; page uses HTML block inserts
-- Production auth should replace dev-user API ctx where still present
+## After pull
 
-## Recent commits theme
-- Direct DB for web; featured image UX; media library grid; pages CMS; autosave + restore full post sidebar
+```bash
+pnpm install
+pnpm db:generate
+# apply migration media sizes if needed:
+pnpm --filter @varka/database exec prisma migrate deploy
+```

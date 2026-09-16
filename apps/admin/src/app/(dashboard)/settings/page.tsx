@@ -1,10 +1,11 @@
-export default function Page() {
+import { AutosaveSettings } from '@/components/autosave-settings';
+
+export default function SettingsPage() {
   return (
     <main>
-      <h1 style={{ marginTop: 0 }}>Settings</h1>
-      <p style={{ color: 'var(--muted)' }}>
-        Module shell — implementation lands in a later phase. No fake data.
-      </p>
+      <h1 className="v-page-title">Settings</h1>
+      <p className="v-page-desc">Site and editor preferences.</p>
+      <AutosaveSettings />
     </main>
   );
 }
