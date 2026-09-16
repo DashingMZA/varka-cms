@@ -12,13 +12,14 @@
     "lint": "echo lint:@varka/web"
   },
   "dependencies": {
-    "@astrojs/node": "^9.5.0",
+    "@astrojs/node": "^11.1.5",
     "@varka/i18n": "workspace:*",
     "@varka/seo": "workspace:*",
     "@varka/themes": "workspace:*",
     "astro": "7.3.2"
   },
   "devDependencies": {
+    "@types/node": "^24.13.4",
     "typescript": "^7.0.2"
   }
 }
