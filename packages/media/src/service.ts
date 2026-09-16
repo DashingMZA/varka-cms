@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type { AuthContext } from '@varka/permissions';
 import { requirePermission } from '@varka/permissions';
 import type { StorageAdapter } from './types';
+import { probeImageSize } from './image-size';
 
 export type MediaDb = {
   mediaAsset: {
@@ -25,7 +26,7 @@ const ALLOWED_MIME = new Set([
   'audio/mpeg',
 ]);
 
-const MAX_BYTES = 25 * 1024 * 1024; // 25MB default
+const MAX_BYTES = 25 * 1024 * 1024;
 
 export const uploadMetaSchema = z.object({
   siteId: z.string().min(1),
@@ -93,6 +94,11 @@ export async function uploadMedia(
     throw new Error('Empty file');
   }
 
+  const dims =
+    input.mimeType.startsWith('image/') && input.mimeType !== 'image/svg+xml'
+      ? probeImageSize(body)
+      : null;
+
   const key = objectKey(input.filename);
   const checksum = createHash('sha256').update(body).digest('hex');
   const put = await storage.put({ key, body, contentType: input.mimeType });
@@ -106,8 +112,10 @@ export async function uploadMedia(
       filename: input.filename,
       mimeType: input.mimeType,
       sizeBytes: put.sizeBytes,
+      width: dims?.width ?? null,
+      height: dims?.height ?? null,
       alt: input.alt,
-      title: input.title,
+      title: input.title ?? input.filename,
       folder: input.folder ?? '/',
       checksum,
     },
@@ -140,7 +148,7 @@ export async function updateMediaMeta(
   db: MediaDb,
   ctx: AuthContext,
   id: string,
-  data: { alt?: string; title?: string; folder?: string },
+  data: { alt?: string | null; title?: string | null; folder?: string },
 ) {
   requirePermission(ctx, 'media.update');
   return db.mediaAsset.update({

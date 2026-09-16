@@ -167,28 +167,9 @@ export function PostsAdmin({ initialItems = [] }: { initialItems?: PostRow[] }) 
     });
   }
 
-  async function createPost() {
-    setBusy(true);
-    setError(null);
-    try {
-      const res = await fetch('/api/posts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ title: 'Untitled' }),
-      });
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { error?: string };
-        setError(body.error ?? `Create failed (${res.status})`);
-        setBusy(false);
-        return;
-      }
-      const post = (await res.json()) as { id: string };
-      router.push(`/content/posts/${post.id}`);
-    } catch {
-      setError('Network error');
-      setBusy(false);
-    }
+  function createPost() {
+    // WP-style: open empty editor — no DB row until Save
+    router.push('/content/posts/new');
   }
 
   async function trashOne(id: string, languageId?: string) {
@@ -245,12 +226,7 @@ export function PostsAdmin({ initialItems = [] }: { initialItems?: PostRow[] }) 
     <div>
       <div className="v-page-header">
         <h1 className="v-page-title">Posts</h1>
-        <button
-          type="button"
-          className="v-btn v-btn--primary"
-          disabled={busy}
-          onClick={() => void createPost()}
-        >
+        <button type="button" className="v-btn v-btn--primary" disabled={busy} onClick={createPost}>
           Add New
         </button>
       </div>
@@ -362,6 +338,8 @@ export function PostsAdmin({ initialItems = [] }: { initialItems?: PostRow[] }) 
                           alt={img.alt ?? img.filename}
                           width={40}
                           height={40}
+                          loading="lazy"
+                          decoding="async"
                           style={{
                             width: 40,
                             height: 40,
