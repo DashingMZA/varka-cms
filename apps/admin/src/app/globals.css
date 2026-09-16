@@ -586,18 +586,6 @@ textarea {
   font-size: 12px;
 }
 
-.v-editor__body {
-  width: 100%;
-  min-height: 360px;
-  padding: 12px;
-  border: 1px solid var(--wp-border);
-  border-radius: var(--wp-radius);
-  font-family: ui-monospace, monospace;
-  font-size: 13px;
-  line-height: 1.5;
-  resize: vertical;
-}
-
 .v-editor__meta label {
   display: grid;
   gap: 4px;
@@ -607,7 +595,8 @@ textarea {
 }
 
 .v-editor__meta textarea,
-.v-editor__meta input {
+.v-editor__meta input,
+.v-editor__meta select {
   font-weight: 400;
   padding: 8px;
   border: 1px solid var(--wp-border);
@@ -645,4 +634,100 @@ textarea {
 .v-alert--ok {
   border-left-color: var(--wp-success);
   color: var(--wp-success);
+}
+
+/* ——— Tiptap ——— */
+.v-tiptap-shell {
+  border: 1px solid var(--wp-border);
+  border-radius: var(--wp-radius);
+  background: #fff;
+  overflow: hidden;
+}
+
+.v-tiptap-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--wp-border);
+  background: #f6f7f7;
+}
+
+.v-tiptap-btn {
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  font-size: 12px;
+  color: var(--wp-ink);
+}
+
+.v-tiptap-btn:hover {
+  border-color: var(--wp-border);
+  background: #fff;
+}
+
+.v-tiptap-btn.is-active {
+  background: #fff;
+  border-color: var(--wp-accent);
+  color: var(--wp-accent);
+}
+
+.v-tiptap-shell .ProseMirror {
+  min-height: 320px;
+  padding: 14px 16px;
+  outline: none;
+}
+
+.v-tiptap-shell .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #adb5bd;
+  pointer-events: none;
+  height: 0;
+}
+
+.v-tiptap-prose h2 {
+  font-size: 1.4em;
+  margin: 0.8em 0 0.4em;
+}
+
+.v-tiptap-prose h3 {
+  font-size: 1.2em;
+  margin: 0.7em 0 0.35em;
+}
+
+.v-tiptap-prose p {
+  margin: 0 0 0.75em;
+}
+
+.v-tiptap-prose ul,
+.v-tiptap-prose ol {
+  padding-left: 1.4em;
+  margin: 0 0 0.75em;
+}
+
+.v-tiptap-prose blockquote {
+  border-left: 3px solid var(--wp-border);
+  margin: 0 0 0.75em;
+  padding-left: 12px;
+  color: var(--wp-muted);
+}
+
+.v-tiptap-prose img {
+  max-width: 100%;
+  height: auto;
+}
+
+.v-tiptap-prose a {
+  text-decoration: underline;
+}
+
+.v-tiptap-prose pre {
+  background: #1d2327;
+  color: #f0f0f1;
+  padding: 10px 12px;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-size: 12px;
 }
