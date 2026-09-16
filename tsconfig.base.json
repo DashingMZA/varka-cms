@@ -21,7 +21,8 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "skipLibCheck": true,
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": true,
+    "types": ["node"]
   },
   "exclude": ["node_modules", "dist", "build", ".next", ".astro"]
 }
