@@ -3,6 +3,10 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { TiptapEditor } from '@/components/tiptap-editor';
+import {
+  FeaturedImagePanel,
+  type FeaturedMedia,
+} from '@/components/featured-image-panel';
 
 type Translation = {
   id: string;
@@ -20,14 +24,7 @@ type TaxNode = {
   translations?: Array<{ name: string }>;
 };
 
-type MediaAsset = {
-  id: string;
-  key: string;
-  filename: string;
-  mimeType: string;
-  storage: string;
-  alt?: string | null;
-};
+type MediaAsset = FeaturedMedia;
 
 type Post = {
   id: string;
@@ -52,11 +49,6 @@ function statusClass(status: string): string {
 
 function taxName(t: TaxNode | TaxItem): string {
   return t.translations?.[0]?.name ?? t.id;
-}
-
-function mediaUrl(a: MediaAsset): string {
-  if (a.storage === 'local') return `/api/media/file/${a.key}`;
-  return a.key.startsWith('http') ? a.key : `/api/media/file/${a.key}`;
 }
 
 function applyPost(
@@ -139,7 +131,7 @@ export function PostEditor({
   const [newTag, setNewTag] = useState('');
 
   useEffect(() => {
-    if (initialPost) return; // already hydrated from DB on server
+    if (initialPost) return;
     void (async () => {
       const [postRes, catRes, tagRes, mediaRes] = await Promise.all([
         fetch(`/api/posts/${postId}`, { credentials: 'include' }),
@@ -181,6 +173,18 @@ export function PostEditor({
       }
     })();
   }, [postId, initialPost]);
+
+  function onFeaturedChange(asset: FeaturedMedia | null) {
+    setFeaturedImage(asset);
+    setFeaturedImageId(asset?.id ?? null);
+  }
+
+  function onLibraryAdd(asset: FeaturedMedia) {
+    setMediaItems((prev) => {
+      if (prev.some((x) => x.id === asset.id)) return prev;
+      return [asset, ...prev];
+    });
+  }
 
   async function save(opts: { publish?: boolean; trash?: boolean } = {}) {
     if (!post) return;
@@ -227,6 +231,7 @@ export function PostEditor({
     const data = (await res.json()) as Post;
     setPost(data);
     setFeaturedImage(data.featuredImage ?? null);
+    setFeaturedImageId(data.featuredImageId ?? data.featuredImage?.id ?? null);
     setMessage(opts.trash ? 'Moved to Trash' : opts.publish ? 'Published' : 'Draft saved');
     setSaving(false);
   }
@@ -261,16 +266,6 @@ export function PostEditor({
     setAllTags((prev) => [...prev, tag]);
     setTagIds((prev) => [...prev, tag.id]);
     setNewTag('');
-  }
-
-  function pickFeatured(id: string | null) {
-    setFeaturedImageId(id);
-    if (!id) {
-      setFeaturedImage(null);
-      return;
-    }
-    const m = mediaItems.find((x) => x.id === id) ?? null;
-    setFeaturedImage(m);
   }
 
   if (!post && !error) {
@@ -361,53 +356,12 @@ export function PostEditor({
             </div>
           </section>
 
-          <section className="v-panel">
-            <h2 className="v-panel__h">Featured image</h2>
-            <div className="v-panel__b">
-              {featuredImage ? (
-                <div style={{ marginBottom: 8 }}>
-                  <img
-                    src={mediaUrl(featuredImage)}
-                    alt={featuredImage.alt ?? featuredImage.filename}
-                    style={{
-                      width: '100%',
-                      maxHeight: 140,
-                      objectFit: 'cover',
-                      borderRadius: 4,
-                      border: '1px solid var(--wp-border)',
-                    }}
-                  />
-                  <button
-                    type="button"
-                    className="v-btn"
-                    style={{ marginTop: 6 }}
-                    onClick={() => pickFeatured(null)}
-                  >
-                    Remove
-                  </button>
-                </div>
-              ) : (
-                <p className="v-muted" style={{ marginTop: 0 }}>
-                  No image selected.
-                </p>
-              )}
-              <select
-                value={featuredImageId ?? ''}
-                onChange={(e) => pickFeatured(e.target.value || null)}
-                style={{ width: '100%', padding: 6 }}
-              >
-                <option value="">— Select from Media —</option>
-                {mediaItems.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.filename}
-                  </option>
-                ))}
-              </select>
-              <p className="v-muted" style={{ fontSize: 11, margin: '6px 0 0' }}>
-                Upload new files in <Link href="/media">Media</Link>.
-              </p>
-            </div>
-          </section>
+          <FeaturedImagePanel
+            value={featuredImage}
+            library={mediaItems}
+            onChange={onFeaturedChange}
+            onLibraryAdd={onLibraryAdd}
+          />
 
           <section className="v-panel">
             <h2 className="v-panel__h">Categories</h2>
