@@ -4,6 +4,15 @@ import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+type Featured = {
+  id: string;
+  key: string;
+  filename: string;
+  mimeType: string;
+  storage: string;
+  alt?: string | null;
+};
+
 type PostRow = {
   id: string;
   status: string;
@@ -13,6 +22,7 @@ type PostRow = {
   author?: { name?: string | null; email?: string | null } | null;
   categories?: Array<{ category: { translations?: Array<{ name: string }> } }>;
   tags?: Array<{ tag: { translations?: Array<{ name: string }> } }>;
+  featuredImage?: Featured | null;
 };
 
 type StatusFilter = 'all' | 'DRAFT' | 'PENDING_REVIEW' | 'PUBLISHED' | 'TRASHED';
@@ -45,6 +55,11 @@ function namesFromTags(p: PostRow): string {
       .filter(Boolean)
       .join(', ') || '—'
   );
+}
+
+function thumbUrl(a: Featured): string {
+  if (a.storage === 'local') return `/api/media/file/${a.key}`;
+  return a.key.startsWith('http') ? a.key : `/api/media/file/${a.key}`;
 }
 
 function normalizeRows(raw: unknown[]): PostRow[] {
@@ -94,15 +109,8 @@ export function PostsAdmin({ initialItems = [] }: { initialItems?: PostRow[] }) 
   }, []);
 
   useEffect(() => {
-    // Server already filled "all"; only refetch when filter changes or no seed
     if (status === 'all' && hydrated && seed.length > 0) {
-      const filtered =
-        status === 'all' ? seed : seed.filter((p) => p.status === status);
-      if (status === 'all') {
-        setItems(seed);
-        return;
-      }
-      setItems(filtered);
+      setItems(seed);
       return;
     }
     void load(status);
@@ -316,6 +324,7 @@ export function PostsAdmin({ initialItems = [] }: { initialItems?: PostRow[] }) 
                   aria-label="Select all"
                 />
               </td>
+              <th style={{ width: 52 }}>Image</th>
               <th>Title</th>
               <th>Author</th>
               <th>Categories</th>
@@ -327,7 +336,7 @@ export function PostsAdmin({ initialItems = [] }: { initialItems?: PostRow[] }) 
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={7} style={{ padding: 20, color: 'var(--wp-muted)' }}>
+                <td colSpan={8} style={{ padding: 20, color: 'var(--wp-muted)' }}>
                   No posts found.
                 </td>
               </tr>
@@ -335,6 +344,7 @@ export function PostsAdmin({ initialItems = [] }: { initialItems?: PostRow[] }) 
               filtered.map((p) => {
                 const tr = p.translations[0];
                 const checked = selected.has(p.id);
+                const img = p.featuredImage;
                 return (
                   <tr key={p.id}>
                     <th className="check-col" scope="row">
@@ -345,6 +355,26 @@ export function PostsAdmin({ initialItems = [] }: { initialItems?: PostRow[] }) 
                         aria-label={`Select ${tr?.title ?? p.id}`}
                       />
                     </th>
+                    <td>
+                      {img ? (
+                        <img
+                          src={thumbUrl(img)}
+                          alt={img.alt ?? img.filename}
+                          width={40}
+                          height={40}
+                          style={{
+                            width: 40,
+                            height: 40,
+                            objectFit: 'cover',
+                            borderRadius: 3,
+                            border: '1px solid var(--wp-border)',
+                            display: 'block',
+                          }}
+                        />
+                      ) : (
+                        <span className="v-muted">—</span>
+                      )}
+                    </td>
                     <td>
                       <Link href={`/content/posts/${p.id}`} className="row-title">
                         {tr?.title ?? '—'}
