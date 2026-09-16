@@ -24,12 +24,8 @@ type RedisModule = {
 export async function createRedisStore(url: string): Promise<CacheStore> {
   let redisMod: RedisModule;
   try {
-    // Dynamic import — package is optional; avoid hard type dependency
-    redisMod = (await import(
-      /* webpackIgnore: true */
-      /* @vite-ignore */
-      'redis'
-    )) as RedisModule;
+    // Optional package — ambient types in redis-ambient.d.ts
+    redisMod = (await import('redis')) as unknown as RedisModule;
   } catch {
     throw new Error('Package "redis" not installed — use memory store or pnpm add redis');
   }
