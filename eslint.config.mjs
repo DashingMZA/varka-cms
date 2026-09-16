@@ -1,12 +1,37 @@
-import babelParser from '@babel/eslint-parser';
-
 /**
- * TypeScript 7.x: typescript-eslint does not support TS 7 yet.
- * Use Babel parser for TS/TSX so we can keep typescript@7.0.2.
- * Type-aware checks remain on `pnpm typecheck` (tsc).
+ * ESLint 10 + TypeScript 7.0.2
+ *
+ * typescript-eslint still gates on TS < 7. We only adjust the *reported*
+ * version string for that check; the installed typescript remains 7.0.2
+ * for tsc / the whole repo. Type-aware lint rules are not used.
+ *
+ * @see https://github.com/typescript-eslint/typescript-eslint/issues/10940
  */
-/** @type {import('eslint').Linter.Config[]} */
-const config = [
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+
+// --- version gate shim (must run before importing typescript-eslint) ---
+{
+  const ts = require('typescript');
+  if (typeof ts.version === 'string' && ts.version.startsWith('7.')) {
+    const reported = '5.9.2';
+    Object.defineProperty(ts, 'version', {
+      configurable: true,
+      enumerable: true,
+      get: () => reported,
+    });
+    Object.defineProperty(ts, 'versionMajorMinor', {
+      configurable: true,
+      enumerable: true,
+      get: () => '5.9',
+    });
+  }
+}
+
+const tseslint = require('typescript-eslint');
+
+export default tseslint.config(
   {
     ignores: [
       '**/node_modules/**',
@@ -19,25 +44,19 @@ const config = [
       '**/*.css.ts',
     ],
   },
+  // Non-type-aware recommended rules only (works without project service)
+  ...tseslint.configs.recommended,
   {
     files: ['**/*.{ts,tsx,mts,cts}'],
     languageOptions: {
-      parser: babelParser,
       parserOptions: {
-        requireConfigFile: false,
-        babelOptions: {
-          presets: [
-            ['@babel/preset-typescript', { isTSX: true, allExtensions: true }],
-            ['@babel/preset-react', { runtime: 'automatic' }],
-          ],
-        },
         ecmaFeatures: { jsx: true },
+        // Do not set `project` — avoids deep TS 7 program API requirements
       },
-      ecmaVersion: 2022,
-      sourceType: 'module',
     },
     rules: {
-      'no-unused-vars': [
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': [
         'error',
         {
           argsIgnorePattern: '^_',
@@ -45,7 +64,12 @@ const config = [
           caughtErrorsIgnorePattern: '^_',
         },
       ],
-      'no-undef': 'off',
+      '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/ban-ts-comment': 'off',
+      '@typescript-eslint/no-empty-object-type': 'off',
+      '@typescript-eslint/no-unsafe-function-type': 'off',
+      '@typescript-eslint/no-wrapper-object-types': 'off',
+      'no-unused-vars': 'off',
       eqeqeq: ['error', 'always'],
       'no-eval': 'error',
       'no-implied-eval': 'error',
@@ -68,6 +92,4 @@ const config = [
       'no-implied-eval': 'error',
     },
   },
-];
-
-export default config;
+);
