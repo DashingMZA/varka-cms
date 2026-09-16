@@ -1,24 +1,17 @@
 /**
- * Fetch published content from admin public API.
- * Set PUBLIC_API_URL=http://localhost:3000 in Astro env.
+ * Public content — direct PostgreSQL via Prisma (no HTTP to admin).
+ * Requires DATABASE_URL in monorepo root `.env` (same as admin).
  */
-const API = import.meta.env.PUBLIC_API_URL || 'http://localhost:3000';
+import { prisma } from '@varka/database';
+import {
+  listPublishedPosts,
+  getPublishedPostBySlug,
+  type PublicPostCard,
+  type PublicPostDetail,
+} from '@varka/content';
+import { listCommentsForPost } from '@varka/content';
 
-export type PublicPostCard = {
-  id: string;
-  publishedAt: string | null;
-  path: string;
-  title: string;
-  slug: string;
-  excerpt: string | null;
-  locale: string;
-};
-
-export type PublicPostDetail = PublicPostCard & {
-  contentHtml: string;
-  seoTitle: string | null;
-  seoDescription: string | null;
-};
+export type { PublicPostCard, PublicPostDetail };
 
 export type PublicComment = {
   id: string;
@@ -28,14 +21,20 @@ export type PublicComment = {
   replies?: PublicComment[];
 };
 
+async function siteId(): Promise<string | null> {
+  try {
+    const site = await prisma.site.findFirst({ where: { slug: 'varka' } });
+    return site?.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchPublishedPosts(limit = 20): Promise<PublicPostCard[]> {
   try {
-    const res = await fetch(`${API}/api/public/posts?limit=${limit}`, {
-      headers: { Accept: 'application/json' },
-    });
-    if (!res.ok) return [];
-    const data = (await res.json()) as { items: PublicPostCard[] };
-    return data.items ?? [];
+    const id = await siteId();
+    if (!id) return [];
+    return await listPublishedPosts(prisma as never, { siteId: id, limit });
   } catch {
     return [];
   }
@@ -43,11 +42,9 @@ export async function fetchPublishedPosts(limit = 20): Promise<PublicPostCard[]>
 
 export async function fetchPostBySlug(slug: string): Promise<PublicPostDetail | null> {
   try {
-    const res = await fetch(`${API}/api/public/posts/${encodeURIComponent(slug)}`, {
-      headers: { Accept: 'application/json' },
-    });
-    if (!res.ok) return null;
-    return (await res.json()) as PublicPostDetail;
+    const id = await siteId();
+    if (!id) return null;
+    return await getPublishedPostBySlug(prisma as never, { siteId: id, slug });
   } catch {
     return null;
   }
@@ -55,18 +52,10 @@ export async function fetchPostBySlug(slug: string): Promise<PublicPostDetail | 
 
 export async function fetchComments(postId: string): Promise<PublicComment[]> {
   try {
-    const res = await fetch(
-      `${API}/api/public/comments?postId=${encodeURIComponent(postId)}`,
-      { headers: { Accept: 'application/json' } },
-    );
-    if (!res.ok) return [];
-    const data = (await res.json()) as { items: PublicComment[] };
-    return data.items ?? [];
+    const result = await listCommentsForPost(prisma as never, postId);
+    const items = (result as { items?: unknown[] }).items ?? (Array.isArray(result) ? result : []);
+    return items as PublicComment[];
   } catch {
     return [];
   }
-}
-
-export function publicApiBase(): string {
-  return API;
 }

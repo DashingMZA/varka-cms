@@ -1,19 +1,11 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { activeThemeWithCss } from '../lib/theme';
+import { activeTheme } from '../lib/theme';
 import { fetchPublishedPosts } from '../lib/content-api';
 
-// Live list — no static prerender of empty shell
-export const prerender = false;
-
-Astro.response.headers.set(
-  'Cache-Control',
-  'public, s-maxage=30, stale-while-revalidate=120',
-);
-
-const theme = await activeThemeWithCss();
+const theme = activeTheme();
+const themeName = theme?.manifest?.name ?? 'Clean Editorial';
 const posts = await fetchPublishedPosts(10);
-const themeName = theme.manifest?.name ?? 'Clean Editorial';
 ---
 <BaseLayout title="VARKA" description="Modern editorial publishing" path="/" type="website">
   <h1 class="post-title">VARKA</h1>
@@ -21,8 +13,8 @@ const themeName = theme.manifest?.name ?? 'Clean Editorial';
   <div class="prose">
     {posts.length === 0 ? (
       <p>
-        No published posts yet (or API offline). Publish from admin, ensure{" "}
-        <code>PUBLIC_API_URL</code> points at the admin host.
+        No published posts yet. Create and <strong>Publish</strong> a post in the admin dashboard
+        (same DATABASE_URL).
       </p>
     ) : (
       <ul>
