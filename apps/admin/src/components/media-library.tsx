@@ -13,6 +13,11 @@ type Asset = {
   createdAt: string;
 };
 
+function previewUrl(a: Asset): string | null {
+  if (a.storage === 'local') return `/api/media/file/${a.key}`;
+  return null;
+}
+
 export function MediaLibrary() {
   const [items, setItems] = useState<Asset[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -71,11 +76,6 @@ export function MediaLibrary() {
     await load();
   }
 
-  function previewUrl(a: Asset): string | null {
-    if (a.storage === 'local') return `/api/media/file/${a.key}`;
-    return null;
-  }
-
   return (
     <div style={{ display: 'grid', gap: 16, marginTop: 16 }}>
       <label
@@ -132,7 +132,6 @@ export function MediaLibrary() {
                 }}
               >
                 {isImage && url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={url}
                     alt={a.alt ?? a.filename}

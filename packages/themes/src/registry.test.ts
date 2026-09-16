@@ -28,7 +28,9 @@ describe('theme registry', () => {
   });
 
   it('unique ids theme-01..theme-10', () => {
-    const ids = listThemes().map((t) => t.manifest.id).sort();
+    const ids = listThemes()
+      .map((t) => t.manifest.id)
+      .toSorted();
     assert.deepEqual(
       ids,
       Array.from({ length: 10 }, (_, i) => `theme-${String(i + 1).padStart(2, '0')}`),

@@ -1,10 +1,10 @@
 import { createAuth } from '@varka/auth';
 
-let _auth: ReturnType<typeof createAuth> | null = null;
+let authSingleton: ReturnType<typeof createAuth> | null = null;
 
 export function getAuth() {
-  if (!_auth) {
-    _auth = createAuth();
+  if (!authSingleton) {
+    authSingleton = createAuth();
   }
-  return _auth;
+  return authSingleton;
 }

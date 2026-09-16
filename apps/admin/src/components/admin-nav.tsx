@@ -16,16 +16,16 @@ const links = [
   { href: '/system', label: 'System' },
 ];
 
+async function signOut() {
+  await fetch('/api/auth/sign-out', {
+    method: 'POST',
+    credentials: 'include',
+  }).catch(() => undefined);
+  window.location.href = '/login';
+}
+
 export function AdminNav() {
   const pathname = usePathname();
-
-  async function signOut() {
-    await fetch('/api/auth/sign-out', {
-      method: 'POST',
-      credentials: 'include',
-    }).catch(() => undefined);
-    window.location.href = '/login';
-  }
 
   return (
     <nav style={{ display: 'grid', gap: 4 }}>
@@ -51,7 +51,7 @@ export function AdminNav() {
       })}
       <button
         type="button"
-        onClick={signOut}
+        onClick={() => void signOut()}
         style={{
           marginTop: 12,
           padding: '8px 10px',
