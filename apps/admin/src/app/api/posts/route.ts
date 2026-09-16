@@ -20,7 +20,14 @@ export async function GET(req: Request) {
     const db = await getDb();
     const ctx = await getAuthContext(req);
     const siteId = await getSiteId(db as never);
-    const result = await listPosts(db as never, ctx, { siteId });
+    const url = new URL(req.url);
+    const status = url.searchParams.get('status') || undefined;
+    const limit = Number(url.searchParams.get('limit') || '50');
+    const result = await listPosts(db as never, ctx, {
+      siteId,
+      status: status && status !== 'all' ? status : undefined,
+      limit: Number.isFinite(limit) ? limit : 50,
+    });
     return NextResponse.json(result);
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Error';

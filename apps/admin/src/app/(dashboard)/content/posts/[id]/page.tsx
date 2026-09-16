@@ -8,7 +8,6 @@ export default async function EditPostPage({
   const { id } = await params;
   return (
     <main>
-      <h1 style={{ marginTop: 0 }}>Edit post</h1>
       <PostEditor postId={id} />
     </main>
   );
