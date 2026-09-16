@@ -33,7 +33,13 @@ const nextConfig: NextConfig = {
     '@varka/types',
     '@varka/validation',
   ],
-  serverExternalPackages: ['@prisma/client', 'pg', '@prisma/adapter-pg', 'dotenv'],
+  serverExternalPackages: [
+    '@prisma/client',
+    'pg',
+    '@prisma/adapter-pg',
+    'dotenv',
+    '@aws-sdk/client-s3',
+  ],
 };
 
 export default nextConfig;
