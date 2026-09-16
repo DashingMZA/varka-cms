@@ -1,36 +1,61 @@
-/** @type {import("eslint").Linter.Config[]} */
-const config = [
+import tseslint from 'typescript-eslint';
+
+export default tseslint.config(
   {
     ignores: [
-      "**/node_modules/**",
-      "**/dist/**",
-      "**/build/**",
-      "**/.next/**",
-      "**/.astro/**",
-      "**/coverage/**",
-      "pnpm-lock.yaml",
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/build/**',
+      '**/.next/**',
+      '**/.astro/**',
+      '**/coverage/**',
+      'pnpm-lock.yaml',
+      '**/*.css.ts',
     ],
   },
+  ...tseslint.configs.recommended,
   {
-    files: ["**/*.{js,mjs,cjs,ts,tsx}"],
+    files: ['**/*.{ts,tsx,mts,cts}'],
     languageOptions: {
-      ecmaVersion: 2022,
-      sourceType: "module",
+      parserOptions: {
+        ecmaFeatures: { jsx: true },
+      },
     },
     rules: {
-      "no-unused-vars": [
-        "error",
+      // Prisma / CMS code often uses explicit any bridges
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
         {
-          argsIgnorePattern: "^_",
-          varsIgnorePattern: "^_",
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
         },
       ],
-      "no-undef": "off",
-      "eqeqeq": ["error", "always"],
-      "no-eval": "error",
-      "no-implied-eval": "error",
+      '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/ban-ts-comment': 'off',
+      '@typescript-eslint/no-empty-object-type': 'off',
+      'no-unused-vars': 'off',
+      eqeqeq: ['error', 'always'],
+      'no-eval': 'error',
+      'no-implied-eval': 'error',
     },
   },
-];
-
-export default config;
+  {
+    files: ['**/*.{js,mjs,cjs}'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+    },
+    rules: {
+      'no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
+      'no-undef': 'off',
+      eqeqeq: ['error', 'always'],
+      'no-eval': 'error',
+      'no-implied-eval': 'error',
+    },
+  },
+);
