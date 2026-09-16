@@ -10,11 +10,12 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "lint": "echo lint:@varka/media",
     "build": "echo build:@varka/media",
-    "test": "node --import tsx --test src/local-adapter.test.ts"
+    "test": "node --import tsx --test src/local-adapter.test.ts src/image-security.test.ts"
   },
   "dependencies": {
     "@varka/database": "workspace:*",
     "@varka/permissions": "workspace:*",
+    "sharp": "^0.34.2",
     "zod": "^4.6.5"
   },
   "devDependencies": {

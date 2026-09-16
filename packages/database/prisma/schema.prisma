@@ -20,14 +20,14 @@ model Site {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  settings   SiteSetting[]
-  languages  Language[]
-  users      User[]
-  posts      Post[]
-  pages      Page[]
-  categories Category[]
-  tags       Tag[]
-  authors    AuthorProfile[]
+  settings    SiteSetting[]
+  languages   Language[]
+  users       User[]
+  posts       Post[]
+  pages       Page[]
+  categories  Category[]
+  tags        Tag[]
+  authors     AuthorProfile[]
   comments    Comment[]
   mediaAssets MediaAsset[]
   auditLogs   AuditLog[]
@@ -92,15 +92,15 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  site     Site?     @relation(fields: [siteId], references: [id], onDelete: SetNull)
-  sessions Session[]
-  accounts Account[]
-  roles    UserRole[]
+  site          Site?           @relation(fields: [siteId], references: [id], onDelete: SetNull)
+  sessions      Session[]
+  accounts      Account[]
+  roles         UserRole[]
   authorProfile AuthorProfile?
-  posts    Post[]
-  pages    Page[]
-  revisions Revision[]
-  comments Comment[]
+  posts         Post[]
+  pages         Page[]
+  revisions     Revision[]
+  comments      Comment[]
   uploadedMedia MediaAsset[]
 
   @@index([siteId])
@@ -218,8 +218,8 @@ model AuthorProfile {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  site  Site  @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  site  Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   posts Post[]
 
   @@unique([siteId, slug])
@@ -241,10 +241,10 @@ model Post {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
-  site          Site           @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  author        User?          @relation(fields: [authorId], references: [id], onDelete: SetNull)
-  authorProfile AuthorProfile? @relation(fields: [authorProfileId], references: [id], onDelete: SetNull)
-  featuredImage MediaAsset?    @relation("PostFeaturedImage", fields: [featuredImageId], references: [id], onDelete: SetNull)
+  site          Site              @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  author        User?             @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  authorProfile AuthorProfile?    @relation(fields: [authorProfileId], references: [id], onDelete: SetNull)
+  featuredImage MediaAsset?       @relation("PostFeaturedImage", fields: [featuredImageId], references: [id], onDelete: SetNull)
   translations  PostTranslation[]
   categories    PostCategory[]
   tags          PostTag[]
@@ -475,6 +475,8 @@ model MediaAsset {
   title        String?
   checksum     String?
   folder       String   @default("/")
+  /// WordPress-style sizes: { thumbnail, medium, large, full } each { key, width, height, mimeType, sizeBytes }
+  sizes        Json?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
