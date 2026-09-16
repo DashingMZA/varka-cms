@@ -4,11 +4,6 @@ import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-type TaxRef = {
-  category?: { translations?: Array<{ name: string }> };
-  tag?: { translations?: Array<{ name: string }> };
-};
-
 type PostRow = {
   id: string;
   status: string;
@@ -35,23 +30,38 @@ function statusClass(status: string): string {
 }
 
 function namesFromCats(p: PostRow): string {
-  return (p.categories ?? [])
-    .map((c) => c.category.translations?.[0]?.name)
-    .filter(Boolean)
-    .join(', ') || '—';
+  return (
+    (p.categories ?? [])
+      .map((c) => c.category.translations?.[0]?.name)
+      .filter(Boolean)
+      .join(', ') || '—'
+  );
 }
 
 function namesFromTags(p: PostRow): string {
-  return (p.tags ?? [])
-    .map((t) => t.tag.translations?.[0]?.name)
-    .filter(Boolean)
-    .join(', ') || '—';
+  return (
+    (p.tags ?? [])
+      .map((t) => t.tag.translations?.[0]?.name)
+      .filter(Boolean)
+      .join(', ') || '—'
+  );
 }
 
-export function PostsAdmin() {
+function normalizeRows(raw: unknown[]): PostRow[] {
+  return (raw as PostRow[]).map((p) => ({
+    ...p,
+    updatedAt:
+      typeof p.updatedAt === 'string'
+        ? p.updatedAt
+        : new Date(p.updatedAt as unknown as Date).toISOString(),
+  }));
+}
+
+export function PostsAdmin({ initialItems = [] }: { initialItems?: PostRow[] }) {
   const router = useRouter();
-  const [items, setItems] = useState<PostRow[]>([]);
-  const [allForCounts, setAllForCounts] = useState<PostRow[]>([]);
+  const seed = normalizeRows(initialItems);
+  const [items, setItems] = useState<PostRow[]>(seed);
+  const [allForCounts, setAllForCounts] = useState<PostRow[]>(seed);
   const [status, setStatus] = useState<StatusFilter>('all');
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
@@ -59,6 +69,7 @@ export function PostsAdmin() {
   const [bulk, setBulk] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [hydrated, setHydrated] = useState(seed.length > 0);
 
   const load = useCallback(async (filter: StatusFilter) => {
     setError(null);
@@ -72,6 +83,7 @@ export function PostsAdmin() {
     const data = (await res.json()) as { items: PostRow[] };
     setItems(data.items ?? []);
     setSelected(new Set());
+    setHydrated(true);
   }, []);
 
   const loadCounts = useCallback(async () => {
@@ -82,12 +94,28 @@ export function PostsAdmin() {
   }, []);
 
   useEffect(() => {
+    // Server already filled "all"; only refetch when filter changes or no seed
+    if (status === 'all' && hydrated && seed.length > 0) {
+      const filtered =
+        status === 'all' ? seed : seed.filter((p) => p.status === status);
+      if (status === 'all') {
+        setItems(seed);
+        return;
+      }
+      setItems(filtered);
+      return;
+    }
     void load(status);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [load, status]);
 
   useEffect(() => {
+    if (seed.length > 0) {
+      setAllForCounts(seed);
+      return;
+    }
     void loadCounts();
-  }, [loadCounts]);
+  }, [loadCounts, seed.length]);
 
   const counts = useMemo(() => {
     const c: Record<string, number> = { all: allForCounts.length };
@@ -98,14 +126,19 @@ export function PostsAdmin() {
   }, [allForCounts]);
 
   const filtered = useMemo(() => {
+    let rows = items;
+    if (status !== 'all') {
+      rows = rows.filter((p) => p.status === status);
+    }
     const q = search.trim().toLowerCase();
-    if (!q) return items;
-    return items.filter((p) => {
+    if (!q) return rows;
+    return rows.filter((p) => {
       const tr = p.translations[0];
-      const hay = `${tr?.title ?? ''} ${tr?.slug ?? ''} ${p.status} ${namesFromCats(p)} ${namesFromTags(p)}`.toLowerCase();
+      const hay =
+        `${tr?.title ?? ''} ${tr?.slug ?? ''} ${p.status} ${namesFromCats(p)} ${namesFromTags(p)}`.toLowerCase();
       return hay.includes(q);
     });
-  }, [items, search]);
+  }, [items, search, status]);
 
   const allChecked = filtered.length > 0 && filtered.every((p) => selected.has(p.id));
 
@@ -204,7 +237,12 @@ export function PostsAdmin() {
     <div>
       <div className="v-page-header">
         <h1 className="v-page-title">Posts</h1>
-        <button type="button" className="v-btn v-btn--primary" disabled={busy} onClick={() => void createPost()}>
+        <button
+          type="button"
+          className="v-btn v-btn--primary"
+          disabled={busy}
+          onClick={() => void createPost()}
+        >
           Add New
         </button>
       </div>
@@ -236,7 +274,12 @@ export function PostsAdmin() {
           <option value="">Bulk actions</option>
           <option value="trash">Move to Trash</option>
         </select>
-        <button type="button" className="v-btn" disabled={!bulk || selected.size === 0 || busy} onClick={() => void applyBulk()}>
+        <button
+          type="button"
+          className="v-btn"
+          disabled={!bulk || selected.size === 0 || busy}
+          onClick={() => void applyBulk()}
+        >
           Apply
         </button>
         <span className="v-tablenav" style={{ marginLeft: 'auto', margin: 0 }}>

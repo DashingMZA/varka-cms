@@ -6,10 +6,10 @@ import { prisma } from '@varka/database';
 import {
   listPublishedPosts,
   getPublishedPostBySlug,
+  listCommentsForPost,
   type PublicPostCard,
   type PublicPostDetail,
 } from '@varka/content';
-import { listCommentsForPost } from '@varka/content';
 
 export type { PublicPostCard, PublicPostDetail };
 
@@ -52,9 +52,27 @@ export async function fetchPostBySlug(slug: string): Promise<PublicPostDetail | 
 
 export async function fetchComments(postId: string): Promise<PublicComment[]> {
   try {
-    const result = await listCommentsForPost(prisma as never, postId);
-    const items = (result as { items?: unknown[] }).items ?? (Array.isArray(result) ? result : []);
-    return items as PublicComment[];
+    const rows = (await listCommentsForPost(prisma as never, {
+      postId,
+    })) as Array<{
+      id: string;
+      authorName: string;
+      body: string;
+      createdAt: Date | string;
+      replies?: Array<{ id: string; authorName: string; body: string; createdAt: Date | string }>;
+    }>;
+    return rows.map((r) => ({
+      id: r.id,
+      authorName: r.authorName,
+      body: r.body,
+      createdAt: new Date(r.createdAt).toISOString(),
+      replies: (r.replies ?? []).map((c) => ({
+        id: c.id,
+        authorName: c.authorName,
+        body: c.body,
+        createdAt: new Date(c.createdAt).toISOString(),
+      })),
+    }));
   } catch {
     return [];
   }
