@@ -4,6 +4,11 @@ import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+type TaxRef = {
+  category?: { translations?: Array<{ name: string }> };
+  tag?: { translations?: Array<{ name: string }> };
+};
+
 type PostRow = {
   id: string;
   status: string;
@@ -11,6 +16,8 @@ type PostRow = {
   createdAt?: string;
   translations: Array<{ title: string; slug: string; languageId: string }>;
   author?: { name?: string | null; email?: string | null } | null;
+  categories?: Array<{ category: { translations?: Array<{ name: string }> } }>;
+  tags?: Array<{ tag: { translations?: Array<{ name: string }> } }>;
 };
 
 type StatusFilter = 'all' | 'DRAFT' | 'PENDING_REVIEW' | 'PUBLISHED' | 'TRASHED';
@@ -24,8 +31,21 @@ const STATUS_TABS: { key: StatusFilter; label: string }[] = [
 ];
 
 function statusClass(status: string): string {
-  const s = status.toLowerCase();
-  return `v-status v-status--${s}`;
+  return `v-status v-status--${status.toLowerCase()}`;
+}
+
+function namesFromCats(p: PostRow): string {
+  return (p.categories ?? [])
+    .map((c) => c.category.translations?.[0]?.name)
+    .filter(Boolean)
+    .join(', ') || '—';
+}
+
+function namesFromTags(p: PostRow): string {
+  return (p.tags ?? [])
+    .map((t) => t.tag.translations?.[0]?.name)
+    .filter(Boolean)
+    .join(', ') || '—';
 }
 
 export function PostsAdmin() {
@@ -39,7 +59,6 @@ export function PostsAdmin() {
   const [bulk, setBulk] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
 
   const load = useCallback(async (filter: StatusFilter) => {
     setError(null);
@@ -83,7 +102,7 @@ export function PostsAdmin() {
     if (!q) return items;
     return items.filter((p) => {
       const tr = p.translations[0];
-      const hay = `${tr?.title ?? ''} ${tr?.slug ?? ''} ${p.status}`.toLowerCase();
+      const hay = `${tr?.title ?? ''} ${tr?.slug ?? ''} ${p.status} ${namesFromCats(p)} ${namesFromTags(p)}`.toLowerCase();
       return hay.includes(q);
     });
   }, [items, search]);
@@ -108,7 +127,6 @@ export function PostsAdmin() {
   }
 
   async function createPost() {
-    const title = newTitle.trim() || 'Untitled';
     setBusy(true);
     setError(null);
     try {
@@ -116,7 +134,7 @@ export function PostsAdmin() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ title }),
+        body: JSON.stringify({ title: 'Untitled' }),
       });
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { error?: string };
@@ -186,23 +204,14 @@ export function PostsAdmin() {
     <div>
       <div className="v-page-header">
         <h1 className="v-page-title">Posts</h1>
-        <button
-          type="button"
-          className="v-btn v-btn--primary"
-          disabled={busy}
-          onClick={() => {
-            setNewTitle('Untitled');
-            void createPost();
-          }}
-        >
+        <button type="button" className="v-btn v-btn--primary" disabled={busy} onClick={() => void createPost()}>
           Add New
         </button>
       </div>
 
       <ul className="v-subsub">
         {STATUS_TABS.map((t) => {
-          const n =
-            t.key === 'all' ? (counts.all ?? 0) : (counts[t.key] ?? 0);
+          const n = t.key === 'all' ? (counts.all ?? 0) : (counts[t.key] ?? 0);
           return (
             <li key={t.key}>
               <a
@@ -266,6 +275,8 @@ export function PostsAdmin() {
               </td>
               <th>Title</th>
               <th>Author</th>
+              <th>Categories</th>
+              <th>Tags</th>
               <th>Status</th>
               <th>Date</th>
             </tr>
@@ -273,7 +284,7 @@ export function PostsAdmin() {
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={5} style={{ padding: 20, color: 'var(--wp-muted)' }}>
+                <td colSpan={7} style={{ padding: 20, color: 'var(--wp-muted)' }}>
                   No posts found.
                 </td>
               </tr>
@@ -313,8 +324,12 @@ export function PostsAdmin() {
                       </div>
                     </td>
                     <td>{p.author?.name || p.author?.email || '—'}</td>
+                    <td>{namesFromCats(p)}</td>
+                    <td>{namesFromTags(p)}</td>
                     <td>
-                      <span className={statusClass(p.status)}>{p.status.replaceAll('_', ' ').toLowerCase()}</span>
+                      <span className={statusClass(p.status)}>
+                        {p.status.replaceAll('_', ' ').toLowerCase()}
+                      </span>
                     </td>
                     <td>
                       <span className="v-muted">{new Date(p.updatedAt).toLocaleString()}</span>
