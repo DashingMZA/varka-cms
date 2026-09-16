@@ -14,9 +14,14 @@ export {
 } from './posts';
 export {
   createPageInput,
+  updatePageInput,
   listPages,
+  getPage,
   createPage,
+  updatePage,
+  trashPage,
   type CreatePageInput,
+  type UpdatePageInput,
   type PagesDb,
 } from './pages';
 export {
