@@ -1,0 +1,26 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "ignorePatterns": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/.next/**",
+    "**/.astro/**",
+    "**/coverage/**",
+    "pnpm-lock.yaml",
+    "**/*.css.ts"
+  ],
+  "categories": {
+    "correctness": "warn",
+    "suspicious": "warn",
+    "pedantic": "off",
+    "style": "off",
+    "restriction": "off"
+  },
+  "rules": {
+    "no-unused-vars": "error",
+    "eqeqeq": "error",
+    "no-eval": "error",
+    "typescript/no-explicit-any": "off"
+  }
+}

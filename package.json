@@ -15,7 +15,8 @@
     "worker": "pnpm --filter @varka/worker-jobs dev",
     "build": "pnpm db:generate && pnpm -r --filter \"./packages/**\" build && pnpm --filter @varka/admin build",
     "typecheck": "pnpm -r --filter @varka/config --filter @varka/types --filter @varka/validation --filter @varka/permissions --filter @varka/auth --filter @varka/database --filter @varka/admin typecheck",
-    "lint": "eslint .",
+    "lint": "oxlint .",
+    "lint:js": "eslint .",
     "test": "pnpm --filter @varka/config test && pnpm --filter @varka/permissions test && pnpm --filter @varka/auth test && pnpm --filter @varka/cache test && pnpm --filter @varka/queue test && pnpm --filter @varka/security test && pnpm --filter @varka/content test && pnpm --filter @varka/themes test && pnpm --filter @varka/seo test && pnpm --filter @varka/i18n test && pnpm --filter @varka/markdown test",
     "db:generate": "pnpm --filter @varka/database generate",
     "db:migrate": "pnpm --filter @varka/database migrate",
@@ -29,8 +30,8 @@
   "devDependencies": {
     "@types/node": "^24.13.4",
     "eslint": "10.10.0",
+    "oxlint": "^1.14.0",
     "prettier": "3.9.6",
-    "typescript": "7.0.2",
-    "typescript-eslint": "^8.70.0"
+    "typescript": "7.0.2"
   }
 }
