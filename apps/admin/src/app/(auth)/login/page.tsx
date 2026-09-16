@@ -8,22 +8,41 @@ export default function LoginPage() {
         display: 'grid',
         placeItems: 'center',
         padding: 24,
+        background: '#f0f0f1',
       }}
     >
       <div
         style={{
           width: '100%',
-          maxWidth: 400,
-          background: 'var(--card)',
-          border: '1px solid var(--border)',
-          borderRadius: 12,
-          padding: 28,
-          boxShadow: '0 8px 30px rgba(28,25,23,0.06)',
+          maxWidth: 360,
+          background: '#fff',
+          border: '1px solid #c3c4c7',
+          borderRadius: 4,
+          padding: '28px 24px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
         }}
       >
-        <h1 style={{ margin: '0 0 4px', fontSize: 22 }}>VARKA</h1>
-        <p style={{ margin: '0 0 20px', color: 'var(--muted)', fontSize: 14 }}>
-          Sign in to the admin
+        <div
+          style={{
+            textAlign: 'center',
+            marginBottom: 20,
+            fontWeight: 600,
+            fontSize: 20,
+            letterSpacing: '0.06em',
+            color: '#1d2327',
+          }}
+        >
+          VARKA
+        </div>
+        <p
+          style={{
+            margin: '0 0 16px',
+            textAlign: 'center',
+            color: '#646970',
+            fontSize: 13,
+          }}
+        >
+          Log in to the admin dashboard
         </p>
         <LoginForm />
       </div>
