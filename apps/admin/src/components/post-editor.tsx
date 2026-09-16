@@ -1,12 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { TiptapEditor } from '@/components/tiptap-editor';
 import {
   FeaturedImagePanel,
   type FeaturedMedia,
 } from '@/components/featured-image-panel';
+import { slugify } from '@/lib/slugify';
+import { useAutosave } from '@/hooks/use-autosave';
 
 type Translation = {
   id: string;
@@ -99,6 +101,7 @@ export function PostEditor({
   const [post, setPost] = useState<Post | null>(initialPost);
   const [title, setTitle] = useState(initialPost?.translations[0]?.title ?? '');
   const [slug, setSlug] = useState(initialPost?.translations[0]?.slug ?? '');
+  const [slugTouched, setSlugTouched] = useState(true);
   const [excerpt, setExcerpt] = useState(initialPost?.translations[0]?.excerpt ?? '');
   const [contentHtml, setContentHtml] = useState(
     initialPost?.translations[0]?.contentHtml ?? '',
@@ -127,6 +130,7 @@ export function PostEditor({
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [autoStatus, setAutoStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [newCat, setNewCat] = useState('');
   const [newTag, setNewTag] = useState('');
 
@@ -174,6 +178,11 @@ export function PostEditor({
     })();
   }, [postId, initialPost]);
 
+  function onTitleChange(value: string) {
+    setTitle(value);
+    if (!slugTouched) setSlug(slugify(value));
+  }
+
   function onFeaturedChange(asset: FeaturedMedia | null) {
     setFeaturedImage(asset);
     setFeaturedImageId(asset?.id ?? null);
@@ -186,55 +195,90 @@ export function PostEditor({
     });
   }
 
-  async function save(opts: { publish?: boolean; trash?: boolean } = {}) {
-    if (!post) return;
-    setMessage(null);
-    setError(null);
-    setSaving(true);
-    const tr = post.translations[0];
-    if (!tr) {
-      setError('No translation');
+  const save = useCallback(
+    async (opts: { publish?: boolean; trash?: boolean; silent?: boolean } = {}) => {
+      if (!post) return;
+      if (!title.trim() && !opts.trash) {
+        if (!opts.silent) setError('Title is required — empty titles are not saved');
+        return;
+      }
+      if (!opts.silent) {
+        setMessage(null);
+        setError(null);
+        setSaving(true);
+      } else {
+        setAutoStatus('saving');
+      }
+      const tr = post.translations[0];
+      if (!tr) {
+        if (!opts.silent) setError('No translation');
+        setSaving(false);
+        return;
+      }
+
+      let nextStatus: string | undefined;
+      if (opts.trash) nextStatus = 'TRASHED';
+      else if (opts.publish) nextStatus = 'PUBLISHED';
+
+      const res = await fetch(`/api/posts/${postId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          title: title.trim(),
+          slug,
+          excerpt: excerpt || null,
+          contentHtml,
+          seoTitle: seoTitle || null,
+          seoDescription: seoDescription || null,
+          categoryIds,
+          tagIds,
+          featuredImageId,
+          version: post.version,
+          languageId: tr.languageId,
+          ...(nextStatus ? { status: nextStatus } : {}),
+        }),
+      });
+
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        if (!opts.silent) setError(body.error ?? `Save failed (${res.status})`);
+        setSaving(false);
+        setAutoStatus('idle');
+        return;
+      }
+      const data = (await res.json()) as Post;
+      setPost(data);
+      setFeaturedImage(data.featuredImage ?? null);
+      setFeaturedImageId(data.featuredImageId ?? data.featuredImage?.id ?? null);
+      if (!opts.silent) {
+        setMessage(opts.trash ? 'Moved to Trash' : opts.publish ? 'Published' : 'Draft saved');
+      } else {
+        setAutoStatus('saved');
+      }
       setSaving(false);
-      return;
-    }
+    },
+    [
+      post,
+      postId,
+      title,
+      slug,
+      excerpt,
+      contentHtml,
+      seoTitle,
+      seoDescription,
+      categoryIds,
+      tagIds,
+      featuredImageId,
+    ],
+  );
 
-    let nextStatus: string | undefined;
-    if (opts.trash) nextStatus = 'TRASHED';
-    else if (opts.publish) nextStatus = 'PUBLISHED';
-
-    const res = await fetch(`/api/posts/${postId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({
-        title,
-        slug,
-        excerpt: excerpt || null,
-        contentHtml,
-        seoTitle: seoTitle || null,
-        seoDescription: seoDescription || null,
-        categoryIds,
-        tagIds,
-        featuredImageId,
-        version: post.version,
-        languageId: tr.languageId,
-        ...(nextStatus ? { status: nextStatus } : {}),
-      }),
-    });
-
-    if (!res.ok) {
-      const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(body.error ?? `Save failed (${res.status})`);
-      setSaving(false);
-      return;
-    }
-    const data = (await res.json()) as Post;
-    setPost(data);
-    setFeaturedImage(data.featuredImage ?? null);
-    setFeaturedImageId(data.featuredImageId ?? data.featuredImage?.id ?? null);
-    setMessage(opts.trash ? 'Moved to Trash' : opts.publish ? 'Published' : 'Draft saved');
-    setSaving(false);
-  }
+  useAutosave(
+    Boolean(post && title.trim()),
+    [title, slug, excerpt, contentHtml, seoTitle, seoDescription, categoryIds, tagIds, featuredImageId],
+    () => save({ silent: true }),
+    2500,
+  );
 
   async function addCategory() {
     const name = newCat.trim();
@@ -293,13 +337,20 @@ export function PostEditor({
           <input
             className="v-editor__title"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => onTitleChange(e.target.value)}
             placeholder="Add title"
             aria-label="Post title"
           />
           <div className="v-editor__slug">
             <span>Permalink:</span>
-            <input value={slug} onChange={(e) => setSlug(e.target.value)} aria-label="Slug" />
+            <input
+              value={slug}
+              onChange={(e) => {
+                setSlugTouched(true);
+                setSlug(e.target.value);
+              }}
+              aria-label="Slug"
+            />
           </div>
           <label className="v-muted" style={{ display: 'block', marginBottom: 6, fontWeight: 600 }}>
             Content
@@ -322,12 +373,17 @@ export function PostEditor({
                 {post?.updatedAt
                   ? ` · Updated ${new Date(post.updatedAt).toLocaleString()}`
                   : ''}
+                {autoStatus === 'saving'
+                  ? ' · Autosaving…'
+                  : autoStatus === 'saved'
+                    ? ' · Autosaved'
+                    : ''}
               </p>
               <div className="v-btn-row" style={{ marginTop: 12 }}>
                 <button
                   type="button"
                   className="v-btn v-btn--primary"
-                  disabled={saving || !post}
+                  disabled={saving || !post || !title.trim()}
                   onClick={() => void save()}
                 >
                   {saving ? 'Saving…' : 'Save Draft'}
@@ -335,7 +391,7 @@ export function PostEditor({
                 <button
                   type="button"
                   className="v-btn v-btn--success"
-                  disabled={saving || !post}
+                  disabled={saving || !post || !title.trim()}
                   onClick={() => void save({ publish: true })}
                 >
                   Publish
