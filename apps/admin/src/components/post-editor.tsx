@@ -59,21 +59,79 @@ function mediaUrl(a: MediaAsset): string {
   return a.key.startsWith('http') ? a.key : `/api/media/file/${a.key}`;
 }
 
-export function PostEditor({ postId }: { postId: string }) {
-  const [post, setPost] = useState<Post | null>(null);
-  const [title, setTitle] = useState('');
-  const [slug, setSlug] = useState('');
-  const [excerpt, setExcerpt] = useState('');
-  const [contentHtml, setContentHtml] = useState('');
-  const [seoTitle, setSeoTitle] = useState('');
-  const [seoDescription, setSeoDescription] = useState('');
-  const [categoryIds, setCategoryIds] = useState<string[]>([]);
-  const [tagIds, setTagIds] = useState<string[]>([]);
-  const [featuredImageId, setFeaturedImageId] = useState<string | null>(null);
-  const [featuredImage, setFeaturedImage] = useState<MediaAsset | null>(null);
-  const [allCategories, setAllCategories] = useState<TaxItem[]>([]);
-  const [allTags, setAllTags] = useState<TaxItem[]>([]);
-  const [mediaItems, setMediaItems] = useState<MediaAsset[]>([]);
+function applyPost(
+  data: Post,
+  setters: {
+    setPost: (p: Post) => void;
+    setTitle: (v: string) => void;
+    setSlug: (v: string) => void;
+    setExcerpt: (v: string) => void;
+    setContentHtml: (v: string) => void;
+    setSeoTitle: (v: string) => void;
+    setSeoDescription: (v: string) => void;
+    setCategoryIds: (v: string[]) => void;
+    setTagIds: (v: string[]) => void;
+    setFeaturedImageId: (v: string | null) => void;
+    setFeaturedImage: (v: MediaAsset | null) => void;
+  },
+) {
+  setters.setPost(data);
+  const tr = data.translations[0];
+  if (tr) {
+    setters.setTitle(tr.title);
+    setters.setSlug(tr.slug);
+    setters.setExcerpt(tr.excerpt ?? '');
+    setters.setContentHtml(tr.contentHtml ?? '');
+    setters.setSeoTitle(tr.seoTitle ?? '');
+    setters.setSeoDescription(tr.seoDescription ?? '');
+  }
+  setters.setCategoryIds((data.categories ?? []).map((c) => c.category.id));
+  setters.setTagIds((data.tags ?? []).map((t) => t.tag.id));
+  setters.setFeaturedImageId(data.featuredImageId ?? null);
+  setters.setFeaturedImage(data.featuredImage ?? null);
+}
+
+export function PostEditor({
+  postId,
+  initialPost = null,
+  initialCategories = [],
+  initialTags = [],
+  initialMedia = [],
+}: {
+  postId: string;
+  initialPost?: Post | null;
+  initialCategories?: TaxItem[];
+  initialTags?: TaxItem[];
+  initialMedia?: MediaAsset[];
+}) {
+  const [post, setPost] = useState<Post | null>(initialPost);
+  const [title, setTitle] = useState(initialPost?.translations[0]?.title ?? '');
+  const [slug, setSlug] = useState(initialPost?.translations[0]?.slug ?? '');
+  const [excerpt, setExcerpt] = useState(initialPost?.translations[0]?.excerpt ?? '');
+  const [contentHtml, setContentHtml] = useState(
+    initialPost?.translations[0]?.contentHtml ?? '',
+  );
+  const [seoTitle, setSeoTitle] = useState(initialPost?.translations[0]?.seoTitle ?? '');
+  const [seoDescription, setSeoDescription] = useState(
+    initialPost?.translations[0]?.seoDescription ?? '',
+  );
+  const [categoryIds, setCategoryIds] = useState<string[]>(
+    (initialPost?.categories ?? []).map((c) => c.category.id),
+  );
+  const [tagIds, setTagIds] = useState<string[]>(
+    (initialPost?.tags ?? []).map((t) => t.tag.id),
+  );
+  const [featuredImageId, setFeaturedImageId] = useState<string | null>(
+    initialPost?.featuredImageId ?? null,
+  );
+  const [featuredImage, setFeaturedImage] = useState<MediaAsset | null>(
+    initialPost?.featuredImage ?? null,
+  );
+  const [allCategories, setAllCategories] = useState<TaxItem[]>(initialCategories);
+  const [allTags, setAllTags] = useState<TaxItem[]>(initialTags);
+  const [mediaItems, setMediaItems] = useState<MediaAsset[]>(
+    initialMedia.filter((x) => x.mimeType?.startsWith('image/')),
+  );
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -81,6 +139,7 @@ export function PostEditor({ postId }: { postId: string }) {
   const [newTag, setNewTag] = useState('');
 
   useEffect(() => {
+    if (initialPost) return; // already hydrated from DB on server
     void (async () => {
       const [postRes, catRes, tagRes, mediaRes] = await Promise.all([
         fetch(`/api/posts/${postId}`, { credentials: 'include' }),
@@ -94,20 +153,19 @@ export function PostEditor({ postId }: { postId: string }) {
         return;
       }
       const data = (await postRes.json()) as Post;
-      setPost(data);
-      const tr = data.translations[0];
-      if (tr) {
-        setTitle(tr.title);
-        setSlug(tr.slug);
-        setExcerpt(tr.excerpt ?? '');
-        setContentHtml(tr.contentHtml ?? '');
-        setSeoTitle(tr.seoTitle ?? '');
-        setSeoDescription(tr.seoDescription ?? '');
-      }
-      setCategoryIds((data.categories ?? []).map((c) => c.category.id));
-      setTagIds((data.tags ?? []).map((t) => t.tag.id));
-      setFeaturedImageId(data.featuredImageId ?? null);
-      setFeaturedImage(data.featuredImage ?? null);
+      applyPost(data, {
+        setPost,
+        setTitle,
+        setSlug,
+        setExcerpt,
+        setContentHtml,
+        setSeoTitle,
+        setSeoDescription,
+        setCategoryIds,
+        setTagIds,
+        setFeaturedImageId,
+        setFeaturedImage,
+      });
 
       if (catRes.ok) {
         const c = (await catRes.json()) as { items: TaxItem[] };
@@ -122,7 +180,7 @@ export function PostEditor({ postId }: { postId: string }) {
         setMediaItems((m.items ?? []).filter((x) => x.mimeType.startsWith('image/')));
       }
     })();
-  }, [postId]);
+  }, [postId, initialPost]);
 
   async function save(opts: { publish?: boolean; trash?: boolean } = {}) {
     if (!post) return;
@@ -319,7 +377,12 @@ export function PostEditor({ postId }: { postId: string }) {
                       border: '1px solid var(--wp-border)',
                     }}
                   />
-                  <button type="button" className="v-btn" style={{ marginTop: 6 }} onClick={() => pickFeatured(null)}>
+                  <button
+                    type="button"
+                    className="v-btn"
+                    style={{ marginTop: 6 }}
+                    onClick={() => pickFeatured(null)}
+                  >
                     Remove
                   </button>
                 </div>
@@ -351,7 +414,10 @@ export function PostEditor({ postId }: { postId: string }) {
             <div className="v-panel__b">
               <div style={{ display: 'grid', gap: 4, maxHeight: 160, overflow: 'auto' }}>
                 {allCategories.map((c) => (
-                  <label key={c.id} style={{ display: 'flex', gap: 6, alignItems: 'center', fontWeight: 400 }}>
+                  <label
+                    key={c.id}
+                    style={{ display: 'flex', gap: 6, alignItems: 'center', fontWeight: 400 }}
+                  >
                     <input
                       type="checkbox"
                       checked={categoryIds.includes(c.id)}
@@ -384,7 +450,10 @@ export function PostEditor({ postId }: { postId: string }) {
             <div className="v-panel__b">
               <div style={{ display: 'grid', gap: 4, maxHeight: 120, overflow: 'auto' }}>
                 {allTags.map((t) => (
-                  <label key={t.id} style={{ display: 'flex', gap: 6, alignItems: 'center', fontWeight: 400 }}>
+                  <label
+                    key={t.id}
+                    style={{ display: 'flex', gap: 6, alignItems: 'center', fontWeight: 400 }}
+                  >
                     <input
                       type="checkbox"
                       checked={tagIds.includes(t.id)}
@@ -429,7 +498,11 @@ export function PostEditor({ postId }: { postId: string }) {
             <div className="v-panel__b">
               <label>
                 SEO title
-                <input value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} maxLength={200} />
+                <input
+                  value={seoTitle}
+                  onChange={(e) => setSeoTitle(e.target.value)}
+                  maxLength={200}
+                />
               </label>
               <label style={{ marginTop: 8 }}>
                 Meta description
@@ -441,7 +514,8 @@ export function PostEditor({ postId }: { postId: string }) {
                 />
               </label>
               <p className="v-muted" style={{ fontSize: 11, margin: '6px 0 0' }}>
-                {(seoTitle || title).length}/60 title · {seoDescription.length}/160 description (guide)
+                {(seoTitle || title).length}/60 title · {seoDescription.length}/160 description
+                (guide)
               </p>
             </div>
           </section>
