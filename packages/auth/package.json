@@ -17,9 +17,10 @@
     "test": "node --import tsx --test src/rate-limit.test.ts"
   },
   "dependencies": {
+    "@varka/cache": "workspace:*",
+    "@varka/config": "workspace:*",
     "@varka/database": "workspace:*",
     "@varka/permissions": "workspace:*",
-    "@varka/config": "workspace:*",
     "better-auth": "^1.7.4"
   },
   "devDependencies": {
