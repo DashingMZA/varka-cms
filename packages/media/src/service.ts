@@ -3,7 +3,7 @@ import { z } from 'zod';
 import type { AuthContext } from '@varka/permissions';
 import { requirePermission } from '@varka/permissions';
 import type { StorageAdapter } from './types';
-import { probeImageSize } from './image-size';
+import { processImageUpload } from './image-process';
 
 export type MediaDb = {
   mediaAsset: {
@@ -20,7 +20,6 @@ const ALLOWED_MIME = new Set([
   'image/png',
   'image/webp',
   'image/gif',
-  'image/svg+xml',
   'application/pdf',
   'video/mp4',
   'audio/mpeg',
@@ -41,12 +40,13 @@ function safeFilename(name: string): string {
   return name.replace(/[^a-zA-Z0-9._-]+/g, '_').slice(0, 180);
 }
 
-function objectKey(filename: string): string {
+function objectKeyPrefix(filename: string): string {
   const now = new Date();
   const y = now.getUTCFullYear();
   const m = String(now.getUTCMonth() + 1).padStart(2, '0');
   const id = randomBytes(6).toString('hex');
-  return `${y}/${m}/${id}-${safeFilename(filename)}`;
+  const base = safeFilename(filename).replace(/\.[^.]+$/, '') || 'file';
+  return `${y}/${m}/${id}-${base}`;
 }
 
 export async function listMedia(
@@ -84,7 +84,7 @@ export async function uploadMedia(
   requirePermission(ctx, 'media.upload');
   const input = uploadMetaSchema.parse(meta);
 
-  if (!ALLOWED_MIME.has(input.mimeType)) {
+  if (!ALLOWED_MIME.has(input.mimeType) && !input.mimeType.startsWith('image/')) {
     throw new Error(`MIME not allowed: ${input.mimeType}`);
   }
   if (body.length > MAX_BYTES) {
@@ -94,15 +94,64 @@ export async function uploadMedia(
     throw new Error('Empty file');
   }
 
-  const dims =
-    input.mimeType.startsWith('image/') && input.mimeType !== 'image/svg+xml'
-      ? probeImageSize(body)
-      : null;
+  const prefix = objectKeyPrefix(input.filename);
+  const isImage =
+    input.mimeType.startsWith('image/') && input.mimeType !== 'image/svg+xml';
 
-  const key = objectKey(input.filename);
-  const checksum = createHash('sha256').update(body).digest('hex');
+  if (isImage) {
+    const { sizes, primary } = await processImageUpload(body, prefix);
+
+    for (const s of sizes) {
+      await storage.put({
+        key: s.key,
+        body: s.body,
+        contentType: s.mimeType,
+      });
+    }
+
+    const sizesMeta: Record<
+      string,
+      { key: string; width: number; height: number; mimeType: string; sizeBytes: number }
+    > = {};
+    for (const s of sizes) {
+      sizesMeta[s.name] = {
+        key: s.key,
+        width: s.width,
+        height: s.height,
+        mimeType: s.mimeType,
+        sizeBytes: s.sizeBytes,
+      };
+    }
+
+    const asset = await db.mediaAsset.create({
+      data: {
+        siteId: input.siteId,
+        uploadedById: ctx.userId === 'dev-user' ? null : ctx.userId,
+        storage: storage.name,
+        key: primary.key,
+        filename: input.filename.replace(/\.[^.]+$/, '') + '.webp',
+        mimeType: 'image/webp',
+        sizeBytes: primary.sizeBytes,
+        width: primary.width,
+        height: primary.height,
+        alt: input.alt,
+        title: input.title ?? input.filename,
+        folder: input.folder ?? '/',
+        checksum: createHash('sha256').update(primary.body).digest('hex'),
+        sizes: sizesMeta,
+      },
+    });
+
+    return {
+      asset,
+      url: storage.getUrl(primary.key),
+      sizes: sizesMeta,
+    };
+  }
+
+  // Non-image (pdf/video/audio) — store as-is
+  const key = `${prefix}-${safeFilename(input.filename)}`;
   const put = await storage.put({ key, body, contentType: input.mimeType });
-
   const asset = await db.mediaAsset.create({
     data: {
       siteId: input.siteId,
@@ -112,12 +161,10 @@ export async function uploadMedia(
       filename: input.filename,
       mimeType: input.mimeType,
       sizeBytes: put.sizeBytes,
-      width: dims?.width ?? null,
-      height: dims?.height ?? null,
       alt: input.alt,
       title: input.title ?? input.filename,
       folder: input.folder ?? '/',
-      checksum,
+      checksum: createHash('sha256').update(body).digest('hex'),
     },
   });
 
@@ -137,9 +184,21 @@ export async function deleteMedia(
   const asset = (await db.mediaAsset.findUnique({ where: { id } })) as {
     id: string;
     key: string;
+    sizes?: Record<string, { key: string }> | null;
   } | null;
   if (!asset) throw new Error('Not found');
   await storage.delete(asset.key);
+  if (asset.sizes && typeof asset.sizes === 'object') {
+    for (const s of Object.values(asset.sizes)) {
+      if (s?.key && s.key !== asset.key) {
+        try {
+          await storage.delete(s.key);
+        } catch {
+          /* best effort */
+        }
+      }
+    }
+  }
   await db.mediaAsset.delete({ where: { id } });
   return { ok: true };
 }

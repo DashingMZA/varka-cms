@@ -25,6 +25,12 @@ export {
   type PagesDb,
 } from './pages';
 export {
+  listPostRevisions,
+  getRevision,
+  restorePostRevision,
+  type RevisionsDb,
+} from './revisions';
+export {
   listCategories,
   listTags,
   createCategory,

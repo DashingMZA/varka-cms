@@ -11,3 +11,5 @@ export {
   uploadMetaSchema,
   type MediaDb,
 } from './service';
+export { detectImageMagic, assertSafeImagePayload } from './image-security';
+export { processImageUpload } from './image-process';
