@@ -1,7 +1,7 @@
 import { createRequire } from 'node:module';
-import { assertSafeImagePayload } from './image-security';
+import { assertSafeImagePayload, type DetectedImage } from './image-security';
 
-export type SizeName = 'thumbnail' | 'medium' | 'large' | 'full';
+export type SizeName = 'thumbnail' | 'medium' | 'large' | 'original';
 
 export type GeneratedSize = {
   name: SizeName;
@@ -13,12 +13,17 @@ export type GeneratedSize = {
   body: Buffer;
 };
 
-/** WordPress-like max widths */
-const TARGETS: { name: SizeName; maxW: number }[] = [
-  { name: 'thumbnail', maxW: 150 },
-  { name: 'medium', maxW: 300 },
-  { name: 'large', maxW: 1024 },
-];
+export type ImageSizeConfig = {
+  thumbnail: number;
+  medium: number;
+  large: number;
+};
+
+export const DEFAULT_IMAGE_SIZES: ImageSizeConfig = {
+  thumbnail: 150,
+  medium: 300,
+  large: 1024,
+};
 
 function loadSharp():
   | ((input?: Buffer) => {
@@ -31,59 +36,75 @@ function loadSharp():
           toBuffer: () => Promise<Buffer>;
         };
       };
-      webp: (o?: { quality?: number }) => { toBuffer: () => Promise<Buffer> };
     })
   | null {
   try {
     const require = createRequire(import.meta.url);
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     return require('sharp') as never;
   } catch {
     return null;
   }
 }
 
+function extFor(detected: DetectedImage): string {
+  switch (detected.kind) {
+    case 'jpeg':
+      return 'jpg';
+    case 'png':
+      return 'png';
+    case 'gif':
+      return 'gif';
+    case 'webp':
+      return 'webp';
+  }
+}
+
 /**
- * Validate real image → convert to WebP → generate thumbnail/medium/large/full.
+ * Keep **original** bytes unchanged (same format/dimensions).
+ * Generate thumbnail / medium / large as WebP derivatives only.
  */
 export async function processImageUpload(
   body: Buffer,
   baseKeyWithoutExt: string,
-): Promise<{ sizes: GeneratedSize[]; primary: GeneratedSize }> {
-  assertSafeImagePayload(body);
+  sizeConfig: ImageSizeConfig = DEFAULT_IMAGE_SIZES,
+): Promise<{ sizes: GeneratedSize[]; primary: GeneratedSize; detected: DetectedImage }> {
+  const detected = assertSafeImagePayload(body);
 
   const sharp = loadSharp();
   if (!sharp) {
     throw new Error(
-      'sharp is required for WebP conversion. Run: pnpm --filter @varka/media add sharp',
+      'sharp is required for size derivatives. Run: pnpm --filter @varka/media add sharp',
     );
   }
 
-  const img = sharp(body);
-  const meta = await img.metadata();
+  const meta = await sharp(body).metadata();
   const srcW = meta.width ?? 0;
   const srcH = meta.height ?? 0;
   if (srcW < 1 || srcH < 1) {
     throw new Error('Invalid image dimensions');
   }
 
-  const out: GeneratedSize[] = [];
-
-  // full WebP
-  const fullBody = await sharp(body).webp({ quality: 82 }).toBuffer();
-  const fullMeta = await sharp(fullBody).metadata();
-  const full: GeneratedSize = {
-    name: 'full',
-    key: `${baseKeyWithoutExt}-full.webp`,
-    width: fullMeta.width ?? srcW,
-    height: fullMeta.height ?? srcH,
-    mimeType: 'image/webp',
-    sizeBytes: fullBody.length,
-    body: fullBody,
+  const originalExt = extFor(detected);
+  const original: GeneratedSize = {
+    name: 'original',
+    key: `${baseKeyWithoutExt}.${originalExt}`,
+    width: srcW,
+    height: srcH,
+    mimeType: detected.mimeType,
+    sizeBytes: body.length,
+    body, // untouched original
   };
-  out.push(full);
 
-  for (const t of TARGETS) {
+  const out: GeneratedSize[] = [original];
+
+  const targets: { name: Exclude<SizeName, 'original'>; maxW: number }[] = [
+    { name: 'thumbnail', maxW: sizeConfig.thumbnail },
+    { name: 'medium', maxW: sizeConfig.medium },
+    { name: 'large', maxW: sizeConfig.large },
+  ];
+
+  for (const t of targets) {
+    // Skip generating a derivative larger than source (still write entry pointing to original dims as webp scaled down only)
     const width = Math.min(t.maxW, srcW);
     const resized = await sharp(body)
       .resize({ width, withoutEnlargement: true })
@@ -101,5 +122,5 @@ export async function processImageUpload(
     });
   }
 
-  return { sizes: out, primary: full };
+  return { sizes: out, primary: original, detected };
 }

@@ -3,7 +3,7 @@ import { z } from 'zod';
 import type { AuthContext } from '@varka/permissions';
 import { requirePermission } from '@varka/permissions';
 import type { StorageAdapter } from './types';
-import { processImageUpload } from './image-process';
+import { processImageUpload, DEFAULT_IMAGE_SIZES, type ImageSizeConfig } from './image-process';
 
 export type MediaDb = {
   mediaAsset: {
@@ -12,6 +12,9 @@ export type MediaDb = {
     findUnique: (args: unknown) => Promise<unknown>;
     update: (args: unknown) => Promise<unknown>;
     delete: (args: unknown) => Promise<unknown>;
+  };
+  siteSetting?: {
+    findUnique: (args: unknown) => Promise<{ value: unknown } | null>;
   };
 };
 
@@ -33,6 +36,8 @@ export const uploadMetaSchema = z.object({
   mimeType: z.string().min(1),
   alt: z.string().max(500).optional(),
   title: z.string().max(300).optional(),
+  caption: z.string().max(2000).optional(),
+  keywords: z.string().max(500).optional(),
   folder: z.string().max(200).default('/'),
 });
 
@@ -40,13 +45,50 @@ function safeFilename(name: string): string {
   return name.replace(/[^a-zA-Z0-9._-]+/g, '_').slice(0, 180);
 }
 
-function objectKeyPrefix(filename: string): string {
+/** WordPress-style uploads/YYYY/MM/basename */
+function objectKeyPrefix(filename: string, organizeByYm: boolean): string {
+  const base = safeFilename(filename).replace(/\.[^.]+$/, '') || 'file';
+  const id = randomBytes(6).toString('hex');
+  if (!organizeByYm) {
+    return `${id}-${base}`;
+  }
   const now = new Date();
   const y = now.getUTCFullYear();
   const m = String(now.getUTCMonth() + 1).padStart(2, '0');
-  const id = randomBytes(6).toString('hex');
-  const base = safeFilename(filename).replace(/\.[^.]+$/, '') || 'file';
   return `${y}/${m}/${id}-${base}`;
+}
+
+async function loadImageSizeConfig(db: MediaDb, siteId: string): Promise<ImageSizeConfig> {
+  if (!db.siteSetting) return DEFAULT_IMAGE_SIZES;
+  try {
+    const row = await db.siteSetting.findUnique({
+      where: { siteId_key: { siteId, key: 'media.imageSizes' } },
+    });
+    const v = row?.value as Partial<ImageSizeConfig> | null;
+    if (!v || typeof v !== 'object') return DEFAULT_IMAGE_SIZES;
+    return {
+      thumbnail: Number(v.thumbnail) > 0 ? Number(v.thumbnail) : DEFAULT_IMAGE_SIZES.thumbnail,
+      medium: Number(v.medium) > 0 ? Number(v.medium) : DEFAULT_IMAGE_SIZES.medium,
+      large: Number(v.large) > 0 ? Number(v.large) : DEFAULT_IMAGE_SIZES.large,
+    };
+  } catch {
+    return DEFAULT_IMAGE_SIZES;
+  }
+}
+
+async function loadOrganizeByYm(db: MediaDb, siteId: string): Promise<boolean> {
+  if (!db.siteSetting) return true;
+  try {
+    const row = await db.siteSetting.findUnique({
+      where: { siteId_key: { siteId, key: 'media.organizeByYm' } },
+    });
+    const v = row?.value as { enabled?: boolean } | boolean | null;
+    if (typeof v === 'boolean') return v;
+    if (v && typeof v === 'object' && 'enabled' in v) return Boolean(v.enabled);
+    return true;
+  } catch {
+    return true;
+  }
 }
 
 export async function listMedia(
@@ -94,12 +136,14 @@ export async function uploadMedia(
     throw new Error('Empty file');
   }
 
-  const prefix = objectKeyPrefix(input.filename);
+  const organize = await loadOrganizeByYm(db, input.siteId);
+  const prefix = objectKeyPrefix(input.filename, organize);
   const isImage =
     input.mimeType.startsWith('image/') && input.mimeType !== 'image/svg+xml';
 
   if (isImage) {
-    const { sizes, primary } = await processImageUpload(body, prefix);
+    const sizeConfig = await loadImageSizeConfig(db, input.siteId);
+    const { sizes, primary } = await processImageUpload(body, prefix, sizeConfig);
 
     for (const s of sizes) {
       await storage.put({
@@ -129,13 +173,15 @@ export async function uploadMedia(
         uploadedById: ctx.userId === 'dev-user' ? null : ctx.userId,
         storage: storage.name,
         key: primary.key,
-        filename: input.filename.replace(/\.[^.]+$/, '') + '.webp',
-        mimeType: 'image/webp',
+        filename: input.filename,
+        mimeType: primary.mimeType,
         sizeBytes: primary.sizeBytes,
         width: primary.width,
         height: primary.height,
         alt: input.alt,
         title: input.title ?? input.filename,
+        caption: input.caption,
+        keywords: input.keywords,
         folder: input.folder ?? '/',
         checksum: createHash('sha256').update(primary.body).digest('hex'),
         sizes: sizesMeta,
@@ -149,7 +195,6 @@ export async function uploadMedia(
     };
   }
 
-  // Non-image (pdf/video/audio) — store as-is
   const key = `${prefix}-${safeFilename(input.filename)}`;
   const put = await storage.put({ key, body, contentType: input.mimeType });
   const asset = await db.mediaAsset.create({
@@ -163,6 +208,8 @@ export async function uploadMedia(
       sizeBytes: put.sizeBytes,
       alt: input.alt,
       title: input.title ?? input.filename,
+      caption: input.caption,
+      keywords: input.keywords,
       folder: input.folder ?? '/',
       checksum: createHash('sha256').update(body).digest('hex'),
     },
@@ -207,7 +254,13 @@ export async function updateMediaMeta(
   db: MediaDb,
   ctx: AuthContext,
   id: string,
-  data: { alt?: string | null; title?: string | null; folder?: string },
+  data: {
+    alt?: string | null;
+    title?: string | null;
+    caption?: string | null;
+    keywords?: string | null;
+    folder?: string;
+  },
 ) {
   requirePermission(ctx, 'media.update');
   return db.mediaAsset.update({
@@ -215,6 +268,8 @@ export async function updateMediaMeta(
     data: {
       ...(data.alt !== undefined ? { alt: data.alt } : {}),
       ...(data.title !== undefined ? { title: data.title } : {}),
+      ...(data.caption !== undefined ? { caption: data.caption } : {}),
+      ...(data.keywords !== undefined ? { keywords: data.keywords } : {}),
       ...(data.folder !== undefined ? { folder: data.folder } : {}),
     },
   });
