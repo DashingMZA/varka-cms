@@ -22,6 +22,7 @@
     "@varka/media": "workspace:*",
     "@varka/queue": "workspace:*",
     "better-auth": "^1.7.4",
+    "dotenv": "^17.4.2",
     "next": "16.3.5",
     "react": "19.3.0",
     "react-dom": "19.3.0",
