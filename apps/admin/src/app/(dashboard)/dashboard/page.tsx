@@ -19,7 +19,7 @@ export default async function DashboardPage() {
       prisma.mediaAsset.count().catch(() => 0),
       prisma.user.count().catch(() => 0),
       prisma.comment.count().catch(() => 0),
-      prisma.comment.count({ where: { status: 'pending' } }).catch(() => 0),
+      prisma.comment.count({ where: { status: 'PENDING' } }).catch(() => 0),
     ]);
     posts = p;
     pages = pg;

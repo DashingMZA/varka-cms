@@ -78,6 +78,27 @@ const postInclude = {
   featuredImage: true,
 };
 
+async function uniqueSlug(
+  db: ContentDb,
+  languageId: string,
+  base: string,
+): Promise<string> {
+  let candidate = base;
+  let n = 0;
+  while (true) {
+    const existing = await db.postTranslation.findFirst({
+      where: { languageId, slug: candidate },
+    });
+    if (!existing) return candidate;
+    n += 1;
+    candidate = `${base}-${n}`;
+    if (n > 50) {
+      candidate = `${base}-${Date.now().toString(36)}`;
+      return candidate;
+    }
+  }
+}
+
 export async function listPosts(
   db: ContentDb,
   ctx: AuthContext,
@@ -121,8 +142,8 @@ export async function getPost(db: ContentDb, ctx: AuthContext, postId: string) {
 export async function createPost(db: ContentDb, ctx: AuthContext, raw: CreatePostInput) {
   requirePermission(ctx, 'posts.create');
   const input = createPostInput.parse(raw);
-  const slug = input.slug ? input.slug : slugify(input.title);
-  assertSlugAllowed(slug);
+  const baseSlug = input.slug ? input.slug : slugify(input.title);
+  assertSlugAllowed(baseSlug);
 
   let languageId = input.languageId;
   if (!languageId) {
@@ -136,10 +157,7 @@ export async function createPost(db: ContentDb, ctx: AuthContext, raw: CreatePos
     languageId = lang.id;
   }
 
-  const existing = await db.postTranslation.findFirst({
-    where: { languageId, slug },
-  });
-  if (existing) throw new Error(`Slug already exists: ${slug}`);
+  const slug = await uniqueSlug(db, languageId, baseSlug);
 
   const contentHtml = stripDangerousHtml(input.contentHtml ?? '');
   const authorId =
