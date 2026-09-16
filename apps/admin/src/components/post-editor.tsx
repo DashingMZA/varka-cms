@@ -9,6 +9,7 @@ import {
 } from '@/components/featured-image-panel';
 import { slugify } from '@/lib/slugify';
 import { useAutosave } from '@/hooks/use-autosave';
+import { RevisionHistory } from '@/components/revision-history';
 
 type Translation = {
   id: string;
@@ -277,7 +278,6 @@ export function PostEditor({
     Boolean(post && title.trim()),
     [title, slug, excerpt, contentHtml, seoTitle, seoDescription, categoryIds, tagIds, featuredImageId],
     () => save({ silent: true }),
-    2500,
   );
 
   async function addCategory() {
@@ -529,6 +529,8 @@ export function PostEditor({
               </p>
             </div>
           </section>
+
+          <RevisionHistory postId={postId} />
         </aside>
       </div>
     </div>
