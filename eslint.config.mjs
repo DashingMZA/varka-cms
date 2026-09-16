@@ -1,6 +1,12 @@
-import tseslint from 'typescript-eslint';
+import babelParser from '@babel/eslint-parser';
 
-export default tseslint.config(
+/**
+ * TypeScript 7.x: typescript-eslint does not support TS 7 yet.
+ * Use Babel parser for TS/TSX so we can keep typescript@7.0.2.
+ * Type-aware checks remain on `pnpm typecheck` (tsc).
+ */
+/** @type {import('eslint').Linter.Config[]} */
+const config = [
   {
     ignores: [
       '**/node_modules/**',
@@ -13,18 +19,25 @@ export default tseslint.config(
       '**/*.css.ts',
     ],
   },
-  ...tseslint.configs.recommended,
   {
     files: ['**/*.{ts,tsx,mts,cts}'],
     languageOptions: {
+      parser: babelParser,
       parserOptions: {
+        requireConfigFile: false,
+        babelOptions: {
+          presets: [
+            ['@babel/preset-typescript', { isTSX: true, allExtensions: true }],
+            ['@babel/preset-react', { runtime: 'automatic' }],
+          ],
+        },
         ecmaFeatures: { jsx: true },
       },
+      ecmaVersion: 2022,
+      sourceType: 'module',
     },
     rules: {
-      // Prisma / CMS code often uses explicit any bridges
-      '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-unused-vars': [
+      'no-unused-vars': [
         'error',
         {
           argsIgnorePattern: '^_',
@@ -32,10 +45,7 @@ export default tseslint.config(
           caughtErrorsIgnorePattern: '^_',
         },
       ],
-      '@typescript-eslint/no-require-imports': 'off',
-      '@typescript-eslint/ban-ts-comment': 'off',
-      '@typescript-eslint/no-empty-object-type': 'off',
-      'no-unused-vars': 'off',
+      'no-undef': 'off',
       eqeqeq: ['error', 'always'],
       'no-eval': 'error',
       'no-implied-eval': 'error',
@@ -58,4 +68,6 @@ export default tseslint.config(
       'no-implied-eval': 'error',
     },
   },
-);
+];
+
+export default config;

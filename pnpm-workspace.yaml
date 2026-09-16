@@ -2,7 +2,3 @@ packages:
   - 'apps/*'
   - 'packages/*'
   - 'workers/*'
-
-# Keep TypeScript on 5.9 until typescript-eslint supports TS 7+
-catalog:
-  typescript: '~5.9.2'
