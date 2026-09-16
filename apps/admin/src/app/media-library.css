@@ -25,7 +25,7 @@
 
 .v-media-layout {
   display: grid;
-  grid-template-columns: 1fr 280px;
+  grid-template-columns: 1fr minmax(240px, 300px);
   gap: 16px;
   align-items: start;
   margin-top: 8px;
@@ -43,7 +43,7 @@
 
 .v-media-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 140px), 1fr));
   gap: 10px;
 }
 
@@ -154,4 +154,56 @@
 
 .v-table tbody tr.is-selected-row {
   background: #f0f6fc;
+}
+
+.v-tiptap-sep {
+  width: 1px;
+  height: 18px;
+  background: var(--wp-border);
+  margin: 0 4px;
+  align-self: center;
+}
+
+.v-tiptap-prose .v-block {
+  margin: 12px 0;
+  padding: 12px 14px;
+  border: 1px dashed var(--wp-border);
+  border-radius: 4px;
+  background: #fafafa;
+}
+
+.v-tiptap-prose .v-block--hero {
+  background: #1d2327;
+  color: #f0f0f1;
+  border: none;
+  text-align: center;
+  padding: 28px 16px;
+}
+
+.v-tiptap-prose .v-block--columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.v-tiptap-prose .v-block--columns > div {
+  border: 1px dashed var(--wp-border);
+  padding: 10px;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.v-tiptap-prose .v-block--cta {
+  text-align: center;
+  background: #f0f6fc;
+  border-color: var(--wp-accent);
+}
+
+@media (max-width: 600px) {
+  .v-tiptap-prose .v-block--columns {
+    grid-template-columns: 1fr;
+  }
 }

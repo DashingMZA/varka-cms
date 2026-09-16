@@ -11,16 +11,20 @@ type Props = {
   value: string;
   onChange: (html: string) => void;
   placeholder?: string;
+  /** page mode adds Gutenberg-like insert blocks */
+  mode?: 'post' | 'page';
 };
 
-export function TiptapEditor({ value, onChange, placeholder }: Props) {
+export function TiptapEditor({ value, onChange, placeholder, mode = 'post' }: Props) {
   const editor = useEditor({
     extensions: [
       StarterKit,
       Link.configure({ openOnClick: false, HTMLAttributes: { rel: 'noopener noreferrer' } }),
       Image.configure({ inline: false }),
       Placeholder.configure({
-        placeholder: placeholder ?? 'Write your post…',
+        placeholder:
+          placeholder ??
+          (mode === 'page' ? 'Start writing or insert a block…' : 'Write your post…'),
       }),
     ],
     content: value || '',
@@ -38,7 +42,6 @@ export function TiptapEditor({ value, onChange, placeholder }: Props) {
   useEffect(() => {
     if (!editor) return;
     const current = editor.getHTML();
-    // Avoid cursor jump when parent re-sets same content after save
     if (value !== current && value !== editor.getText() && normalize(value) !== normalize(current)) {
       editor.commands.setContent(value || '', { emitUpdate: false });
     }
@@ -65,31 +68,67 @@ export function TiptapEditor({ value, onChange, placeholder }: Props) {
     editor?.chain().focus().setImage({ src: url }).run();
   }
 
+  function insertHtml(html: string) {
+    editor?.chain().focus().insertContent(html).run();
+  }
+
   return (
     <div className="v-tiptap-shell">
       <div className="v-tiptap-toolbar" role="toolbar" aria-label="Formatting">
-        <button type="button" className={btnCls(editor.isActive('bold'))} onClick={() => editor.chain().focus().toggleBold().run()}>
+        <button
+          type="button"
+          className={btnCls(editor.isActive('bold'))}
+          onClick={() => editor.chain().focus().toggleBold().run()}
+        >
           <strong>B</strong>
         </button>
-        <button type="button" className={btnCls(editor.isActive('italic'))} onClick={() => editor.chain().focus().toggleItalic().run()}>
+        <button
+          type="button"
+          className={btnCls(editor.isActive('italic'))}
+          onClick={() => editor.chain().focus().toggleItalic().run()}
+        >
           <em>I</em>
         </button>
-        <button type="button" className={btnCls(editor.isActive('heading', { level: 2 }))} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>
+        <button
+          type="button"
+          className={btnCls(editor.isActive('heading', { level: 2 }))}
+          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+        >
           H2
         </button>
-        <button type="button" className={btnCls(editor.isActive('heading', { level: 3 }))} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>
+        <button
+          type="button"
+          className={btnCls(editor.isActive('heading', { level: 3 }))}
+          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+        >
           H3
         </button>
-        <button type="button" className={btnCls(editor.isActive('bulletList'))} onClick={() => editor.chain().focus().toggleBulletList().run()}>
+        <button
+          type="button"
+          className={btnCls(editor.isActive('bulletList'))}
+          onClick={() => editor.chain().focus().toggleBulletList().run()}
+        >
           • List
         </button>
-        <button type="button" className={btnCls(editor.isActive('orderedList'))} onClick={() => editor.chain().focus().toggleOrderedList().run()}>
+        <button
+          type="button"
+          className={btnCls(editor.isActive('orderedList'))}
+          onClick={() => editor.chain().focus().toggleOrderedList().run()}
+        >
           1. List
         </button>
-        <button type="button" className={btnCls(editor.isActive('blockquote'))} onClick={() => editor.chain().focus().toggleBlockquote().run()}>
+        <button
+          type="button"
+          className={btnCls(editor.isActive('blockquote'))}
+          onClick={() => editor.chain().focus().toggleBlockquote().run()}
+        >
           “
         </button>
-        <button type="button" className={btnCls(editor.isActive('codeBlock'))} onClick={() => editor.chain().focus().toggleCodeBlock().run()}>
+        <button
+          type="button"
+          className={btnCls(editor.isActive('codeBlock'))}
+          onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+        >
           {'</>'}
         </button>
         <button type="button" className={btnCls(editor.isActive('link'))} onClick={setLink}>
@@ -98,7 +137,71 @@ export function TiptapEditor({ value, onChange, placeholder }: Props) {
         <button type="button" className="v-tiptap-btn" onClick={addImage}>
           Image
         </button>
-        <button type="button" className="v-tiptap-btn" onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()}>
+        <button
+          type="button"
+          className="v-tiptap-btn"
+          onClick={() => editor.chain().focus().setHorizontalRule().run()}
+        >
+          —
+        </button>
+        {mode === 'page' ? (
+          <>
+            <span className="v-tiptap-sep" aria-hidden />
+            <button
+              type="button"
+              className="v-tiptap-btn"
+              title="Hero / cover"
+              onClick={() =>
+                insertHtml(
+                  '<div class="v-block v-block--hero"><h2>Hero title</h2><p>Supporting text for this section.</p></div>',
+                )
+              }
+            >
+              Hero
+            </button>
+            <button
+              type="button"
+              className="v-tiptap-btn"
+              title="Two columns"
+              onClick={() =>
+                insertHtml(
+                  '<div class="v-block v-block--columns"><div><p>Column one</p></div><div><p>Column two</p></div></div>',
+                )
+              }
+            >
+              Columns
+            </button>
+            <button
+              type="button"
+              className="v-tiptap-btn"
+              title="Call to action"
+              onClick={() =>
+                insertHtml(
+                  '<div class="v-block v-block--cta"><p><strong>Call to action</strong></p><p><a href="#">Learn more</a></p></div>',
+                )
+              }
+            >
+              CTA
+            </button>
+            <button
+              type="button"
+              className="v-tiptap-btn"
+              title="Pull quote"
+              onClick={() =>
+                insertHtml(
+                  '<blockquote class="v-block v-block--quote"><p>A memorable quote.</p></blockquote>',
+                )
+              }
+            >
+              Quote
+            </button>
+          </>
+        ) : null}
+        <button
+          type="button"
+          className="v-tiptap-btn"
+          onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()}
+        >
           Clear
         </button>
       </div>
