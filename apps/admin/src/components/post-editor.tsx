@@ -66,9 +66,9 @@ export function PostEditor({ postId }: { postId: string }) {
       return;
     }
 
-    let status: string | undefined;
-    if (opts.trash) status = 'TRASHED';
-    else if (opts.publish) status = 'PUBLISHED';
+    let nextStatus: string | undefined;
+    if (opts.trash) nextStatus = 'TRASHED';
+    else if (opts.publish) nextStatus = 'PUBLISHED';
 
     const res = await fetch(`/api/posts/${postId}`, {
       method: 'PATCH',
@@ -81,7 +81,7 @@ export function PostEditor({ postId }: { postId: string }) {
         contentHtml,
         version: post.version,
         languageId: tr.languageId,
-        ...(status ? { status } : {}),
+        ...(nextStatus ? { status: nextStatus } : {}),
       }),
     });
 
@@ -128,11 +128,7 @@ export function PostEditor({ postId }: { postId: string }) {
           />
           <div className="v-editor__slug">
             <span>Permalink:</span>
-            <input
-              value={slug}
-              onChange={(e) => setSlug(e.target.value)}
-              aria-label="Slug"
-            />
+            <input value={slug} onChange={(e) => setSlug(e.target.value)} aria-label="Slug" />
           </div>
           <label className="v-muted" style={{ display: 'block', marginBottom: 6, fontWeight: 600 }}>
             Content
@@ -167,7 +163,7 @@ export function PostEditor({ postId }: { postId: string }) {
                   type="button"
                   className="v-btn v-btn--primary"
                   disabled={saving || !post}
-                  onClick={() => void save(false)}
+                  onClick={() => void save()}
                 >
                   {saving ? 'Saving…' : 'Save Draft'}
                 </button>
