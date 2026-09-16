@@ -11,15 +11,17 @@ function statusFromError(message: string): number {
   return 400;
 }
 
+type PostCacheShape = {
+  siteId?: string;
+  translations?: Array<{ slug: string; languageId?: string; language?: { locale?: string } }>;
+};
+
 async function bustPostCache(post: unknown) {
   try {
     const cache = await getCache();
-    const siteId = (post as { siteId?: string }).siteId;
-    const tr = (
-      post as {
-        translations?: Array<{ slug: string; language?: { locale?: string } }>;
-      }
-    ).translations?.[0];
+    const p = post as PostCacheShape;
+    const siteId = p.siteId;
+    const tr = p.translations?.[0];
     if (siteId) {
       await invalidatePostCache(cache, {
         siteId,
@@ -67,19 +69,16 @@ export async function DELETE(req: Request, ctxParams: { params: Promise<{ id: st
     const ctx = await getAuthContext(req);
     const { prisma } = await import('@varka/database');
 
-    let languageId = body.languageId;
-    let existing: {
-      siteId: string;
-      translations: Array<{ languageId: string; slug: string; language?: { locale?: string } }>;
-    } | null = null;
-
-    existing = (await prisma.post.findUnique({
+    const existing = (await prisma.post.findUnique({
       where: { id },
       include: { translations: { include: { language: true } } },
-    })) as typeof existing;
+    })) as PostCacheShape & {
+      translations: Array<{ languageId: string; slug: string; language?: { locale?: string } }>;
+    } | null;
 
+    let languageId = body.languageId;
     if (!languageId) {
-      languageId = existing?.translations[0]?.languageId;
+      languageId = existing?.translations?.[0]?.languageId;
     }
     if (!languageId) {
       return NextResponse.json({ error: 'languageId required' }, { status: 400 });

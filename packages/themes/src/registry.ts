@@ -50,31 +50,31 @@ export function isThemeId(id: string): boolean {
   return id in THEME_REGISTRY;
 }
 
-/** Lazy CSS load — import .ts modules explicitly for Node/Next resolution. */
+/** Lazy CSS — path without .ts extension (TS5097 / allowImportingTsExtensions). */
 export async function getThemeCss(id: string): Promise<string> {
   const key = isThemeId(id) ? id : DEFAULT_THEME_ID;
   switch (key) {
     case 'theme-01':
-      return (await import('./theme-01/styles.css.ts')).theme01Css;
+      return (await import('./theme-01/styles.css')).theme01Css;
     case 'theme-02':
-      return (await import('./theme-02/styles.css.ts')).theme02Css;
+      return (await import('./theme-02/styles.css')).theme02Css;
     case 'theme-03':
-      return (await import('./theme-03/styles.css.ts')).theme03Css;
+      return (await import('./theme-03/styles.css')).theme03Css;
     case 'theme-04':
-      return (await import('./theme-04/styles.css.ts')).theme04Css;
+      return (await import('./theme-04/styles.css')).theme04Css;
     case 'theme-05':
-      return (await import('./theme-05/styles.css.ts')).theme05Css;
+      return (await import('./theme-05/styles.css')).theme05Css;
     case 'theme-06':
-      return (await import('./theme-06/styles.css.ts')).theme06Css;
+      return (await import('./theme-06/styles.css')).theme06Css;
     case 'theme-07':
-      return (await import('./theme-07/styles.css.ts')).theme07Css;
+      return (await import('./theme-07/styles.css')).theme07Css;
     case 'theme-08':
-      return (await import('./theme-08/styles.css.ts')).theme08Css;
+      return (await import('./theme-08/styles.css')).theme08Css;
     case 'theme-09':
-      return (await import('./theme-09/styles.css.ts')).theme09Css;
+      return (await import('./theme-09/styles.css')).theme09Css;
     case 'theme-10':
-      return (await import('./theme-10/styles.css.ts')).theme10Css;
+      return (await import('./theme-10/styles.css')).theme10Css;
     default:
-      return (await import('./theme-01/styles.css.ts')).theme01Css;
+      return (await import('./theme-01/styles.css')).theme01Css;
   }
 }
