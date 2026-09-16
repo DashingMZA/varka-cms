@@ -18,6 +18,14 @@ export type ContentDb = {
     findFirst: (args: unknown) => Promise<unknown>;
     update: (args: unknown) => Promise<unknown>;
   };
+  postCategory?: {
+    deleteMany: (args: unknown) => Promise<unknown>;
+    createMany?: (args: unknown) => Promise<unknown>;
+  };
+  postTag?: {
+    deleteMany: (args: unknown) => Promise<unknown>;
+    createMany?: (args: unknown) => Promise<unknown>;
+  };
   revision: {
     create: (args: unknown) => Promise<unknown>;
   };
@@ -42,6 +50,11 @@ export const updatePostInput = z.object({
   slug: z.string().min(1).max(200).optional(),
   excerpt: z.string().max(2000).optional().nullable(),
   contentHtml: z.string().optional(),
+  seoTitle: z.string().max(200).optional().nullable(),
+  seoDescription: z.string().max(500).optional().nullable(),
+  categoryIds: z.array(z.string()).optional(),
+  tagIds: z.array(z.string()).optional(),
+  featuredImageId: z.string().nullable().optional(),
   status: z.enum(['DRAFT', 'PENDING_REVIEW', 'SCHEDULED', 'PUBLISHED', 'TRASHED']).optional(),
   version: z.number().int().positive(),
   languageId: z.string().min(1),
@@ -56,6 +69,14 @@ function stripDangerousHtml(html: string): string {
     .replace(/\son\w+='[^']*'/gi, '')
     .replace(/javascript:/gi, '');
 }
+
+const postInclude = {
+  translations: true,
+  author: { select: { id: true, name: true, email: true } },
+  categories: { include: { category: { include: { translations: true } } } },
+  tags: { include: { tag: { include: { translations: true } } } },
+  featuredImage: true,
+};
 
 export async function listPosts(
   db: ContentDb,
@@ -75,10 +96,7 @@ export async function listPosts(
     take: limit + 1,
     ...(opts.cursor ? { cursor: { id: opts.cursor }, skip: 1 } : {}),
     orderBy: { updatedAt: 'desc' },
-    include: {
-      translations: true,
-      author: { select: { id: true, name: true, email: true } },
-    },
+    include: postInclude,
   })) as Array<{ id: string }>;
 
   const hasMore = items.length > limit;
@@ -94,10 +112,7 @@ export async function getPost(db: ContentDb, ctx: AuthContext, postId: string) {
   requirePermission(ctx, 'posts.read');
   const post = await db.post.findUnique({
     where: { id: postId },
-    include: {
-      translations: true,
-      author: { select: { id: true, name: true, email: true } },
-    },
+    include: postInclude,
   });
   if (!post) throw new Error('Post not found');
   return post;
@@ -146,7 +161,7 @@ export async function createPost(db: ContentDb, ctx: AuthContext, raw: CreatePos
         },
       },
     },
-    include: { translations: true },
+    include: postInclude,
   });
 }
 
@@ -167,7 +182,13 @@ export async function updatePost(
     siteId: string;
     version: number;
     status: string;
-    translations: Array<{ id: string; languageId: string; slug: string; title: string; contentHtml: string }>;
+    translations: Array<{
+      id: string;
+      languageId: string;
+      slug: string;
+      title: string;
+      contentHtml: string;
+    }>;
   } | null;
 
   if (!post) throw new Error('Post not found');
@@ -202,13 +223,38 @@ export async function updatePost(
         ...(input.slug !== undefined ? { slug: input.slug } : {}),
         ...(input.excerpt !== undefined ? { excerpt: input.excerpt } : {}),
         ...(input.contentHtml !== undefined ? { contentHtml: nextHtml } : {}),
+        ...(input.seoTitle !== undefined ? { seoTitle: input.seoTitle } : {}),
+        ...(input.seoDescription !== undefined ? { seoDescription: input.seoDescription } : {}),
         ...(input.status !== undefined ? { status: input.status } : {}),
       },
     });
 
+    if (input.categoryIds !== undefined && tx.postCategory) {
+      await tx.postCategory.deleteMany({ where: { postId } });
+      if (input.categoryIds.length > 0 && tx.postCategory.createMany) {
+        await tx.postCategory.createMany({
+          data: input.categoryIds.map((categoryId) => ({ postId, categoryId })),
+          skipDuplicates: true,
+        });
+      }
+    }
+
+    if (input.tagIds !== undefined && tx.postTag) {
+      await tx.postTag.deleteMany({ where: { postId } });
+      if (input.tagIds.length > 0 && tx.postTag.createMany) {
+        await tx.postTag.createMany({
+          data: input.tagIds.map((tagId) => ({ postId, tagId })),
+          skipDuplicates: true,
+        });
+      }
+    }
+
     const publishFields: Record<string, unknown> = {
       version: { increment: 1 },
     };
+    if (input.featuredImageId !== undefined) {
+      publishFields.featuredImageId = input.featuredImageId;
+    }
     if (input.status === 'PUBLISHED') {
       requirePermission(ctx, 'posts.publish');
       publishFields.status = 'PUBLISHED';
@@ -223,7 +269,7 @@ export async function updatePost(
     return tx.post.update({
       where: { id: postId },
       data: publishFields,
-      include: { translations: true },
+      include: postInclude,
     });
   });
 }
