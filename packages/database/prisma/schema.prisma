@@ -86,9 +86,7 @@ model User {
   email         String    @unique
   emailVerified Boolean   @default(false)
   image         String?
-  /// disabled users cannot sign in
   disabled      Boolean   @default(false)
-  /// failed login counter for lockout
   failedLogins  Int       @default(0)
   lockedUntil   DateTime?
   createdAt     DateTime  @default(now())
@@ -199,7 +197,7 @@ model UserRole {
   @@id([userId, roleId])
 }
 
-// ─── Content (Phase 2) ─────────────────────────────────────
+// ─── Content ───────────────────────────────────────────────
 
 enum ContentStatus {
   DRAFT
@@ -210,18 +208,18 @@ enum ContentStatus {
 }
 
 model AuthorProfile {
-  id        String   @id @default(cuid())
-  siteId    String
-  userId    String   @unique
-  slug      String
+  id          String   @id @default(cuid())
+  siteId      String
+  userId      String   @unique
+  slug        String
   displayName String
-  bio       String?
-  avatarUrl String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  bio         String?
+  avatarUrl   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  site  Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  user  User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  site  Site  @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   posts Post[]
 
   @@unique([siteId, slug])
@@ -229,23 +227,24 @@ model AuthorProfile {
 }
 
 model Post {
-  id          String        @id @default(cuid())
-  siteId      String
-  authorId    String?
+  id              String        @id @default(cuid())
+  siteId          String
+  authorId        String?
   authorProfileId String?
-  status      ContentStatus @default(DRAFT)
-  publishedAt DateTime?
-  scheduledAt DateTime?
-  deletedAt   DateTime?
-  commentsEnabled Boolean   @default(true)
-  /// optimistic concurrency
-  version     Int           @default(1)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  featuredImageId String?
+  status          ContentStatus @default(DRAFT)
+  publishedAt     DateTime?
+  scheduledAt     DateTime?
+  deletedAt       DateTime?
+  commentsEnabled Boolean       @default(true)
+  version         Int           @default(1)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
   site          Site           @relation(fields: [siteId], references: [id], onDelete: Cascade)
   author        User?          @relation(fields: [authorId], references: [id], onDelete: SetNull)
   authorProfile AuthorProfile? @relation(fields: [authorProfileId], references: [id], onDelete: SetNull)
+  featuredImage MediaAsset?    @relation("PostFeaturedImage", fields: [featuredImageId], references: [id], onDelete: SetNull)
   translations  PostTranslation[]
   categories    PostCategory[]
   tags          PostTag[]
@@ -255,22 +254,23 @@ model Post {
   @@index([siteId, status])
   @@index([siteId, publishedAt])
   @@index([authorId])
+  @@index([featuredImageId])
 }
 
 model PostTranslation {
-  id          String        @id @default(cuid())
-  postId      String
-  languageId  String
-  title       String
-  slug        String
-  excerpt     String?
-  contentHtml String        @default("")
-  contentJson Json?
-  status      ContentStatus @default(DRAFT)
-  seoTitle    String?
+  id             String        @id @default(cuid())
+  postId         String
+  languageId     String
+  title          String
+  slug           String
+  excerpt        String?
+  contentHtml    String        @default("")
+  contentJson    Json?
+  status         ContentStatus @default(DRAFT)
+  seoTitle       String?
   seoDescription String?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   post     Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
@@ -307,18 +307,18 @@ model Page {
 }
 
 model PageTranslation {
-  id          String        @id @default(cuid())
-  pageId      String
-  languageId  String
-  title       String
-  slug        String
-  contentHtml String        @default("")
-  contentJson Json?
-  status      ContentStatus @default(DRAFT)
-  seoTitle    String?
+  id             String        @id @default(cuid())
+  pageId         String
+  languageId     String
+  title          String
+  slug           String
+  contentHtml    String        @default("")
+  contentJson    Json?
+  status         ContentStatus @default(DRAFT)
+  seoTitle       String?
   seoDescription String?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   page     Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
   language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
@@ -347,11 +347,11 @@ model Category {
 }
 
 model CategoryTranslation {
-  id         String @id @default(cuid())
-  categoryId String
-  languageId String
-  name       String
-  slug       String
+  id          String  @id @default(cuid())
+  categoryId  String
+  languageId  String
+  name        String
+  slug        String
   description String?
 
   category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
@@ -367,7 +367,7 @@ model Tag {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  site         Site              @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  site         Site             @relation(fields: [siteId], references: [id], onDelete: Cascade)
   translations TagTranslation[]
   posts        PostTag[]
 
@@ -448,25 +448,23 @@ model Comment {
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
-  site   Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  post   Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  parent Comment? @relation("CommentThread", fields: [parentId], references: [id], onDelete: SetNull)
+  site    Site      @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  post    Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parent  Comment?  @relation("CommentThread", fields: [parentId], references: [id], onDelete: SetNull)
   replies Comment[] @relation("CommentThread")
-  author User?    @relation(fields: [authorUserId], references: [id], onDelete: SetNull)
+  author  User?     @relation(fields: [authorUserId], references: [id], onDelete: SetNull)
 
   @@index([postId, status])
   @@index([siteId, status])
 }
 
-// ─── Media (Phase 3) ───────────────────────────────────────
+// ─── Media ─────────────────────────────────────────────────
 
 model MediaAsset {
   id           String   @id @default(cuid())
   siteId       String
   uploadedById String?
-  /// local | s3 | r2
   storage      String   @default("local")
-  /// object key / relative path
   key          String
   filename     String
   mimeType     String
@@ -480,8 +478,9 @@ model MediaAsset {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  site       Site  @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  uploadedBy User? @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  site            Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  uploadedBy      User?  @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  featuredOnPosts Post[] @relation("PostFeaturedImage")
 
   @@unique([siteId, key])
   @@index([siteId, folder])
@@ -489,7 +488,7 @@ model MediaAsset {
   @@index([uploadedById])
 }
 
-// ─── Security / Audit (Phase 8) ─────────────────────────────
+// ─── Security / Audit ──────────────────────────────────────
 
 model AuditLog {
   id         String   @id @default(cuid())
