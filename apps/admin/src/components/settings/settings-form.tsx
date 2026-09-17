@@ -47,7 +47,7 @@ export function SettingsForm({ group, title, description, defaults, children }: 
     return () => {
       cancelled = true;
     };
-  }, [group]);
+  }, [group]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const set = useCallback((key: string, value: unknown) => {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -89,7 +89,9 @@ export function SettingsForm({ group, title, description, defaults, children }: 
           <p style={{ margin: 0, color: 'var(--muted)', fontSize: 14 }}>{description}</p>
         ) : null}
       </header>
+
       <div style={{ display: 'grid', gap: 20 }}>{children(values, set)}</div>
+
       <div style={{ marginTop: 28, display: 'flex', alignItems: 'center', gap: 12 }}>
         <button
           type="submit"
