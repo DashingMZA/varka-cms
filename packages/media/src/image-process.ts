@@ -59,9 +59,24 @@ function extFor(detected: DetectedImage): string {
   }
 }
 
+function webpQuality(kind: 'thumb' | 'default'): number {
+  const raw =
+    kind === 'thumb'
+      ? process.env.MEDIA_WEBP_QUALITY_THUMB
+      : process.env.MEDIA_WEBP_QUALITY;
+  const n = Number(raw);
+  if (Number.isFinite(n) && n >= 40 && n <= 100) return Math.round(n);
+  return kind === 'thumb' ? 75 : 80;
+}
+
 /**
- * Keep **original** bytes unchanged (same format/dimensions).
- * Generate thumbnail / medium / large as WebP derivatives only.
+ * Keep **original** bytes unchanged.
+ * Generate thumbnail / medium / large as WebP (quality from env).
+ *
+ * WebP tradeoffs (quality ~40–100):
+ * - 60–70: aggressive savings, visible artifacts on text/UI screenshots
+ * - 75–82: good default for photos (thumb 75 / body 80)
+ * - 90+: near-lossless size; diminishing returns vs JPEG
  */
 export async function processImageUpload(
   body: Buffer,
@@ -92,10 +107,12 @@ export async function processImageUpload(
     height: srcH,
     mimeType: detected.mimeType,
     sizeBytes: body.length,
-    body, // untouched original
+    body,
   };
 
   const out: GeneratedSize[] = [original];
+  const qThumb = webpQuality('thumb');
+  const qDefault = webpQuality('default');
 
   const targets: { name: Exclude<SizeName, 'original'>; maxW: number }[] = [
     { name: 'thumbnail', maxW: sizeConfig.thumbnail },
@@ -104,11 +121,11 @@ export async function processImageUpload(
   ];
 
   for (const t of targets) {
-    // Skip generating a derivative larger than source (still write entry pointing to original dims as webp scaled down only)
     const width = Math.min(t.maxW, srcW);
+    const quality = t.name === 'thumbnail' ? qThumb : qDefault;
     const resized = await sharp(body)
       .resize({ width, withoutEnlargement: true })
-      .webp({ quality: t.name === 'thumbnail' ? 75 : 80 })
+      .webp({ quality })
       .toBuffer();
     const m = await sharp(resized).metadata();
     out.push({
