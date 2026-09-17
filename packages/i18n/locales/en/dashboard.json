@@ -1,0 +1,15 @@
+{
+  "title": "Dashboard",
+  "atAGlance": "At a Glance",
+  "activity": "Activity",
+  "quickDraft": "Quick Draft",
+  "siteHealth": "Site Health",
+  "posts": "Posts",
+  "pages": "Pages",
+  "comments": "Comments",
+  "media": "Media",
+  "users": "Users",
+  "good": "Good",
+  "improve": "Should be improved",
+  "critical": "Critical"
+}
