@@ -1,40 +1,21 @@
 import { NextResponse } from 'next/server';
-import { getPage, updatePage, trashPage } from '@varka/content';
+import { getAuthContext } from '@/lib/auth-context';
 
-async function getCtx() {
-  return {
-    userId: 'dev-user',
-    roles: ['owner'],
-    permissions: ['pages.read', 'pages.update', 'pages.delete'],
-  };
-}
+type Ctx = { params: Promise<{ id: string }> };
 
-export async function GET(
-  _req: Request,
-  ctx: { params: Promise<{ id: string }> },
-) {
+export async function GET(req: Request, ctx: Ctx) {
   try {
+    await getAuthContext(req);
     const { id } = await ctx.params;
     const { prisma } = await import('@varka/database');
-    const auth = await getCtx();
-    const page = await getPage(prisma as never, auth, id);
-    return NextResponse.json(page);
-  } catch (e) {
-    const message = e instanceof Error ? e.message : 'Error';
-    return NextResponse.json({ error: message }, { status: 404 });
-  }
-}
-
-export async function PATCH(
-  req: Request,
-  ctx: { params: Promise<{ id: string }> },
-) {
-  try {
-    const { id } = await ctx.params;
-    const { prisma } = await import('@varka/database');
-    const auth = await getCtx();
-    const body = await req.json();
-    const page = await updatePage(prisma as never, auth, id, body);
+    const page = await prisma.page.findUnique({
+      where: { id },
+      include: {
+        translations: true,
+        author: { select: { id: true, name: true, email: true } },
+      },
+    });
+    if (!page) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     return NextResponse.json(page);
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Error';
@@ -42,16 +23,71 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  _req: Request,
-  ctx: { params: Promise<{ id: string }> },
-) {
+export async function PATCH(req: Request, ctx: Ctx) {
   try {
+    await getAuthContext(req);
+    const { id } = await ctx.params;
+    const body = (await req.json()) as {
+      title?: string;
+      slug?: string;
+      contentHtml?: string;
+      status?: string;
+      languageId?: string;
+    };
+    const { prisma } = await import('@varka/database');
+    const page = await prisma.page.findUnique({
+      where: { id },
+      include: { translations: true },
+    });
+    if (!page) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+    if (body.status) {
+      await prisma.page.update({
+        where: { id },
+        data: { status: body.status as never },
+      });
+    }
+
+    const tr =
+      page.translations.find((t) => t.languageId === body.languageId) ??
+      page.translations[0];
+    if (
+      tr &&
+      (body.title !== undefined ||
+        body.slug !== undefined ||
+        body.contentHtml !== undefined)
+    ) {
+      await prisma.pageTranslation.update({
+        where: { id: tr.id },
+        data: {
+          ...(body.title !== undefined ? { title: body.title } : {}),
+          ...(body.slug !== undefined ? { slug: body.slug } : {}),
+          ...(body.contentHtml !== undefined ? { contentHtml: body.contentHtml } : {}),
+        },
+      });
+    }
+
+    const updated = await prisma.page.findUnique({
+      where: { id },
+      include: { translations: true },
+    });
+    return NextResponse.json(updated);
+  } catch (e) {
+    const message = e instanceof Error ? e.message : 'Error';
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
+}
+
+export async function DELETE(req: Request, ctx: Ctx) {
+  try {
+    await getAuthContext(req);
     const { id } = await ctx.params;
     const { prisma } = await import('@varka/database');
-    const auth = await getCtx();
-    const page = await trashPage(prisma as never, auth, id);
-    return NextResponse.json(page);
+    await prisma.page.update({
+      where: { id },
+      data: { status: 'TRASHED' },
+    });
+    return NextResponse.json({ ok: true });
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Error';
     return NextResponse.json({ error: message }, { status: 400 });
