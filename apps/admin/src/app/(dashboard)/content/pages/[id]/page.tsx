@@ -8,6 +8,7 @@ export default async function EditPagePage({
   const { id } = await params;
   return (
     <main>
+      <h1 className="v-page-title">Edit Page</h1>
       <PageEditor pageId={id} />
     </main>
   );

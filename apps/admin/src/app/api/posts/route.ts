@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createPost, listPosts } from '@varka/content';
-import { getAuthContext } from '@/lib/auth-context';
+import { guard } from '@/lib/api-guard';
 
 async function getDb() {
   const { prisma } = await import('@varka/database');
@@ -16,42 +16,34 @@ async function getSiteId(db: {
 }
 
 export async function GET(req: Request) {
+  const g = await guard(req, 'posts.read');
+  if (g instanceof NextResponse) return g;
   try {
     const db = await getDb();
-    const ctx = await getAuthContext(req);
     const siteId = await getSiteId(db as never);
-    const url = new URL(req.url);
-    const status = url.searchParams.get('status') || undefined;
-    const limit = Number(url.searchParams.get('limit') || '50');
-    const result = await listPosts(db as never, ctx, {
-      siteId,
-      status: status && status !== 'all' ? status : undefined,
-      limit: Number.isFinite(limit) ? limit : 50,
-    });
+    const result = await listPosts(db as never, g.ctx, { siteId });
     return NextResponse.json(result);
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Error';
-    const status = message === 'Unauthorized' ? 401 : 400;
-    return NextResponse.json({ error: message }, { status });
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }
 
 export async function POST(req: Request) {
+  const g = await guard(req, 'posts.create');
+  if (g instanceof NextResponse) return g;
   try {
-    const body = (await req.json()) as { title?: string; contentHtml?: string };
+    const body = (await req.json()) as { title?: string };
     const db = await getDb();
-    const ctx = await getAuthContext(req);
     const siteId = await getSiteId(db as never);
-    const post = await createPost(db as never, ctx, {
+    const post = await createPost(db as never, g.ctx, {
       siteId,
       title: body.title ?? 'Untitled',
-      contentHtml: body.contentHtml ?? '',
-      authorId: ctx.userId === 'dev-user' ? undefined : ctx.userId || undefined,
+      authorId: g.ctx.userId === 'dev-user' ? undefined : g.ctx.userId,
     });
     return NextResponse.json(post, { status: 201 });
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Error';
-    const status = message === 'Unauthorized' ? 401 : 400;
-    return NextResponse.json({ error: message }, { status });
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }
