@@ -1,169 +1,245 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
+import { ScreenMeta } from '@/components/screen-meta/screen-meta';
 
 type PageRow = {
   id: string;
   status: string;
-  template?: string;
   updatedAt: string;
   translations: Array<{ title: string; slug: string }>;
   author?: { name?: string | null; email?: string | null } | null;
 };
 
-type StatusFilter = 'all' | 'DRAFT' | 'PUBLISHED' | 'TRASHED';
-
-const TABS: { key: StatusFilter; label: string }[] = [
-  { key: 'all', label: 'All' },
-  { key: 'PUBLISHED', label: 'Published' },
-  { key: 'DRAFT', label: 'Draft' },
-  { key: 'TRASHED', label: 'Trash' },
-];
-
-function statusClass(s: string) {
-  return `v-status v-status--${s.toLowerCase()}`;
-}
+type Counts = { all: number; published: number; draft: number; trashed: number };
 
 export function PagesAdmin() {
-  const router = useRouter();
   const [items, setItems] = useState<PageRow[]>([]);
-  const [status, setStatus] = useState<StatusFilter>('all');
-  const [search, setSearch] = useState('');
+  const [counts, setCounts] = useState<Counts>({ all: 0, published: 0, draft: 0, trashed: 0 });
+  const [status, setStatus] = useState('all');
+  const [q, setQ] = useState('');
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulk, setBulk] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const load = useCallback(async () => {
+    setLoading(true);
     setError(null);
-    const res = await fetch('/api/pages?limit=100', { credentials: 'include' });
-    if (!res.ok) {
-      setError(`Failed to load (${res.status})`);
-      return;
+    try {
+      const params = new URLSearchParams({ limit: '100' });
+      if (status !== 'all') params.set('status', status.toUpperCase());
+      if (q.trim()) params.set('q', q.trim());
+      const res = await fetch(`/api/pages?${params}`, { credentials: 'include' });
+      if (!res.ok) {
+        setError(`Failed to load (${res.status})`);
+        setLoading(false);
+        return;
+      }
+      const data = (await res.json()) as { items: PageRow[]; counts?: Counts };
+      setItems(data.items ?? []);
+      if (data.counts) setCounts(data.counts);
+      setSelected(new Set());
+    } catch {
+      setError('Network error');
     }
-    const data = (await res.json()) as { items: PageRow[] };
-    setItems(data.items ?? []);
-  }, []);
+    setLoading(false);
+  }, [status, q]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
-  const counts = useMemo(() => {
-    const c: Record<string, number> = { all: items.length };
-    for (const p of items) c[p.status] = (c[p.status] ?? 0) + 1;
-    return c;
-  }, [items]);
+  async function createPage() {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/pages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ title: 'Untitled' }),
+      });
+      if (!res.ok) {
+        setError(`Create failed (${res.status})`);
+        setLoading(false);
+        return;
+      }
+      await load();
+    } catch {
+      setError('Network error');
+    }
+    setLoading(false);
+  }
 
-  const filtered = useMemo(() => {
-    let rows = items;
-    if (status !== 'all') rows = rows.filter((p) => p.status === status);
-    const q = search.trim().toLowerCase();
-    if (!q) return rows;
-    return rows.filter((p) => {
-      const tr = p.translations[0];
-      return `${tr?.title ?? ''} ${tr?.slug ?? ''}`.toLowerCase().includes(q);
-    });
-  }, [items, status, search]);
-
-  async function trashOne(id: string) {
-    if (!confirm('Move this page to Trash?')) return;
-    await fetch(`/api/pages/${id}`, { method: 'DELETE', credentials: 'include' });
-    await load();
+  async function applyBulk() {
+    if (!bulk || selected.size === 0) return;
+    setLoading(true);
+    try {
+      for (const id of selected) {
+        if (bulk === 'trash') {
+          await fetch(`/api/pages/${id}`, { method: 'DELETE', credentials: 'include' });
+        } else {
+          await fetch(`/api/pages/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              status: bulk === 'publish' ? 'PUBLISHED' : 'DRAFT',
+            }),
+          });
+        }
+      }
+      await load();
+    } catch {
+      setError('Bulk action failed');
+    }
+    setLoading(false);
   }
 
   return (
     <div>
+      <ScreenMeta
+        help={[
+          {
+            id: 'pages',
+            title: 'Pages',
+            body: 'Pages are hierarchical content. List, filter, and bulk-edit like Posts.',
+          },
+        ]}
+        options={[]}
+      />
+
       <div className="v-page-header">
         <h1 className="v-page-title">Pages</h1>
-        <button
-          type="button"
-          className="v-btn v-btn--primary"
-          onClick={() => router.push('/content/pages/new')}
-        >
+        <button type="button" className="v-btn v-btn--primary" onClick={() => void createPage()}>
           Add New
         </button>
       </div>
 
       <ul className="v-subsub">
-        {TABS.map((t) => (
-          <li key={t.key}>
-            <a
-              href="#"
-              className={status === t.key ? 'is-current' : undefined}
-              onClick={(e) => {
-                e.preventDefault();
-                setStatus(t.key);
+        {(
+          [
+            ['all', 'All', counts.all],
+            ['published', 'Published', counts.published],
+            ['draft', 'Draft', counts.draft],
+            ['trashed', 'Trash', counts.trashed],
+          ] as const
+        ).map(([key, label, n]) => (
+          <li key={key}>
+            <button
+              type="button"
+              className={status === key ? 'is-current' : ''}
+              onClick={() => setStatus(key)}
+              style={{
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                color: 'inherit',
+                cursor: 'pointer',
               }}
             >
-              {t.label} <span className="count">({t.key === 'all' ? counts.all ?? 0 : counts[t.key] ?? 0})</span>
-            </a>
+              {label} <span className="count">({n})</span>
+            </button>
           </li>
         ))}
       </ul>
 
       <div className="v-tablenav">
+        <select value={bulk} onChange={(e) => setBulk(e.target.value)}>
+          <option value="">Bulk actions</option>
+          <option value="publish">Publish</option>
+          <option value="draft">Move to Draft</option>
+          <option value="trash">Move to Trash</option>
+        </select>
+        <button
+          type="button"
+          className="v-btn"
+          disabled={!bulk || selected.size === 0}
+          onClick={() => void applyBulk()}
+        >
+          Apply
+        </button>
         <input
           type="search"
           placeholder="Search pages…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') void load();
+          }}
         />
+        <button type="button" className="v-btn" onClick={() => void load()}>
+          Search
+        </button>
+        {loading ? <span className="v-muted">Loading…</span> : null}
       </div>
 
-      {error ? <div className="v-alert v-alert--error">{error}</div> : null}
+      {error ? <p className="v-alert v-alert--error">{error}</p> : null}
 
       <div className="v-table-wrap">
         <table className="v-table">
           <thead>
             <tr>
+              <th className="check-col">
+                <input
+                  type="checkbox"
+                  checked={items.length > 0 && selected.size === items.length}
+                  onChange={(e) => {
+                    if (e.target.checked) setSelected(new Set(items.map((p) => p.id)));
+                    else setSelected(new Set());
+                  }}
+                />
+              </th>
               <th>Title</th>
               <th>Author</th>
-              <th>Template</th>
               <th>Status</th>
               <th>Date</th>
             </tr>
           </thead>
           <tbody>
-            {filtered.length === 0 ? (
+            {items.length === 0 ? (
               <tr>
-                <td colSpan={5} style={{ padding: 20, color: 'var(--wp-muted)' }}>
-                  No pages found.
+                <td colSpan={5} className="v-muted" style={{ padding: 16 }}>
+                  No pages yet.
                 </td>
               </tr>
             ) : (
-              filtered.map((p) => {
+              items.map((p) => {
                 const tr = p.translations[0];
                 return (
                   <tr key={p.id}>
+                    <td className="check-col">
+                      <input
+                        type="checkbox"
+                        checked={selected.has(p.id)}
+                        onChange={(e) => {
+                          setSelected((prev) => {
+                            const n = new Set(prev);
+                            if (e.target.checked) n.add(p.id);
+                            else n.delete(p.id);
+                            return n;
+                          });
+                        }}
+                      />
+                    </td>
                     <td>
-                      <Link href={`/content/pages/${p.id}`} className="row-title">
-                        {tr?.title ?? '—'}
-                      </Link>
+                      <span className="row-title">{tr?.title || 'Untitled'}</span>
                       <div className="row-actions">
-                        <Link href={`/content/pages/${p.id}`}>Edit</Link>
-                        <a
-                          href="#"
-                          className="trash"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            void trashOne(p.id);
-                          }}
-                        >
-                          Trash
-                        </a>
-                        <span className="v-muted" style={{ fontFamily: 'monospace' }}>
-                          {tr?.slug}
+                        <span className="v-muted" style={{ fontSize: 12 }}>
+                          /{tr?.slug}
                         </span>
                       </div>
                     </td>
                     <td>{p.author?.name || p.author?.email || '—'}</td>
-                    <td>{p.template ?? 'default'}</td>
                     <td>
-                      <span className={statusClass(p.status)}>
+                      <span className={`v-status v-status--${p.status.toLowerCase()}`}>
                         {p.status.replaceAll('_', ' ').toLowerCase()}
                       </span>
                     </td>
-                    <td className="v-muted">{new Date(p.updatedAt).toLocaleString()}</td>
+                    <td style={{ fontSize: 12 }}>
+                      {new Date(p.updatedAt).toLocaleString()}
+                    </td>
                   </tr>
                 );
               })
