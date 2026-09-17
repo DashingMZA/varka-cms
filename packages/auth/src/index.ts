@@ -1,6 +1,18 @@
 export { createAuth, type Auth } from './server';
 export { loadAuthContext } from './session';
-export { listUsers, setUserDisabled, revokeAllSessions } from './users';
+export {
+  listUsers,
+  listRoles,
+  createUser,
+  setUserDisabled,
+  setUserRole,
+  revokeAllSessions,
+  updateOwnProfile,
+  getUserById,
+  getOwnProfile,
+  changeOwnPassword,
+  WP_ROLE_SLUGS,
+} from './users';
 export {
   checkRateLimit,
   createMemoryStore,
@@ -28,6 +40,4 @@ export {
   recordEmailFailure,
   clearEmailFailures,
   auditLoginEvent,
-  clientIpFromRequest,
-  LOGIN_PATH_SUFFIXES,
 } from './login-guard';
