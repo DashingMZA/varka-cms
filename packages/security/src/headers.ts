@@ -6,35 +6,55 @@ export type CspOptions = {
   connectSrc?: string[];
   imgSrc?: string[];
   reportOnly?: boolean;
+  /** Per-request nonce (base64). Enables script-src 'nonce-…' + strict-dynamic */
+  nonce?: string;
 };
+
+export function generateCspNonce(): string {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  let s = '';
+  for (const b of bytes) s += String.fromCharCode(b);
+  if (typeof btoa === 'function') {
+    return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+  return Buffer.from(bytes).toString('base64url');
+}
 
 export function buildCsp(opts?: CspOptions): string {
   const isProd = process.env.NODE_ENV === 'production';
   const allowEval =
-    opts?.allowUnsafeEval ?? process.env.CSP_ALLOW_UNSAFE_EVAL === 'true'
-      ? true
-      : !isProd;
+    opts?.allowUnsafeEval === true ||
+    process.env.CSP_ALLOW_UNSAFE_EVAL === 'true' ||
+    (!isProd && opts?.allowUnsafeEval !== false);
 
-  const scriptSrc = ["'self'", "'unsafe-inline'"];
-  if (allowEval) scriptSrc.push("'unsafe-eval'");
+  const nonce = opts?.nonce?.replace(/[^A-Za-z0-9+/=_-]/g, '') || '';
 
-  const connect = ["'self'", ...(opts?.connectSrc ?? [])];
-  const img = ["'self'", 'data:', 'blob:', 'https:', ...(opts?.imgSrc ?? [])];
-  const frame = opts?.frameAncestors ?? "'none'";
+  let scriptSrc: string[];
+  if (nonce) {
+    scriptSrc = [`'self'`, `'nonce-${nonce}'`, `'strict-dynamic'`];
+  } else {
+    scriptSrc = [`'self'`, `'unsafe-inline'`];
+  }
+  if (allowEval) scriptSrc.push(`'unsafe-eval'`);
+
+  const connect = [`'self'`, ...(opts?.connectSrc ?? [])];
+  const img = [`'self'`, 'data:', 'blob:', 'https:', ...(opts?.imgSrc ?? [])];
+  const frame = opts?.frameAncestors ?? `'none'`;
 
   const directives = [
-    "default-src 'self'",
+    `default-src 'self'`,
     `script-src ${scriptSrc.join(' ')}`,
-    "style-src 'self' 'unsafe-inline'",
+    `style-src 'self' 'unsafe-inline'`,
     `img-src ${img.join(' ')}`,
-    "font-src 'self' data:",
+    `font-src 'self' data:`,
     `connect-src ${connect.join(' ')}`,
-    "object-src 'none'",
-    "base-uri 'self'",
-    "form-action 'self'",
+    `object-src 'none'`,
+    `base-uri 'self'`,
+    `form-action 'self'`,
     `frame-ancestors ${frame}`,
-    "worker-src 'self' blob:",
-    "manifest-src 'self'",
+    `worker-src 'self' blob:`,
+    `manifest-src 'self'`,
   ];
 
   if (isProd) {
@@ -46,7 +66,9 @@ export function buildCsp(opts?: CspOptions): string {
 
 export function securityHeaders(opts?: CspOptions): Record<string, string> {
   const csp = buildCsp(opts);
-  const cspKey = opts?.reportOnly
+  const reportOnly =
+    opts?.reportOnly === true || process.env.CSP_REPORT_ONLY === 'true';
+  const cspKey = reportOnly
     ? 'Content-Security-Policy-Report-Only'
     : 'Content-Security-Policy';
 
