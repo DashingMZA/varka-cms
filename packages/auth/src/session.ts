@@ -20,28 +20,19 @@ export async function loadAuthContext(userId: string): Promise<AuthContext | nul
     },
   });
   if (!user) return null;
+  if (user.disabled) return null;
 
-  const roleRows = user.roles as Array<{
-    role: {
-      slug: string;
-      permissions: Array<{ permission: { key: string } }>;
-    };
-  }>;
-
-  const roles: string[] = roleRows.map((ur) => ur.role.slug);
-
-  const permissionKeys: string[] = [];
-  for (const ur of roleRows) {
-    for (const rp of ur.role.permissions) {
-      permissionKeys.push(rp.permission.key);
-    }
-  }
-  const permissions: string[] = [...new Set(permissionKeys)];
+  const roles = user.roles.map((ur) => ur.role.slug);
+  const permissions = [
+    ...new Set(
+      user.roles.flatMap((ur) => ur.role.permissions.map((rp) => rp.permission.key)),
+    ),
+  ];
 
   return {
-    userId: user.id as string,
+    userId: user.id,
     roles,
     permissions,
-    disabled: Boolean(user.disabled),
+    disabled: user.disabled,
   };
 }

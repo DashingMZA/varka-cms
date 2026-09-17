@@ -1,6 +1,6 @@
 export { createAuth, type Auth } from './server';
 export { loadAuthContext } from './session';
-export { listUsers, createUser, setUserDisabled, revokeAllSessions } from './users';
+export { listUsers, setUserDisabled, revokeAllSessions } from './users';
 export {
   checkRateLimit,
   createMemoryStore,
@@ -11,3 +11,10 @@ export {
   type RateLimitResult,
   type RateLimitStore,
 } from './rate-limit';
+export {
+  hashPassword,
+  verifyPassword,
+  assertPasswordPolicy,
+  passwordHasher,
+  argon2ParamsFromEnv,
+} from './password';
