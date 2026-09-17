@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server';
-import { readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { resolveStorageDriver } from '@varka/media';
 
 /**
- * Serve local-storage objects. S3/R2 should use public CDN URL instead.
+ * Serve local-storage objects with strong browser caching.
  * Path traversal protected.
  */
 export async function GET(
-  _req: Request,
+  req: Request,
   ctx: { params: Promise<{ key: string[] }> },
 ) {
   try {
@@ -26,7 +27,22 @@ export async function GET(
     if (!full.startsWith(root)) {
       return NextResponse.json({ error: 'Invalid path' }, { status: 400 });
     }
+
+    const st = await stat(full);
     const buf = await readFile(full);
+    const etag = `"${createHash('sha1').update(buf).digest('hex')}"`;
+
+    const ifNoneMatch = req.headers.get('if-none-match');
+    if (ifNoneMatch && ifNoneMatch === etag) {
+      return new NextResponse(null, {
+        status: 304,
+        headers: {
+          ETag: etag,
+          'Cache-Control': 'public, max-age=31536000, immutable',
+        },
+      });
+    }
+
     const ext = path.extname(full).toLowerCase();
     const types: Record<string, string> = {
       '.jpg': 'image/jpeg',
@@ -40,10 +56,14 @@ export async function GET(
       '.mp3': 'audio/mpeg',
     };
     const contentType = types[ext] ?? 'application/octet-stream';
+
     return new NextResponse(buf, {
       headers: {
         'Content-Type': contentType,
-        'Cache-Control': 'public, max-age=86400',
+        'Content-Length': String(st.size),
+        ETag: etag,
+        // Content-addressed-ish keys (YYYY/MM/hash-name) → long cache
+        'Cache-Control': 'public, max-age=31536000, immutable',
       },
     });
   } catch {

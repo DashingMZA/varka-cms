@@ -24,6 +24,8 @@ export async function PATCH(
     const body = (await req.json()) as {
       alt?: string | null;
       title?: string | null;
+      caption?: string | null;
+      keywords?: string | null;
       folder?: string;
     };
     const asset = await updateMediaMeta(prisma as never, auth, id, body);

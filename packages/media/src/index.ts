@@ -12,4 +12,10 @@ export {
   type MediaDb,
 } from './service';
 export { detectImageMagic, assertSafeImagePayload } from './image-security';
-export { processImageUpload } from './image-process';
+export {
+  processImageUpload,
+  DEFAULT_IMAGE_SIZES,
+  type ImageSizeConfig,
+  type GeneratedSize,
+  type SizeName,
+} from './image-process';
