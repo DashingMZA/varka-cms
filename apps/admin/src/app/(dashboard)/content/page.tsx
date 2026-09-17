@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 
-/** Content hub → Posts (WordPress default habit). */
-export default function ContentIndexPage() {
+/** Content root → All Posts (avoid empty duplicate menu page) */
+export default function ContentIndex() {
   redirect('/content/posts');
 }
