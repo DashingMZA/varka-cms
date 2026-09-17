@@ -34,8 +34,31 @@ export async function getAuthContext(req?: Request): Promise<AuthContext> {
     };
   }
 
+  // Prefer a real owner user from DB so /api/users/me works in dev
+  let userId = 'dev-user';
+  try {
+    const { prisma } = await import('@varka/database');
+    const owner = await prisma.user.findFirst({
+      where: {
+        roles: { some: { role: { slug: { in: ['owner', 'admin', 'administrator'] } } } },
+      },
+      orderBy: { createdAt: 'asc' },
+      select: { id: true },
+    });
+    if (owner?.id) userId = owner.id;
+    else {
+      const any = await prisma.user.findFirst({
+        orderBy: { createdAt: 'asc' },
+        select: { id: true },
+      });
+      if (any?.id) userId = any.id;
+    }
+  } catch {
+    /* keep dev-user */
+  }
+
   return {
-    userId: 'dev-user',
+    userId,
     roles: ['owner'],
     permissions: [
       'posts.read',
@@ -61,6 +84,7 @@ export async function getAuthContext(req?: Request): Promise<AuthContext> {
       'settings.read',
       'settings.update',
       'users.read',
+      'users.manage',
       'languages.read',
       'languages.manage',
       'audit.read',
