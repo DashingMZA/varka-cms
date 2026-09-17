@@ -2,7 +2,6 @@ export type { StorageAdapter, StorageDriverName, PutObjectInput, PutObjectResult
 export { createLocalAdapter } from './local-adapter';
 export { createS3Adapter, type S3LikeClient, type S3AdapterOptions } from './s3-adapter';
 export { resolveStorageDriver, createStorageAdapterFromEnv } from './driver';
-export { sniffMime } from './mime';
 export {
   listMedia,
   uploadMedia,
@@ -11,11 +10,18 @@ export {
   uploadMetaSchema,
   type MediaDb,
 } from './service';
-export { detectImageMagic, assertSafeImagePayload } from './image-security';
 export {
-  processImageUpload,
-  DEFAULT_IMAGE_SIZES,
-  type ImageSizeConfig,
-  type GeneratedSize,
+  detectMediaType,
+  assertAllowedUpload,
+  assertSafeUploadName,
+  type DetectedMedia,
+} from './validate';
+export {
+  generateWebpDerivatives,
+  readImageMeta,
+  defaultDerivativeSpecs,
+  type SizeMap,
   type SizeName,
-} from './image-process';
+  type DerivativeResult,
+} from './derivatives';
+export { mediaCacheControl, mediaResponseHeaders } from './cache-headers';
