@@ -12,6 +12,7 @@ out/
 .vercel/
 .netlify/
 
+
 # Env & secrets
 .env
 .env.*
