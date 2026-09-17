@@ -16,6 +16,7 @@ export {
   assertSafeUploadName,
   type DetectedMedia,
 } from './validate';
+export { sniffMime } from './mime';
 export {
   generateWebpDerivatives,
   readImageMeta,
