@@ -1,4 +1,10 @@
-export { securityHeaders, applySecurityHeaders, buildCsp, type CspOptions } from './headers';
+export {
+  securityHeaders,
+  applySecurityHeaders,
+  buildCsp,
+  generateCspNonce,
+  type CspOptions,
+} from './headers';
 export {
   assertSameOrigin,
   OriginError,
