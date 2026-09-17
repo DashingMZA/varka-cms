@@ -21,13 +21,24 @@ const NAV: NavItem[] = [
     icon: '✎',
     children: [
       { href: '/content/posts', label: 'All Posts' },
-      { href: '/content/posts', label: 'Add New' },
+      { href: '/content/posts?new=1', label: 'Add New' },
+      { href: '/content/categories', label: 'Categories' },
+      { href: '/content/tags', label: 'Tags' },
       { href: '/content/pages', label: 'Pages' },
     ],
   },
   { href: '/media', label: 'Media', icon: '▣' },
   { href: '/comments', label: 'Comments', icon: '💬' },
-  { href: '/appearance', label: 'Appearance', icon: '◐' },
+  {
+    href: '/appearance',
+    label: 'Appearance',
+    icon: '◐',
+    children: [
+      { href: '/appearance/themes', label: 'Themes' },
+      { href: '/appearance/menus', label: 'Menus' },
+      { href: '/appearance/widgets', label: 'Widgets' },
+    ],
+  },
   {
     href: '/users',
     label: 'Users',
@@ -52,6 +63,7 @@ const NAV: NavItem[] = [
       { href: '/settings/discussion', label: 'Discussion' },
       { href: '/settings/media', label: 'Media' },
       { href: '/settings/permalinks', label: 'Permalinks' },
+      { href: '/settings/privacy', label: 'Privacy' },
     ],
   },
 ];
@@ -152,7 +164,7 @@ export function AdminNav() {
                     return (
                       <Link
                         key={child.href + child.label}
-                        href={h}
+                        href={child.href.startsWith('/content/posts?') ? '/content/posts' : child.href}
                         className={`v-nav__link v-nav__link--sub${ca ? ' is-active' : ''}`}
                       >
                         {child.label}
