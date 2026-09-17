@@ -1,28 +1,72 @@
 /** Baseline security headers for admin + public responses */
-export function securityHeaders(opts?: { frameAncestors?: string }): Record<string, string> {
+
+export type CspOptions = {
+  frameAncestors?: string;
+  allowUnsafeEval?: boolean;
+  connectSrc?: string[];
+  imgSrc?: string[];
+  reportOnly?: boolean;
+};
+
+export function buildCsp(opts?: CspOptions): string {
+  const isProd = process.env.NODE_ENV === 'production';
+  const allowEval =
+    opts?.allowUnsafeEval ?? process.env.CSP_ALLOW_UNSAFE_EVAL === 'true'
+      ? true
+      : !isProd;
+
+  const scriptSrc = ["'self'", "'unsafe-inline'"];
+  if (allowEval) scriptSrc.push("'unsafe-eval'");
+
+  const connect = ["'self'", ...(opts?.connectSrc ?? [])];
+  const img = ["'self'", 'data:', 'blob:', 'https:', ...(opts?.imgSrc ?? [])];
   const frame = opts?.frameAncestors ?? "'none'";
+
+  const directives = [
+    "default-src 'self'",
+    `script-src ${scriptSrc.join(' ')}`,
+    "style-src 'self' 'unsafe-inline'",
+    `img-src ${img.join(' ')}`,
+    "font-src 'self' data:",
+    `connect-src ${connect.join(' ')}`,
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    `frame-ancestors ${frame}`,
+    "worker-src 'self' blob:",
+    "manifest-src 'self'",
+  ];
+
+  if (isProd) {
+    directives.push('upgrade-insecure-requests');
+  }
+
+  return directives.join('; ');
+}
+
+export function securityHeaders(opts?: CspOptions): Record<string, string> {
+  const csp = buildCsp(opts);
+  const cspKey = opts?.reportOnly
+    ? 'Content-Security-Policy-Report-Only'
+    : 'Content-Security-Policy';
+
   return {
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': 'DENY',
     'Referrer-Policy': 'strict-origin-when-cross-origin',
-    'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+    'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=()',
     'Cross-Origin-Opener-Policy': 'same-origin',
     'Cross-Origin-Resource-Policy': 'same-site',
-    'Content-Security-Policy': [
-      "default-src 'self'",
-      "img-src 'self' data: blob: https:",
-      "style-src 'self' 'unsafe-inline'",
-      "script-src 'self' 'unsafe-inline'",
-      "connect-src 'self'",
-      "frame-ancestors " + frame,
-      "base-uri 'self'",
-      "form-action 'self'",
-    ].join('; '),
+    'X-DNS-Prefetch-Control': 'off',
+    [cspKey]: csp,
   };
 }
 
-export function applySecurityHeaders(res: Response): Response {
-  const h = securityHeaders();
+export function applySecurityHeaders(
+  res: Response,
+  opts?: CspOptions,
+): Response {
+  const h = securityHeaders(opts);
   const headers = new Headers(res.headers);
   for (const [k, v] of Object.entries(h)) {
     if (!headers.has(k)) headers.set(k, v);

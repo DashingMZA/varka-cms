@@ -1,4 +1,4 @@
-export { securityHeaders, applySecurityHeaders } from './headers';
+export { securityHeaders, applySecurityHeaders, buildCsp, type CspOptions } from './headers';
 export {
   assertSameOrigin,
   OriginError,
