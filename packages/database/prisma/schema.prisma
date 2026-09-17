@@ -1,5 +1,5 @@
-// VARKA — Prisma 7.10 schema (excerpt maintained via full file replace in prior commits)
-// NOTE: keep in sync with migrations. caption + keywords on MediaAsset.
+// VARKA — Prisma 7.10 schema
+// NOTE: keep in sync with migrations.
 
 generator client {
   provider = "prisma-client-js"
@@ -75,17 +75,23 @@ model Language {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  siteId        String?
-  name          String
-  email         String    @unique
-  emailVerified Boolean   @default(false)
-  image         String?
-  disabled      Boolean   @default(false)
-  failedLogins  Int       @default(0)
-  lockedUntil   DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id               String    @id @default(cuid())
+  siteId           String?
+  name             String
+  email            String    @unique
+  emailVerified    Boolean   @default(false)
+  image            String?
+  firstName        String?
+  lastName         String?
+  nickname         String?
+  website          String?
+  bio              String?
+  adminColorScheme String    @default("default")
+  disabled         Boolean   @default(false)
+  failedLogins     Int       @default(0)
+  lockedUntil      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   site          Site?           @relation(fields: [siteId], references: [id], onDelete: SetNull)
   sessions      Session[]
@@ -466,7 +472,6 @@ model MediaAsset {
   keywords     String?
   checksum     String?
   folder       String   @default("/")
-  /// { original, thumbnail, medium, large } each { key, width, height, mimeType, sizeBytes }
   sizes        Json?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
