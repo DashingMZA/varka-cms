@@ -1,33 +1,73 @@
 import { NextResponse } from 'next/server';
-import { listCategories, createCategory } from '@varka/content';
-import { getAuthContext } from '@/lib/auth-context';
+import { prisma } from '@varka/database';
 
-export async function GET(req: Request) {
+async function siteId() {
+  const site = await prisma.site.findFirst({ where: { slug: 'varka' } });
+  if (!site) throw new Error('Site not found');
+  return site.id;
+}
+
+function slugify(name: string) {
+  return (
+    name
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
+      .slice(0, 80) || 'category'
+  );
+}
+
+export async function GET() {
   try {
-    const ctx = await getAuthContext(req);
-    const { prisma } = await import('@varka/database');
-    const site = await prisma.site.findFirst({ where: { slug: 'varka' } });
-    if (!site) return NextResponse.json({ error: 'Site not found' }, { status: 404 });
-    const result = await listCategories(prisma as never, ctx, site.id);
-    return NextResponse.json(result);
+    const sid = await siteId();
+    const items = await prisma.category.findMany({
+      where: { siteId: sid },
+      include: {
+        translations: true,
+        _count: { select: { posts: true } },
+      },
+      orderBy: { sortOrder: 'asc' },
+    });
+    return NextResponse.json({ items });
   } catch (e) {
-    const message = e instanceof Error ? e.message : 'Error';
-    return NextResponse.json({ error: message }, { status: 400 });
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : 'Error' },
+      { status: 400 },
+    );
   }
 }
 
 export async function POST(req: Request) {
   try {
-    const ctx = await getAuthContext(req);
-    const body = (await req.json()) as { name?: string };
-    if (!body.name) return NextResponse.json({ error: 'name required' }, { status: 400 });
-    const { prisma } = await import('@varka/database');
-    const site = await prisma.site.findFirst({ where: { slug: 'varka' } });
-    if (!site) return NextResponse.json({ error: 'Site not found' }, { status: 404 });
-    const cat = await createCategory(prisma as never, ctx, { siteId: site.id, name: body.name });
+    const body = (await req.json()) as { name?: string; description?: string };
+    const name = (body.name ?? '').trim();
+    if (!name) return NextResponse.json({ error: 'name required' }, { status: 400 });
+    const sid = await siteId();
+    const lang = await prisma.language.findFirst({
+      where: { siteId: sid, defaultLanguage: true },
+    });
+    if (!lang) return NextResponse.json({ error: 'No default language' }, { status: 400 });
+    const slug = slugify(name);
+    const cat = await prisma.category.create({
+      data: {
+        siteId: sid,
+        translations: {
+          create: {
+            languageId: lang.id,
+            name,
+            slug,
+            description: body.description ?? null,
+          },
+        },
+      },
+      include: { translations: true, _count: { select: { posts: true } } },
+    });
     return NextResponse.json(cat, { status: 201 });
   } catch (e) {
-    const message = e instanceof Error ? e.message : 'Error';
-    return NextResponse.json({ error: message }, { status: 400 });
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : 'Error' },
+      { status: 400 },
+    );
   }
 }

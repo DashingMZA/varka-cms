@@ -8,6 +8,7 @@ const GROUPS = new Set([
   'discussion',
   'media',
   'permalinks',
+  'privacy',
 ]);
 
 async function getSiteId() {
