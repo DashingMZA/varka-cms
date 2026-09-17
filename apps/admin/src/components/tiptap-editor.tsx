@@ -5,17 +5,19 @@ import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { InsertImageModal, type InsertImageResult } from '@/components/insert-image-modal';
 
 type Props = {
   value: string;
   onChange: (html: string) => void;
   placeholder?: string;
-  /** page mode adds Gutenberg-like insert blocks */
   mode?: 'post' | 'page';
 };
 
 export function TiptapEditor({ value, onChange, placeholder, mode = 'post' }: Props) {
+  const [mediaOpen, setMediaOpen] = useState(false);
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -62,10 +64,16 @@ export function TiptapEditor({ value, onChange, placeholder, mode = 'post' }: Pr
     editor?.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
   }
 
-  function addImage() {
-    const url = window.prompt('Image URL');
-    if (!url) return;
-    editor?.chain().focus().setImage({ src: url }).run();
+  function onInsertImage(r: InsertImageResult) {
+    editor
+      ?.chain()
+      .focus()
+      .setImage({
+        src: r.src,
+        alt: r.alt,
+        title: r.title,
+      })
+      .run();
   }
 
   function insertHtml(html: string) {
@@ -134,7 +142,7 @@ export function TiptapEditor({ value, onChange, placeholder, mode = 'post' }: Pr
         <button type="button" className={btnCls(editor.isActive('link'))} onClick={setLink}>
           Link
         </button>
-        <button type="button" className="v-tiptap-btn" onClick={addImage}>
+        <button type="button" className="v-tiptap-btn" onClick={() => setMediaOpen(true)}>
           Image
         </button>
         <button
@@ -206,6 +214,7 @@ export function TiptapEditor({ value, onChange, placeholder, mode = 'post' }: Pr
         </button>
       </div>
       <EditorContent editor={editor} />
+      <InsertImageModal open={mediaOpen} onClose={() => setMediaOpen(false)} onInsert={onInsertImage} />
     </div>
   );
 }

@@ -1,6 +1,5 @@
-// VARKA — Prisma 7.10 schema
-// Phase 0: Site / Language / SiteSetting
-// Phase 1: Auth + RBAC
+// VARKA — Prisma 7.10 schema (excerpt maintained via full file replace in prior commits)
+// NOTE: keep in sync with migrations. caption + keywords on MediaAsset.
 
 generator client {
   provider = "prisma-client-js"
@@ -9,8 +8,6 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
-
-// ─── Tenancy ───────────────────────────────────────────────
 
 model Site {
   id        String   @id @default(cuid())
@@ -76,8 +73,6 @@ model Language {
   @@unique([siteId, languageCode, script])
   @@index([siteId, enabled])
 }
-
-// ─── Auth (Better Auth compatible) ─────────────────────────
 
 model User {
   id            String    @id @default(cuid())
@@ -154,8 +149,6 @@ model Verification {
   @@index([identifier])
 }
 
-// ─── RBAC ──────────────────────────────────────────────────
-
 model Role {
   id          String   @id @default(cuid())
   slug        String   @unique
@@ -196,8 +189,6 @@ model UserRole {
 
   @@id([userId, roleId])
 }
-
-// ─── Content ───────────────────────────────────────────────
 
 enum ContentStatus {
   DRAFT
@@ -458,8 +449,6 @@ model Comment {
   @@index([siteId, status])
 }
 
-// ─── Media ─────────────────────────────────────────────────
-
 model MediaAsset {
   id           String   @id @default(cuid())
   siteId       String
@@ -473,9 +462,11 @@ model MediaAsset {
   height       Int?
   alt          String?
   title        String?
+  caption      String?
+  keywords     String?
   checksum     String?
   folder       String   @default("/")
-  /// WordPress-style sizes: { thumbnail, medium, large, full } each { key, width, height, mimeType, sizeBytes }
+  /// { original, thumbnail, medium, large } each { key, width, height, mimeType, sizeBytes }
   sizes        Json?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -489,8 +480,6 @@ model MediaAsset {
   @@index([siteId, mimeType])
   @@index([uploadedById])
 }
-
-// ─── Security / Audit ──────────────────────────────────────
 
 model AuditLog {
   id         String   @id @default(cuid())
