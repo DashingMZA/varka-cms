@@ -2,6 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+type SizeMeta = {
+  key: string;
+  width: number;
+  height: number;
+  mimeType: string;
+  sizeBytes: number;
+};
+
 type Asset = {
   id: string;
   filename: string;
@@ -9,14 +17,21 @@ type Asset = {
   sizeBytes: number;
   alt: string | null;
   title?: string | null;
+  caption?: string | null;
+  keywords?: string | null;
   key: string;
   storage: string;
   createdAt: string;
   width?: number | null;
   height?: number | null;
+  sizes?: Record<string, SizeMeta> | null;
 };
 
-function previewUrl(a: Asset): string {
+function previewUrl(a: Asset, size?: string): string {
+  if (size && a.sizes?.[size]?.key) {
+    const k = a.sizes[size].key;
+    return k.startsWith('http') ? k : `/api/media/file/${k}`;
+  }
   if (a.key.startsWith('http')) return a.key;
   return `/api/media/file/${a.key}`;
 }
@@ -63,6 +78,8 @@ export function MediaLibrary() {
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [editTitle, setEditTitle] = useState('');
   const [editAlt, setEditAlt] = useState('');
+  const [editCaption, setEditCaption] = useState('');
+  const [editKeywords, setEditKeywords] = useState('');
   const [savingMeta, setSavingMeta] = useState(false);
 
   const load = useCallback(async () => {
@@ -83,6 +100,8 @@ export function MediaLibrary() {
     const a = selected ? items.find((x) => x.id === selected) : null;
     setEditTitle(a?.title ?? a?.filename ?? '');
     setEditAlt(a?.alt ?? '');
+    setEditCaption(a?.caption ?? '');
+    setEditKeywords(a?.keywords ?? '');
     setMsg(null);
   }, [selected, items]);
 
@@ -144,6 +163,8 @@ export function MediaLibrary() {
         body: JSON.stringify({
           title: editTitle.trim() || null,
           alt: editAlt.trim() || null,
+          caption: editCaption.trim() || null,
+          keywords: editKeywords.trim() || null,
         }),
       });
       if (!res.ok) {
@@ -170,6 +191,8 @@ export function MediaLibrary() {
         a.filename.toLowerCase().includes(q) ||
         (a.alt ?? '').toLowerCase().includes(q) ||
         (a.title ?? '').toLowerCase().includes(q) ||
+        (a.caption ?? '').toLowerCase().includes(q) ||
+        (a.keywords ?? '').toLowerCase().includes(q) ||
         a.mimeType.toLowerCase().includes(q)
       );
     });
@@ -204,7 +227,8 @@ export function MediaLibrary() {
       </div>
 
       <p className="v-page-desc">
-        Upload and manage images and files. Edit alt text and title for SEO accessibility.
+        Original images stay full quality. Thumbnail / medium / large are WebP derivatives. Edit title,
+        alt, caption, and keywords.
       </p>
 
       <div
@@ -303,7 +327,7 @@ export function MediaLibrary() {
                     <div className="v-media-card__thumb">
                       {isImage ? (
                         <img
-                          src={previewUrl(a)}
+                          src={previewUrl(a, 'thumbnail')}
                           alt={a.alt ?? a.filename}
                           loading="lazy"
                           decoding="async"
@@ -346,7 +370,7 @@ export function MediaLibrary() {
                         <td>
                           {kind === 'image' ? (
                             <img
-                              src={previewUrl(a)}
+                              src={previewUrl(a, 'thumbnail')}
                               alt=""
                               width={36}
                               height={36}
@@ -410,7 +434,7 @@ export function MediaLibrary() {
                     <dd>{selectedAsset.mimeType}</dd>
                   </div>
                   <div>
-                    <dt>Size</dt>
+                    <dt>Original size</dt>
                     <dd>{formatBytes(selectedAsset.sizeBytes)}</dd>
                   </div>
                   {selectedAsset.width && selectedAsset.height ? (
@@ -421,12 +445,24 @@ export function MediaLibrary() {
                       </dd>
                     </div>
                   ) : null}
+                  {selectedAsset.sizes ? (
+                    <div>
+                      <dt>Sizes</dt>
+                      <dd style={{ fontSize: 11 }}>
+                        {Object.entries(selectedAsset.sizes).map(([name, s]) => (
+                          <div key={name}>
+                            {name}: {s.width}×{s.height} ({formatBytes(s.sizeBytes)})
+                          </div>
+                        ))}
+                      </dd>
+                    </div>
+                  ) : null}
                   <div>
                     <dt>Uploaded</dt>
                     <dd>{new Date(selectedAsset.createdAt).toLocaleString()}</dd>
                   </div>
                   <div>
-                    <dt>URL</dt>
+                    <dt>URL (original)</dt>
                     <dd>
                       <code style={{ fontSize: 11, wordBreak: 'break-all' }}>
                         {previewUrl(selectedAsset)}
@@ -453,6 +489,25 @@ export function MediaLibrary() {
                     style={{ fontWeight: 400, padding: 6, border: '1px solid var(--wp-border)' }}
                   />
                 </label>
+                <label style={{ display: 'grid', gap: 4, marginBottom: 8, fontWeight: 600 }}>
+                  Caption
+                  <textarea
+                    rows={2}
+                    value={editCaption}
+                    onChange={(e) => setEditCaption(e.target.value)}
+                    placeholder="Shown under the image when used in content"
+                    style={{ fontWeight: 400, padding: 6, border: '1px solid var(--wp-border)' }}
+                  />
+                </label>
+                <label style={{ display: 'grid', gap: 4, marginBottom: 8, fontWeight: 600 }}>
+                  Keywords
+                  <input
+                    value={editKeywords}
+                    onChange={(e) => setEditKeywords(e.target.value)}
+                    placeholder="comma, separated, tags"
+                    style={{ fontWeight: 400, padding: 6, border: '1px solid var(--wp-border)' }}
+                  />
+                </label>
                 <div className="v-btn-row">
                   <button
                     type="button"
@@ -468,7 +523,7 @@ export function MediaLibrary() {
                     target="_blank"
                     rel="noreferrer"
                   >
-                    View
+                    View original
                   </a>
                   <button
                     type="button"
@@ -483,7 +538,7 @@ export function MediaLibrary() {
           ) : (
             <div className="v-panel__b">
               <p className="v-muted" style={{ margin: 0 }}>
-                Select an item to edit title, alt text, and details.
+                Select an item to edit title, alt, caption, keywords, and sizes.
               </p>
             </div>
           )}
