@@ -6,12 +6,14 @@ import { AdminTopbar } from '@/components/admin-topbar';
 import { getAuth } from '@/lib/auth';
 
 /**
- * WordPress-style admin chrome + session gate.
+ * WordPress-style admin chrome + session gate + per-user color scheme.
  */
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const allowFallback =
     process.env.ALLOW_DEV_AUTH_FALLBACK === 'true' ||
     process.env.NODE_ENV !== 'production';
+
+  let scheme = 'default';
 
   try {
     const h = await headers();
@@ -19,12 +21,29 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     if (!session?.user && !allowFallback) {
       redirect('/login');
     }
+    if (session?.user?.id) {
+      try {
+        const { prisma } = await import('@varka/database');
+        const u = await prisma.user.findUnique({
+          where: { id: session.user.id },
+          select: { adminColorScheme: true },
+        });
+        if (u?.adminColorScheme) scheme = u.adminColorScheme;
+      } catch {
+        /* ignore */
+      }
+    }
   } catch {
     if (!allowFallback) redirect('/login');
   }
 
   return (
-    <div className="v-admin">
+    <div className="v-admin" data-admin-scheme={scheme}>
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `document.documentElement.setAttribute('data-admin-scheme',${JSON.stringify(scheme)});`,
+        }}
+      />
       <AdminTopbar />
       <aside className="v-sidebar">
         <div className="v-sidebar__brand">VARKA</div>

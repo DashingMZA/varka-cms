@@ -28,7 +28,16 @@ const NAV: NavItem[] = [
   { href: '/appearance', label: 'Appearance', icon: '◐' },
   { href: '/languages', label: 'Languages', icon: '文' },
   { href: '/seo', label: 'SEO', icon: '◎' },
-  { href: '/users', label: 'Users', icon: '👤' },
+  {
+    href: '/users',
+    label: 'Users',
+    icon: '👤',
+    children: [
+      { href: '/users', label: 'All Users' },
+      { href: '/users/new', label: 'Add User' },
+      { href: '/users/profile', label: 'Profile' },
+    ],
+  },
   { href: '/system', label: 'System', icon: '⚙' },
   {
     href: '/settings',
@@ -111,10 +120,11 @@ export function AdminNav() {
                   {item.children!.map((child) => {
                     const ca =
                       pathname === child.href ||
-                      pathname.startsWith(child.href + '/');
+                      (child.href !== item.href &&
+                        pathname.startsWith(child.href + '/'));
                     return (
                       <Link
-                        key={child.href}
+                        key={child.href + child.label}
                         href={child.href}
                         className={`v-nav__link v-nav__link--sub${ca ? ' is-active' : ''}`}
                       >
