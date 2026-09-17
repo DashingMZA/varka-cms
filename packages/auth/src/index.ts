@@ -18,3 +18,16 @@ export {
   passwordHasher,
   argon2ParamsFromEnv,
 } from './password';
+
+export {
+  isLoginPath,
+  assertLoginRateLimit,
+  rateLimitResponse,
+  lockoutResponse,
+  isEmailLocked,
+  recordEmailFailure,
+  clearEmailFailures,
+  auditLoginEvent,
+  clientIpFromRequest,
+  LOGIN_PATH_SUFFIXES,
+} from './login-guard';
