@@ -6,42 +6,48 @@ import { AdminTopbar } from '@/components/admin-topbar';
 import { getAuth } from '@/lib/auth';
 
 /**
- * WordPress-style admin chrome + session gate + per-user color scheme.
+ * WordPress-style admin chrome + hard session gate + per-user color scheme.
+ * Dashboard is never public: missing session → /login.
+ * Dev bypass only when ALLOW_DEV_AUTH_FALLBACK=true (explicit).
  */
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
-  const allowFallback =
-    process.env.ALLOW_DEV_AUTH_FALLBACK === 'true' ||
-    process.env.NODE_ENV !== 'production';
+  const allowDevBypass = process.env.ALLOW_DEV_AUTH_FALLBACK === 'true';
+  const h = await headers();
+  const locale = h.get('x-varka-locale') ?? 'en';
+  const dir = h.get('x-varka-dir') ?? 'ltr';
 
   let scheme = 'default';
+  let sessionUserId: string | null = null;
 
   try {
-    const h = await headers();
     const session = await getAuth().api.getSession({ headers: h });
-    if (!session?.user && !allowFallback) {
-      redirect('/login');
-    }
-    if (session?.user?.id) {
-      try {
-        const { prisma } = await import('@varka/database');
-        const u = await prisma.user.findUnique({
-          where: { id: session.user.id },
-          select: { adminColorScheme: true },
-        });
-        if (u?.adminColorScheme) scheme = u.adminColorScheme;
-      } catch {
-        /* ignore */
-      }
-    }
+    sessionUserId = session?.user?.id ?? null;
   } catch {
-    if (!allowFallback) redirect('/login');
+    sessionUserId = null;
+  }
+
+  if (!sessionUserId && !allowDevBypass) {
+    redirect('/login');
+  }
+
+  if (sessionUserId) {
+    try {
+      const { prisma } = await import('@varka/database');
+      const u = await prisma.user.findUnique({
+        where: { id: sessionUserId },
+        select: { adminColorScheme: true },
+      });
+      if (u?.adminColorScheme) scheme = u.adminColorScheme;
+    } catch {
+      /* ignore */
+    }
   }
 
   return (
-    <div className="v-admin" data-admin-scheme={scheme}>
+    <div className="v-admin" data-admin-scheme={scheme} lang={locale} dir={dir}>
       <script
         dangerouslySetInnerHTML={{
-          __html: `document.documentElement.setAttribute('data-admin-scheme',${JSON.stringify(scheme)});`,
+          __html: `document.documentElement.setAttribute('data-admin-scheme',${JSON.stringify(scheme)});document.documentElement.setAttribute('lang',${JSON.stringify(locale)});document.documentElement.setAttribute('dir',${JSON.stringify(dir)});`,
         }}
       />
       <AdminTopbar />

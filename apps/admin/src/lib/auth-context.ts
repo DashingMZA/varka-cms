@@ -4,7 +4,7 @@ import { getAuth } from '@/lib/auth';
 /**
  * Resolve AuthContext for admin API routes.
  * 1) Better Auth session → loadAuthContext(userId)
- * 2) Fallback owner context when ALLOW_DEV_AUTH_FALLBACK=true (or non-production)
+ * 2) Fallback owner context only when ALLOW_DEV_AUTH_FALLBACK=true (explicit)
  */
 export async function getAuthContext(req?: Request): Promise<AuthContext> {
   try {
@@ -21,9 +21,8 @@ export async function getAuthContext(req?: Request): Promise<AuthContext> {
     // session unavailable
   }
 
-  const allowFallback =
-    process.env.ALLOW_DEV_AUTH_FALLBACK === 'true' ||
-    process.env.NODE_ENV !== 'production';
+  // Explicit only — never auto-open admin APIs in local dev after logout
+  const allowFallback = process.env.ALLOW_DEV_AUTH_FALLBACK === 'true';
 
   if (!allowFallback) {
     return {
@@ -70,6 +69,7 @@ export async function getAuthContext(req?: Request): Promise<AuthContext> {
       'pages.create',
       'pages.update',
       'pages.publish',
+      'pages.delete',
       'media.read',
       'media.upload',
       'media.update',
@@ -78,17 +78,22 @@ export async function getAuthContext(req?: Request): Promise<AuthContext> {
       'comments.moderate',
       'comments.delete',
       'themes.read',
+      'themes.customize',
       'themes.activate',
       'seo.read',
       'seo.update',
       'settings.read',
       'settings.update',
       'users.read',
-      'users.manage',
+      'users.create',
+      'users.update',
+      'users.disable',
       'languages.read',
       'languages.manage',
       'audit.read',
       'security.read',
+      'security.manage',
     ],
+    disabled: false,
   };
 }
