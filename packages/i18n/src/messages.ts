@@ -1,6 +1,6 @@
 export const SUPPORTED_LOCALES = ['en', 'ur', 'ar'] as const;
 export type AppLocale = (typeof SUPPORTED_LOCALES)[number];
-export const MESSAGE_NAMESPACES = ['common', 'auth', 'dashboard', 'settings'] as const;
+export const MESSAGE_NAMESPACES = ['common', 'auth', 'dashboard', 'settings', 'nav'] as const;
 export type MessageNamespace = (typeof MESSAGE_NAMESPACES)[number];
 export type MessageTree = Record<string, string | MessageTree>;
 
@@ -10,19 +10,40 @@ import enCommon from '../locales/en/common.json';
 import enAuth from '../locales/en/auth.json';
 import enDashboard from '../locales/en/dashboard.json';
 import enSettings from '../locales/en/settings.json';
+import enNav from '../locales/en/nav.json';
 import urCommon from '../locales/ur/common.json';
 import urAuth from '../locales/ur/auth.json';
 import urDashboard from '../locales/ur/dashboard.json';
 import urSettings from '../locales/ur/settings.json';
+import urNav from '../locales/ur/nav.json';
 import arCommon from '../locales/ar/common.json';
 import arAuth from '../locales/ar/auth.json';
 import arDashboard from '../locales/ar/dashboard.json';
 import arSettings from '../locales/ar/settings.json';
+import arNav from '../locales/ar/nav.json';
 
 const BUNDLED: Record<AppLocale, Record<MessageNamespace, MessageTree>> = {
-  en: { common: enCommon as MessageTree, auth: enAuth as MessageTree, dashboard: enDashboard as MessageTree, settings: enSettings as MessageTree },
-  ur: { common: urCommon as MessageTree, auth: urAuth as MessageTree, dashboard: urDashboard as MessageTree, settings: urSettings as MessageTree },
-  ar: { common: arCommon as MessageTree, auth: arAuth as MessageTree, dashboard: arDashboard as MessageTree, settings: arSettings as MessageTree },
+  en: {
+    common: enCommon as MessageTree,
+    auth: enAuth as MessageTree,
+    dashboard: enDashboard as MessageTree,
+    settings: enSettings as MessageTree,
+    nav: enNav as MessageTree,
+  },
+  ur: {
+    common: urCommon as MessageTree,
+    auth: urAuth as MessageTree,
+    dashboard: urDashboard as MessageTree,
+    settings: urSettings as MessageTree,
+    nav: urNav as MessageTree,
+  },
+  ar: {
+    common: arCommon as MessageTree,
+    auth: arAuth as MessageTree,
+    dashboard: arDashboard as MessageTree,
+    settings: arSettings as MessageTree,
+    nav: arNav as MessageTree,
+  },
 };
 
 export function isAppLocale(value: string): value is AppLocale {
@@ -33,7 +54,7 @@ export function resolveLocale(input?: string | null): AppLocale {
   if (input && isAppLocale(input)) return input;
   if (input) {
     const base = input.split('-')[0]?.toLowerCase();
-    if (base && isAppLocale(base)) return base;
+    if (base && isAppLocale(base)) return base as AppLocale;
   }
   return 'en';
 }
@@ -54,6 +75,7 @@ export function loadAllMessages(locale?: string | null): Record<MessageNamespace
     auth: loadNamespace(loc, 'auth'),
     dashboard: loadNamespace(loc, 'dashboard'),
     settings: loadNamespace(loc, 'settings'),
+    nav: loadNamespace(loc, 'nav'),
   };
 }
 
