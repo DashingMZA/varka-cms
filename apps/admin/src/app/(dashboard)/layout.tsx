@@ -1,12 +1,20 @@
 import type { ReactNode } from 'react';
+import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { isRtlLocale, resolveLocale } from '@varka/i18n';
 import { AdminNav } from '@/components/admin-nav';
 import { AdminTopbar } from '@/components/admin-topbar';
+import { HtmlAttrs } from '@/components/html-attrs';
 import { resolveSession } from '@/lib/resolve-session';
 
+/** Never cache auth-gated chrome — otherwise post-login still hits a cached 307→/login */
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+/**
+ * WordPress-style admin chrome + hard session gate + per-user color scheme.
+ * Missing session → /login (unless ALLOW_DEV_AUTH_FALLBACK=true).
+ */
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const allowDevBypass = process.env.ALLOW_DEV_AUTH_FALLBACK === 'true';
   const session = await resolveSession();
@@ -17,8 +25,6 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   }
 
   let scheme = 'default';
-  const locale = 'en';
-  const dir = 'ltr';
 
   if (sessionUserId) {
     try {
@@ -33,17 +39,17 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     }
   }
 
+  const jar = await cookies();
+  const locale = resolveLocale(jar.get('varka_locale')?.value ?? 'en');
+  const dir = isRtlLocale(locale) ? 'rtl' : 'ltr';
+
   return (
     <div className="v-admin" data-admin-scheme={scheme} lang={locale} dir={dir}>
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `document.documentElement.setAttribute('data-admin-scheme',${JSON.stringify(scheme)});document.documentElement.setAttribute('lang',${JSON.stringify(locale)});document.documentElement.setAttribute('dir',${JSON.stringify(dir)});`,
-        }}
-      />
-      <AdminTopbar />
+      <HtmlAttrs locale={locale} dir={dir} scheme={scheme} />
+      <AdminTopbar locale={locale} />
       <aside className="v-sidebar">
         <div className="v-sidebar__brand">VARKA</div>
-        <AdminNav />
+        <AdminNav locale={locale} />
       </aside>
       <div className="v-main">{children}</div>
     </div>

@@ -13,6 +13,7 @@ import {
 
 const COOKIE = 'varka_locale';
 
+/** Client-only. On server always returns 'en' — pass explicit locale from layout instead. */
 export function getStoredLocale(): AppLocale {
   if (typeof document === 'undefined') return 'en';
   const m = document.cookie.match(new RegExp(`(?:^|; )${COOKIE}=([^;]*)`));
@@ -29,6 +30,9 @@ export function setStoredLocale(locale: AppLocale) {
   document.documentElement.dataset.locale = locale;
 }
 
+/**
+ * Prefer an explicit locale (from server layout cookie) so SSR + first client paint match.
+ */
 export function useMessages(locale?: string) {
   const loc = resolveLocale(locale ?? getStoredLocale());
   const messages = loadAllMessages(loc);
