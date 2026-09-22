@@ -1,125 +1,101 @@
 'use client';
 
-import { useState, type CSSProperties, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
+import { getStoredLocale, setStoredLocale, useMessages, SUPPORTED_LOCALES } from '@/lib/i18n';
+import type { AppLocale } from '@varka/i18n';
 
 export function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [locale, setLocale] = useState(getStoredLocale);
+  const { t } = useMessages(locale);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
     setLoading(true);
     try {
-      const rate = await fetch('/api/auth/rate-check', {
+      const emailNorm = email.trim().toLowerCase();
+      const res = await fetch('/api/auth/sign-in/email', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        headers: {
+          'Content-Type': 'application/json',
+          Origin: window.location.origin,
+        },
+        body: JSON.stringify({ email: emailNorm, password }),
+        credentials: 'include',
       });
-      if (rate.status === 429) {
-        const data = (await rate.json()) as { retryAfterSec?: number };
-        setError(`Too many attempts. Retry in ${data.retryAfterSec ?? 60}s`);
+
+      const data = (await res.json().catch(() => ({}))) as {
+        message?: string;
+        user?: { id?: string };
+      };
+
+      if (!res.ok) {
+        setError(data.message ?? t('auth', 'invalidCredentials'));
         setLoading(false);
         return;
       }
 
-      const res = await fetch('/api/auth/sign-in/email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-        credentials: 'include',
-      });
-      if (!res.ok) {
-        await fetch('/api/auth/rate-check', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, failed: true }),
-        });
-        const data = (await res.json().catch(() => ({}))) as { message?: string };
-        setError(data.message ?? `Sign-in failed (${res.status})`);
-        setLoading(false);
-        return;
-      }
-      window.location.href = '/dashboard';
+      // Hard navigation so App Router does not reuse a cached 307→/login
+      window.location.assign('/dashboard');
     } catch {
-      setError('Network error');
+      setError(t('auth', 'networkError'));
       setLoading(false);
     }
   }
 
+  function onLocale(next: AppLocale) {
+    setStoredLocale(next);
+    setLocale(next);
+  }
+
   return (
-    <form onSubmit={onSubmit} style={{ display: 'grid', gap: 12 }}>
+    <form
+      onSubmit={onSubmit}
+      style={{ maxWidth: 360, margin: '48px auto', display: 'grid', gap: 12 }}
+    >
+      <h1 style={{ margin: 0, fontSize: 22 }}>{t('auth', 'signInTitle')}</h1>
       <label style={{ display: 'grid', gap: 4, fontSize: 13 }}>
-        Email
+        {t('common', 'language')}
+        <select
+          value={locale}
+          onChange={(e) => onLocale(e.target.value as AppLocale)}
+          aria-label={t('common', 'language')}
+        >
+          {SUPPORTED_LOCALES.map((l) => (
+            <option key={l} value={l}>
+              {l}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label style={{ display: 'grid', gap: 4, fontSize: 13 }}>
+        {t('auth', 'email')}
         <input
           type="email"
-          required
           autoComplete="username"
+          required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          style={inputStyle}
         />
       </label>
       <label style={{ display: 'grid', gap: 4, fontSize: 13 }}>
-        Password
+        {t('auth', 'password')}
         <input
           type="password"
-          required
-          minLength={12}
           autoComplete="current-password"
+          required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          style={inputStyle}
         />
       </label>
-      {error ? (
-        <p role="alert" style={{ margin: 0, color: 'var(--danger)', fontSize: 13 }}>
-          {error}
-        </p>
-      ) : null}
-      <button type="submit" disabled={loading} style={btnStyle}>
-        {loading ? 'Signing in…' : 'Sign in'}
+      {error ? <p className="v-alert v-alert--error">{error}</p> : null}
+      <button type="submit" className="v-btn v-btn--primary" disabled={loading}>
+        {loading ? t('auth', 'signingIn') : t('auth', 'login')}
       </button>
-      <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-        <a href="/api/auth/sign-in/social?provider=google" style={oauthStyle}>
-          Google
-        </a>
-        <a href="/api/auth/sign-in/social?provider=github" style={oauthStyle}>
-          GitHub
-        </a>
-      </div>
-      <p style={{ margin: 0, fontSize: 12, color: 'var(--muted)' }}>
-        OAuth works only when client IDs are set in env. First owner: use Better Auth sign-up or seed
-        + set password.
-      </p>
     </form>
   );
 }
-
-const inputStyle: CSSProperties = {
-  padding: '10px 12px',
-  borderRadius: 8,
-  border: '1px solid var(--border)',
-  background: '#fff',
-};
-
-const btnStyle: CSSProperties = {
-  padding: '10px 14px',
-  borderRadius: 8,
-  border: 'none',
-  background: 'var(--accent)',
-  color: '#fff',
-  fontWeight: 600,
-};
-
-const oauthStyle: CSSProperties = {
-  flex: 1,
-  textAlign: 'center',
-  padding: '8px 10px',
-  borderRadius: 8,
-  border: '1px solid var(--border)',
-  color: 'var(--ink)',
-  fontSize: 13,
-};

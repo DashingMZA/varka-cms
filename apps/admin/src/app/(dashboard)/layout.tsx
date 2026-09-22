@@ -1,14 +1,17 @@
 import type { ReactNode } from 'react';
-import { headers } from 'next/headers';
+import { headers, cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { AdminNav } from '@/components/admin-nav';
 import { AdminTopbar } from '@/components/admin-topbar';
 import { getAuth } from '@/lib/auth';
 
+/** Never cache auth-gated chrome — otherwise post-login still hits a cached 307→/login */
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 /**
  * WordPress-style admin chrome + hard session gate + per-user color scheme.
- * Dashboard is never public: missing session → /login.
- * Dev bypass only when ALLOW_DEV_AUTH_FALLBACK=true (explicit).
+ * Missing session → /login (unless ALLOW_DEV_AUTH_FALLBACK=true).
  */
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const allowDevBypass = process.env.ALLOW_DEV_AUTH_FALLBACK === 'true';
@@ -20,9 +23,18 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   let sessionUserId: string | null = null;
 
   try {
-    const session = await getAuth().api.getSession({ headers: h });
+    const session = await getAuth().api.getSession({
+      headers: h,
+    });
     sessionUserId = session?.user?.id ?? null;
-  } catch {
+
+    if (process.env.NODE_ENV !== 'production' && !sessionUserId) {
+      const jar = await cookies();
+      const names = jar.getAll().map((c) => c.name);
+      console.warn('[varka/auth] No session on dashboard. Cookies present:', names);
+    }
+  } catch (e) {
+    console.warn('[varka/auth] getSession failed', e);
     sessionUserId = null;
   }
 
