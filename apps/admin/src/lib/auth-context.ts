@@ -1,5 +1,6 @@
 import type { AuthContext } from '@varka/permissions';
 import { getAuth } from '@/lib/auth';
+import { authHeadersFromNext, authHeadersFromRequest } from '@/lib/auth-headers';
 
 /**
  * Resolve AuthContext for admin API routes.
@@ -9,9 +10,8 @@ import { getAuth } from '@/lib/auth';
 export async function getAuthContext(req?: Request): Promise<AuthContext> {
   try {
     const auth = getAuth();
-    const session = await auth.api.getSession({
-      headers: req?.headers ?? new Headers(),
-    });
+    const hdrs = req ? authHeadersFromRequest(req) : await authHeadersFromNext();
+    const session = await auth.api.getSession({ headers: hdrs });
     if (session?.user?.id) {
       const { loadAuthContext } = await import('@varka/auth');
       const ctx = await loadAuthContext(session.user.id);
@@ -21,7 +21,6 @@ export async function getAuthContext(req?: Request): Promise<AuthContext> {
     // session unavailable
   }
 
-  // Explicit only — never auto-open admin APIs in local dev after logout
   const allowFallback = process.env.ALLOW_DEV_AUTH_FALLBACK === 'true';
 
   if (!allowFallback) {
@@ -33,7 +32,6 @@ export async function getAuthContext(req?: Request): Promise<AuthContext> {
     };
   }
 
-  // Prefer a real owner user from DB so /api/users/me works in dev
   let userId = 'dev-user';
   try {
     const { prisma } = await import('@varka/database');
@@ -69,7 +67,6 @@ export async function getAuthContext(req?: Request): Promise<AuthContext> {
       'pages.create',
       'pages.update',
       'pages.publish',
-      'pages.delete',
       'media.read',
       'media.upload',
       'media.update',
@@ -78,22 +75,17 @@ export async function getAuthContext(req?: Request): Promise<AuthContext> {
       'comments.moderate',
       'comments.delete',
       'themes.read',
-      'themes.customize',
       'themes.activate',
       'seo.read',
       'seo.update',
       'settings.read',
       'settings.update',
       'users.read',
-      'users.create',
-      'users.update',
-      'users.disable',
+      'users.manage',
       'languages.read',
       'languages.manage',
       'audit.read',
       'security.read',
-      'security.manage',
     ],
-    disabled: false,
   };
 }

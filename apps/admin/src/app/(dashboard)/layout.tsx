@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react';
-import { headers, cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { AdminNav } from '@/components/admin-nav';
 import { AdminTopbar } from '@/components/admin-topbar';
 import { getAuth } from '@/lib/auth';
+import { authHeadersFromNext } from '@/lib/auth-headers';
+import { cookies } from 'next/headers';
 
 /** Never cache auth-gated chrome — otherwise post-login still hits a cached 307→/login */
 export const dynamic = 'force-dynamic';
@@ -15,23 +16,26 @@ export const revalidate = 0;
  */
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const allowDevBypass = process.env.ALLOW_DEV_AUTH_FALLBACK === 'true';
-  const h = await headers();
-  const locale = h.get('x-varka-locale') ?? 'en';
-  const dir = h.get('x-varka-dir') ?? 'ltr';
+  const authHeaders = await authHeadersFromNext();
+  const locale = authHeaders.get('x-varka-locale') ?? 'en';
+  const dir = authHeaders.get('x-varka-dir') ?? 'ltr';
 
   let scheme = 'default';
   let sessionUserId: string | null = null;
 
   try {
     const session = await getAuth().api.getSession({
-      headers: h,
+      headers: authHeaders,
     });
     sessionUserId = session?.user?.id ?? null;
 
     if (process.env.NODE_ENV !== 'production' && !sessionUserId) {
       const jar = await cookies();
-      const names = jar.getAll().map((c) => c.name);
-      console.warn('[varka/auth] No session on dashboard. Cookies present:', names);
+      console.warn('[varka/auth] No session on dashboard', {
+        cookieNames: jar.getAll().map((c) => c.name),
+        tokenPrefix: jar.get('varka.session_token')?.value?.slice(0, 16) ?? null,
+        hasCookieHeader: Boolean(authHeaders.get('cookie')),
+      });
     }
   } catch (e) {
     console.warn('[varka/auth] getSession failed', e);
