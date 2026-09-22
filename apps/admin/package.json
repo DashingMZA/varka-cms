@@ -22,6 +22,7 @@
     "@varka/config": "workspace:*",
     "@varka/content": "workspace:*",
     "@varka/database": "workspace:*",
+    "@varka/i18n": "workspace:*",
     "@varka/media": "workspace:*",
     "@varka/permissions": "workspace:*",
     "@varka/queue": "workspace:*",
