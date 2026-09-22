@@ -1,4 +1,4 @@
-export { createAuth, type Auth } from './server';
+export { createAuth, ensureEnvLoaded, resolveAuthSecret, isUsingPlaceholderSecret, type Auth } from './server';
 export { loadAuthContext } from './session';
 export {
   listUsers,
@@ -40,4 +40,6 @@ export {
   recordEmailFailure,
   clearEmailFailures,
   auditLoginEvent,
+  clientIpFromRequest,
+  LOGIN_PATH_SUFFIXES,
 } from './login-guard';

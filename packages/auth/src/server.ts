@@ -9,17 +9,71 @@
  * - Trusted origins only
  * - Min password length 12; max 128
  */
+import { existsSync, readFileSync } from 'node:fs';
+import path from 'node:path';
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { nextCookies } from 'better-auth/next-js';
 import { prisma } from '@varka/database';
 import { passwordHasher, assertPasswordPolicy } from './password';
 
+const PLACEHOLDER_SECRET = 'dev-only-insecure-secret-change-me-now!!';
+
+/**
+ * Parse KEY=VALUE .env lines into process.env (does not override existing).
+ * Handles optional quotes and skips comments / empty lines.
+ */
+function parseEnvFile(filePath: string): void {
+  if (!existsSync(filePath)) return;
+  let text: string;
+  try {
+    text = readFileSync(filePath, 'utf8');
+  } catch {
+    return;
+  }
+  for (const line of text.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const eq = trimmed.indexOf('=');
+    if (eq <= 0) continue;
+    const key = trimmed.slice(0, eq).trim();
+    if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) continue;
+    if (process.env[key] !== undefined && process.env[key] !== '') continue;
+    let val = trimmed.slice(eq + 1).trim();
+    if (
+      (val.startsWith('"') && val.endsWith('"')) ||
+      (val.startsWith("'") && val.endsWith("'"))
+    ) {
+      val = val.slice(1, -1);
+    }
+    process.env[key] = val;
+  }
+}
+
+/** Load monorepo root / app .env before AUTH_SECRET is read. */
+export function ensureEnvLoaded(): void {
+  const cwd = process.cwd();
+  const candidates = [
+    path.resolve(cwd, '.env'),
+    path.resolve(cwd, '.env.local'),
+    path.resolve(cwd, '../../.env'),
+    path.resolve(cwd, '../../.env.local'),
+    path.resolve(cwd, '../.env'),
+    path.resolve(cwd, '../../../.env'),
+  ];
+  for (const file of candidates) {
+    parseEnvFile(file);
+  }
+}
+
+ensureEnvLoaded();
+
 function oauthEnabled(id?: string, secret?: string): boolean {
   return Boolean(id && secret);
 }
 
-function requireAuthSecret(): string {
+export function resolveAuthSecret(): string {
+  ensureEnvLoaded();
   const secret = process.env.AUTH_SECRET ?? process.env.BETTER_AUTH_SECRET ?? '';
   const isProd = process.env.NODE_ENV === 'production';
 
@@ -32,7 +86,7 @@ function requireAuthSecret(): string {
     console.warn(
       '[varka/auth] AUTH_SECRET missing or < 32 chars — using insecure dev placeholder. Set before production.',
     );
-    return 'dev-only-insecure-secret-change-me-now!!';
+    return PLACEHOLDER_SECRET;
   }
 
   if (
@@ -41,14 +95,16 @@ function requireAuthSecret(): string {
       secret.includes('dev-only') ||
       secret === 'secret')
   ) {
-    throw new Error('[varka/auth] AUTH_SECRET looks like a placeholder — refuse to start in production');
+    throw new Error(
+      '[varka/auth] AUTH_SECRET looks like a placeholder — refuse to start in production',
+    );
   }
 
   return secret;
 }
 
 export function createAuth() {
-  const secret = requireAuthSecret();
+  const secret = resolveAuthSecret();
   const isProd = process.env.NODE_ENV === 'production';
 
   const baseURL =
@@ -107,7 +163,6 @@ export function createAuth() {
     session: {
       expiresIn: 60 * 60 * 24 * 7,
       updateAge: 60 * 60 * 24,
-      // Disabled: stale session_data signatures make getSession always null
       cookieCache: {
         enabled: false,
       },
@@ -128,3 +183,8 @@ export function createAuth() {
 }
 
 export type Auth = ReturnType<typeof createAuth>;
+
+/** True when resolved secret is the insecure dev placeholder */
+export function isUsingPlaceholderSecret(): boolean {
+  return resolveAuthSecret() === PLACEHOLDER_SECRET;
+}
