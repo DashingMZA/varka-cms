@@ -1,8 +1,11 @@
 /**
- * Seed: Site VARKA, English + optional Punjabi, RBAC, optional owner.
+ * Seed: Site VARKA, English language, RBAC roles/permissions, optional owner.
  * Prisma 7 + driver adapter (pg).
+ * Owner email/password → User + Account(providerId=credential) so Better Auth login works.
  */
 import path from 'node:path';
+import { randomBytes, scrypt as scryptCb } from 'node:crypto';
+import { promisify } from 'node:util';
 import { existsSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { Pool } from 'pg';
@@ -61,6 +64,34 @@ function createPool(url: string): Pool {
 const pool = createPool(connectionString);
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
+
+/** Same encoding as @varka/auth — Better Auth credential verify accepts Argon2id or scrypt$ */
+const scryptAsync = promisify(scryptCb);
+
+async function hashSeedPassword(password: string): Promise<string> {
+  try {
+    const argon2 = await import('@node-rs/argon2');
+    return await argon2.hash(password, {
+      memoryCost: Number(process.env.AUTH_ARGON2_MEMORY_KIB ?? 19456),
+      timeCost: Number(process.env.AUTH_ARGON2_TIME_COST ?? 2),
+      parallelism: Number(process.env.AUTH_ARGON2_PARALLELISM ?? 1),
+      outputLen: 32,
+      algorithm: argon2.Algorithm.Argon2id,
+    });
+  } catch {
+    const N = 131072;
+    const r = 8;
+    const p = 1;
+    const salt = randomBytes(16);
+    const derived = (await scryptAsync(password, salt, 32, {
+      N,
+      r,
+      p,
+      maxmem: 256 * 1024 * 1024,
+    })) as Buffer;
+    return `scrypt$${N}$${r}$${p}$${salt.toString('base64url')}$${derived.toString('base64url')}`;
+  }
+}
 
 const ROLES: { slug: string; name: string; description: string }[] = [
   { slug: 'owner', name: 'Owner', description: 'Full control' },
@@ -133,7 +164,6 @@ async function main() {
     },
   });
 
-  // Punjabi: one language row + script field (not two language rows)
   await prisma.language.upsert({
     where: { siteId_locale: { siteId: site.id, locale: 'pa' } },
     update: { enabled: true, urlPrefix: 'pa', script: 'Arab' },
@@ -209,28 +239,62 @@ async function main() {
   }
   console.log('Roles & permissions seeded');
 
+  // Better Auth: email/password lives on Account (providerId=credential), not only User.
   const ownerEmail = process.env.SEED_OWNER_EMAIL;
+  const ownerPassword = process.env.SEED_OWNER_PASSWORD;
   if (ownerEmail) {
     let user = await prisma.user.findUnique({ where: { email: ownerEmail } });
     if (!user) {
       user = await prisma.user.create({
         data: {
           email: ownerEmail,
-          name: 'Owner',
+          name: process.env.SEED_OWNER_NAME ?? 'Owner',
           emailVerified: true,
           siteId: site.id,
         },
       });
-      console.log('Created owner user (set password via Better Auth):', ownerEmail);
+      console.log('Created owner user:', ownerEmail);
     } else {
       console.log('Owner user exists:', ownerEmail);
     }
+
     const ownerRole = await prisma.role.findUniqueOrThrow({ where: { slug: 'owner' } });
     await prisma.userRole.upsert({
       where: { userId_roleId: { userId: user.id, roleId: ownerRole.id } },
       update: {},
       create: { userId: user.id, roleId: ownerRole.id },
     });
+
+    if (ownerPassword) {
+      if (ownerPassword.length < 12) {
+        throw new Error('SEED_OWNER_PASSWORD must be at least 12 characters (auth policy)');
+      }
+      const passwordHash = await hashSeedPassword(ownerPassword);
+      const existing = await prisma.account.findFirst({
+        where: { userId: user.id, providerId: 'credential' },
+      });
+      if (existing) {
+        await prisma.account.update({
+          where: { id: existing.id },
+          data: { password: passwordHash, accountId: ownerEmail },
+        });
+        console.log('Updated credential Account password for', ownerEmail);
+      } else {
+        await prisma.account.create({
+          data: {
+            userId: user.id,
+            accountId: ownerEmail,
+            providerId: 'credential',
+            password: passwordHash,
+          },
+        });
+        console.log('Created credential Account for', ownerEmail);
+      }
+    } else {
+      console.log(
+        'SEED_OWNER_PASSWORD not set — User created but Account password missing; login will fail until set.',
+      );
+    }
   } else {
     console.log('SEED_OWNER_EMAIL not set — skip owner user');
   }
