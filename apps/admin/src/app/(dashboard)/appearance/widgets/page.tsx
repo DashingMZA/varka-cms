@@ -5,7 +5,7 @@ export default function AppearanceWidgetsPage() {
     <main>
       <h1 className="v-page-title">Widgets</h1>
       <p className="v-muted" style={{ marginBottom: 16 }}>
-        Assign widgets to theme areas. Order is persisted site-wide.
+        Drag widgets into theme zones. Changes save to site settings.
       </p>
       <WidgetsAdmin />
     </main>
