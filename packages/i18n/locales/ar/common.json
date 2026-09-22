@@ -11,5 +11,16 @@
   "actions": "إجراءات",
   "yes": "نعم",
   "no": "لا",
-  "language": "اللغة"
+  "language": "اللغة",
+  "apply": "تطبيق",
+  "bulkActions": "إجراءات جماعية",
+  "addNew": "إضافة جديد",
+  "all": "الكل",
+  "publish": "نشر",
+  "draft": "مسودة",
+  "trash": "سلة المهملات",
+  "update": "تحديث",
+  "close": "إغلاق",
+  "help": "مساعدة",
+  "screenOptions": "خيارات الشاشة"
 }

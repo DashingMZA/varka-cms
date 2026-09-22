@@ -11,5 +11,16 @@
   "actions": "اقدامات",
   "yes": "ہاں",
   "no": "نہیں",
-  "language": "زبان"
+  "language": "زبان",
+  "apply": "لاگو کریں",
+  "bulkActions": "اجتماعی اقدامات",
+  "addNew": "نیا شامل کریں",
+  "all": "سب",
+  "publish": "شائع کریں",
+  "draft": "مسودہ",
+  "trash": "کچرا",
+  "update": "اپ ڈیٹ",
+  "close": "بند",
+  "help": "مدد",
+  "screenOptions": "اسکرین اختیارات"
 }
