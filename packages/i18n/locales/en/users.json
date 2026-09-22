@@ -1,0 +1,13 @@
+{
+  "title": "Users",
+  "addUser": "Add User",
+  "allUsers": "All",
+  "username": "Username",
+  "name": "Name",
+  "email": "Email",
+  "role": "Role",
+  "posts": "Posts",
+  "searchUsers": "Search Users",
+  "changeRole": "Change role to…",
+  "noUsers": "No users found."
+}

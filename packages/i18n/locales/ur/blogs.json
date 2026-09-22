@@ -1,0 +1,21 @@
+{
+  "title": "پوسٹس",
+  "addNew": "نیا شامل کریں",
+  "all": "تمام",
+  "published": "شائع شدہ",
+  "draft": "مسودہ",
+  "pending": "زیرِ التوا",
+  "trash": "ردی",
+  "titleCol": "عنوان",
+  "author": "مصنف",
+  "categories": "زمرے",
+  "tags": "ٹیگز",
+  "status": "حیثیت",
+  "date": "تاریخ",
+  "searchPosts": "پوسٹس تلاش کریں…",
+  "searchButton": "تلاش",
+  "bulkActions": "بڑی کارروائیاں",
+  "noPosts": "کوئی پوسٹ نہیں ملی۔",
+  "publish": "شائع کریں",
+  "update": "اپ ڈیٹ"
+}
