@@ -2,6 +2,12 @@ import type { AuthContext } from '@varka/permissions';
 import { getAuth } from '@/lib/auth';
 import { authHeadersFromNext, authHeadersFromRequest } from '@/lib/auth-headers';
 
+/**
+ * Resolve AuthContext for admin API routes.
+ * 1) Better Auth session → loadAuthContext(userId)
+ * 2) Session table by cookie token
+ * 3) Fallback owner only when ALLOW_DEV_AUTH_FALLBACK=true
+ */
 export async function getAuthContext(req?: Request): Promise<AuthContext> {
   try {
     const auth = getAuth();
@@ -17,25 +23,29 @@ export async function getAuthContext(req?: Request): Promise<AuthContext> {
   }
 
   try {
-    let token: string | undefined;
+    let raw: string | undefined;
     if (req) {
       const cookie = req.headers.get('cookie') ?? '';
       const m = cookie.match(/(?:^|;\s*)varka\.session_token=([^;]+)/);
-      token = m?.[1] ? decodeURIComponent(m[1]) : undefined;
+      raw = m?.[1] ? decodeURIComponent(m[1]) : undefined;
     } else {
       const { cookies } = await import('next/headers');
-      token = (await cookies()).get('varka.session_token')?.value;
+      raw = (await cookies()).get('varka.session_token')?.value;
     }
-    if (token) {
+    if (raw) {
+      const candidates = [raw];
+      if (raw.includes('.')) candidates.push(raw.split('.')[0]!);
       const { prisma } = await import('@varka/database');
-      const row = await prisma.session.findUnique({
-        where: { token },
-        select: { userId: true, expiresAt: true, user: { select: { disabled: true } } },
-      });
-      if (row && row.expiresAt.getTime() > Date.now() && !row.user.disabled) {
-        const { loadAuthContext } = await import('@varka/auth');
-        const ctx = await loadAuthContext(row.userId);
-        if (ctx && !ctx.disabled) return ctx;
+      for (const token of candidates) {
+        const row = await prisma.session.findUnique({
+          where: { token },
+          select: { userId: true, expiresAt: true, user: { select: { disabled: true } } },
+        });
+        if (row && row.expiresAt.getTime() > Date.now() && !row.user.disabled) {
+          const { loadAuthContext } = await import('@varka/auth');
+          const ctx = await loadAuthContext(row.userId);
+          if (ctx && !ctx.disabled) return ctx;
+        }
       }
     }
   } catch {
