@@ -1,50 +1,50 @@
-export const SUPPORTED_LOCALES = ['en', 'ur', 'ar'] as const;
+import { LOCALE_REGISTRY, SUPPORTED_LOCALES } from './locale-registry';
+import type { MessageTree } from './messages-types';
+
+export type { MessageTree } from './messages-types';
+export { SUPPORTED_LOCALES } from './locale-registry';
+
 export type AppLocale = (typeof SUPPORTED_LOCALES)[number];
-export const MESSAGE_NAMESPACES = ['common', 'auth', 'dashboard', 'settings', 'nav'] as const;
+
+/** All message namespaces used by admin + public */
+export const MESSAGE_NAMESPACES = [
+  'common',
+  'auth',
+  'dashboard',
+  'settings',
+  'nav',
+  'navigation',
+  'blogs',
+  'pages',
+  'users',
+  'profile',
+  'media',
+  'comments',
+  'categories',
+  'tags',
+  'appearance',
+  'seo',
+  'tables',
+  'actions',
+  'forms',
+  'errors',
+  'confirmations',
+  'pagination',
+  'validation',
+  'language',
+  'themes',
+  'security',
+  'notifications',
+  'email',
+  'storage',
+  'admins',
+  'brands',
+  'emptyStates',
+] as const;
+
 export type MessageNamespace = (typeof MESSAGE_NAMESPACES)[number];
-export type MessageTree = Record<string, string | MessageTree>;
 
 const cache = new Map<string, MessageTree>();
-
-import enCommon from '../locales/en/common.json';
-import enAuth from '../locales/en/auth.json';
-import enDashboard from '../locales/en/dashboard.json';
-import enSettings from '../locales/en/settings.json';
-import enNav from '../locales/en/nav.json';
-import urCommon from '../locales/ur/common.json';
-import urAuth from '../locales/ur/auth.json';
-import urDashboard from '../locales/ur/dashboard.json';
-import urSettings from '../locales/ur/settings.json';
-import urNav from '../locales/ur/nav.json';
-import arCommon from '../locales/ar/common.json';
-import arAuth from '../locales/ar/auth.json';
-import arDashboard from '../locales/ar/dashboard.json';
-import arSettings from '../locales/ar/settings.json';
-import arNav from '../locales/ar/nav.json';
-
-const BUNDLED: Record<AppLocale, Record<MessageNamespace, MessageTree>> = {
-  en: {
-    common: enCommon as MessageTree,
-    auth: enAuth as MessageTree,
-    dashboard: enDashboard as MessageTree,
-    settings: enSettings as MessageTree,
-    nav: enNav as MessageTree,
-  },
-  ur: {
-    common: urCommon as MessageTree,
-    auth: urAuth as MessageTree,
-    dashboard: urDashboard as MessageTree,
-    settings: urSettings as MessageTree,
-    nav: urNav as MessageTree,
-  },
-  ar: {
-    common: arCommon as MessageTree,
-    auth: arAuth as MessageTree,
-    dashboard: arDashboard as MessageTree,
-    settings: arSettings as MessageTree,
-    nav: arNav as MessageTree,
-  },
-};
 
 export function isAppLocale(value: string): value is AppLocale {
   return (SUPPORTED_LOCALES as readonly string[]).includes(value);
@@ -55,6 +55,8 @@ export function resolveLocale(input?: string | null): AppLocale {
   if (input) {
     const base = input.split('-')[0]?.toLowerCase();
     if (base && isAppLocale(base)) return base as AppLocale;
+    if (base === 'zh' && isAppLocale('zh-CN')) return 'zh-CN';
+    if (base === 'pt' && isAppLocale('pt-BR')) return 'pt-BR';
   }
   return 'en';
 }
@@ -63,20 +65,21 @@ export function loadNamespace(locale: string, ns: MessageNamespace): MessageTree
   const loc = resolveLocale(locale);
   const key = `${loc}:${ns}`;
   if (cache.has(key)) return cache.get(key)!;
-  const tree = BUNDLED[loc]?.[ns] ?? BUNDLED.en[ns] ?? {};
+  const tree =
+    (LOCALE_REGISTRY[loc]?.[ns] as MessageTree | undefined) ??
+    (LOCALE_REGISTRY.en?.[ns] as MessageTree | undefined) ??
+    {};
   cache.set(key, tree);
   return tree;
 }
 
 export function loadAllMessages(locale?: string | null): Record<MessageNamespace, MessageTree> {
   const loc = resolveLocale(locale);
-  return {
-    common: loadNamespace(loc, 'common'),
-    auth: loadNamespace(loc, 'auth'),
-    dashboard: loadNamespace(loc, 'dashboard'),
-    settings: loadNamespace(loc, 'settings'),
-    nav: loadNamespace(loc, 'nav'),
-  };
+  const out = {} as Record<MessageNamespace, MessageTree>;
+  for (const ns of MESSAGE_NAMESPACES) {
+    out[ns] = loadNamespace(loc, ns);
+  }
+  return out;
 }
 
 export function t(tree: MessageTree, path: string, fallback?: string): string {
@@ -89,6 +92,7 @@ export function t(tree: MessageTree, path: string, fallback?: string): string {
   return typeof cur === 'string' ? cur : (fallback ?? path);
 }
 
+/** RTL: Arabic + Urdu */
 export function isRtlLocale(locale: string): boolean {
   const loc = resolveLocale(locale);
   return loc === 'ar' || loc === 'ur';
