@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { getStoredLocale, useMessages } from '@/lib/i18n';
+import { useState } from 'react';
+import { useMessages } from '@/lib/i18n';
 
 type NavChild = { href: string; label: string };
 type NavItem = {
@@ -79,15 +79,11 @@ function isActivePath(pathname: string, href: string): boolean {
   return pathname.startsWith(clean + '/');
 }
 
-export function AdminNav() {
+/** locale from server layout (cookie) — keeps SSR + client first paint in sync */
+export function AdminNav(props: { locale?: string } = {}) {
   const pathname = usePathname() || '/dashboard';
-  const [locale, setLocale] = useState(getStoredLocale);
-  const { t } = useMessages(locale);
+  const { t } = useMessages(props.locale);
   const [open, setOpen] = useState<string | null>(null);
-
-  useEffect(() => {
-    setLocale(getStoredLocale());
-  }, [pathname]);
 
   const items = buildNav(t);
 
@@ -101,7 +97,10 @@ export function AdminNav() {
           const expanded = open === item.href || active;
 
           return (
-            <li key={item.href} className={`v-nav__item${active ? ' is-active' : ''}${expanded && hasChildren ? ' is-open' : ''}`}>
+            <li
+              key={item.href}
+              className={`v-nav__item${active ? ' is-active' : ''}${expanded && hasChildren ? ' is-open' : ''}`}
+            >
               {hasChildren ? (
                 <>
                   <button
