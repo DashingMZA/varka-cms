@@ -1,9 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
-  getStoredLocale,
   setStoredLocale,
   SUPPORTED_LOCALES,
   useMessages,
@@ -24,13 +23,10 @@ const LOCALE_LABELS: Record<string, string> = {
   ko: '한국어',
 };
 
-export function AdminTopbar() {
-  const [locale, setLocale] = useState<AppLocale>('en');
+export function AdminTopbar(props: { locale?: AppLocale | string } = {}) {
+  const initial = (props.locale as AppLocale) || 'en';
+  const [locale, setLocale] = useState<AppLocale>(initial);
   const { t } = useMessages(locale);
-
-  useEffect(() => {
-    setLocale(getStoredLocale());
-  }, []);
 
   function onLocale(next: AppLocale) {
     setStoredLocale(next);
@@ -45,22 +41,29 @@ export function AdminTopbar() {
       /* ignore */
     }
     try {
-      document.cookie.split(';').forEach((c) => {
-        const name = c.split('=')[0]?.trim();
-        if (name && /session|token|auth|better-auth/i.test(name)) {
-          document.cookie = `${name}=;path=/;max-age=0`;
-        }
+      await fetch('/api/auth/sign-out', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{}',
       });
     } catch {
       /* ignore */
     }
+    document.cookie.split(';').forEach((c) => {
+      const name = c.split('=')[0]?.trim();
+      if (!name) return;
+      if (/session|token|auth|better-auth/i.test(name)) {
+        document.cookie = `${name}=;path=/;max-age=0`;
+      }
+    });
     window.location.href = '/login';
   }
 
   return (
     <header className="v-topbar">
       <Link href="/dashboard" className="v-topbar__brand">
-        VARKA
+        {t('common', 'brand')}
       </Link>
       <Link href="/content/posts" className="v-topbar__link">
         + {t('nav', 'addNew')}
@@ -69,10 +72,7 @@ export function AdminTopbar() {
         {t('nav', 'media')}
       </Link>
       <span className="v-topbar__spacer" />
-      <label
-        className="v-topbar__locale"
-        style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}
-      >
+      <label className="v-topbar__locale" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
         <span className="v-topbar__link" style={{ opacity: 0.85 }}>
           {t('common', 'language')}
         </span>
@@ -103,19 +103,9 @@ export function AdminTopbar() {
         target="_blank"
         rel="noreferrer"
       >
-        View Site ↗
+        {t('common', 'viewSite')} ↗
       </a>
-      <button
-        type="button"
-        className="v-topbar__link"
-        onClick={() => void signOut()}
-        style={{
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          color: 'inherit',
-        }}
-      >
+      <button type="button" className="v-topbar__link" onClick={() => void signOut()} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}>
         {t('auth', 'logout')}
       </button>
     </header>
