@@ -1,7 +1,6 @@
 /**
- * Seed: Site VARKA, English language, RBAC roles/permissions, optional owner.
+ * Seed: Site VARKA, English + RBAC + owner with Better Auth credential Account.
  * Prisma 7 + driver adapter (pg).
- * Owner email/password → User + Account(providerId=credential) so Better Auth login works.
  */
 import path from 'node:path';
 import { randomBytes, scrypt as scryptCb } from 'node:crypto';
@@ -51,13 +50,7 @@ function createPool(url: string): Pool {
     connectionTimeoutMillis: 15_000,
     idleTimeoutMillis: 10_000,
     max: 2,
-    ...(needsSsl
-      ? {
-          ssl: {
-            rejectUnauthorized: false,
-          },
-        }
-      : {}),
+    ...(needsSsl ? { ssl: { rejectUnauthorized: false } } : {}),
   });
 }
 
@@ -65,7 +58,6 @@ const pool = createPool(connectionString);
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-/** Same encoding as @varka/auth — Better Auth credential verify accepts Argon2id or scrypt$ */
 const scryptAsync = promisify(scryptCb);
 
 async function hashSeedPassword(password: string): Promise<string> {
@@ -181,32 +173,11 @@ async function main() {
       displayOrder: 1,
     },
   });
-  console.log('Languages: en (default), pa (prefix /pa)');
 
   await prisma.siteSetting.upsert({
     where: { siteId_key: { siteId: site.id, key: 'brand.name' } },
     update: { value: 'VARKA' },
     create: { siteId: site.id, key: 'brand.name', value: 'VARKA' },
-  });
-
-  await prisma.siteSetting.upsert({
-    where: { siteId_key: { siteId: site.id, key: 'seo.titleTemplate' } },
-    update: {},
-    create: { siteId: site.id, key: 'seo.titleTemplate', value: '%s · VARKA' },
-  });
-  await prisma.siteSetting.upsert({
-    where: { siteId_key: { siteId: site.id, key: 'seo.defaultDescription' } },
-    update: {},
-    create: {
-      siteId: site.id,
-      key: 'seo.defaultDescription',
-      value: 'Editorial publishing with VARKA',
-    },
-  });
-  await prisma.siteSetting.upsert({
-    where: { siteId_key: { siteId: site.id, key: 'seo.robotsIndex' } },
-    update: {},
-    create: { siteId: site.id, key: 'seo.robotsIndex', value: true },
   });
 
   for (const key of PERMISSIONS) {
@@ -239,11 +210,23 @@ async function main() {
   }
   console.log('Roles & permissions seeded');
 
-  // Better Auth: email/password lives on Account (providerId=credential), not only User.
-  const ownerEmail = process.env.SEED_OWNER_EMAIL;
+  const ownerEmailRaw = process.env.SEED_OWNER_EMAIL;
   const ownerPassword = process.env.SEED_OWNER_PASSWORD;
-  if (ownerEmail) {
+  if (ownerEmailRaw) {
+    const ownerEmail = ownerEmailRaw.trim().toLowerCase();
     let user = await prisma.user.findUnique({ where: { email: ownerEmail } });
+    if (!user) {
+      const rows = await prisma.$queryRaw<
+        { id: string; email: string }[]
+      >`SELECT id, email FROM "User" WHERE lower(email) = ${ownerEmail} LIMIT 1`;
+      if (rows[0]) {
+        user = await prisma.user.update({
+          where: { id: rows[0].id },
+          data: { email: ownerEmail, emailVerified: true },
+        });
+        console.log('Normalized owner email to lowercase:', ownerEmail);
+      }
+    }
     if (!user) {
       user = await prisma.user.create({
         data: {
@@ -251,11 +234,16 @@ async function main() {
           name: process.env.SEED_OWNER_NAME ?? 'Owner',
           emailVerified: true,
           siteId: site.id,
+          disabled: false,
         },
       });
-      console.log('Created owner user:', ownerEmail);
+      console.log('Created owner user:', ownerEmail, user.id);
     } else {
-      console.log('Owner user exists:', ownerEmail);
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: { emailVerified: true, disabled: false, siteId: user.siteId ?? site.id },
+      });
+      console.log('Owner user exists:', ownerEmail, user.id);
     }
 
     const ownerRole = await prisma.role.findUniqueOrThrow({ where: { slug: 'owner' } });
@@ -276,24 +264,25 @@ async function main() {
       if (existing) {
         await prisma.account.update({
           where: { id: existing.id },
-          data: { password: passwordHash, accountId: ownerEmail },
+          data: { password: passwordHash, accountId: user.id },
         });
-        console.log('Updated credential Account password for', ownerEmail);
+        console.log('Updated credential Account for', ownerEmail, existing.id);
       } else {
-        await prisma.account.create({
+        await prisma.account.deleteMany({
+          where: { providerId: 'credential', accountId: ownerEmail, userId: { not: user.id } },
+        });
+        const created = await prisma.account.create({
           data: {
             userId: user.id,
-            accountId: ownerEmail,
+            accountId: user.id,
             providerId: 'credential',
             password: passwordHash,
           },
         });
-        console.log('Created credential Account for', ownerEmail);
+        console.log('Created credential Account for', ownerEmail, created.id);
       }
     } else {
-      console.log(
-        'SEED_OWNER_PASSWORD not set — User created but Account password missing; login will fail until set.',
-      );
+      console.log('SEED_OWNER_PASSWORD not set — login will fail until set.');
     }
   } else {
     console.log('SEED_OWNER_EMAIL not set — skip owner user');
