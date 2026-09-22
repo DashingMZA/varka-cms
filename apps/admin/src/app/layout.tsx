@@ -1,6 +1,25 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
+import { Noto_Nastaliq_Urdu, Noto_Naskh_Arabic } from 'next/font/google';
 import './globals.css';
+
+const notoNastaliqUr = Noto_Nastaliq_Urdu({
+  subsets: ['arabic'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
+  preload: false, // only needed for ur/ar — avoid LTR payload
+  variable: '--font-urdu',
+  adjustFontFallback: true,
+});
+
+const notoNaskhAr = Noto_Naskh_Arabic({
+  subsets: ['arabic'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
+  preload: false,
+  variable: '--font-arabic',
+  adjustFontFallback: true,
+});
 
 export const metadata: Metadata = {
   title: 'VARKA Admin',
@@ -9,7 +28,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${notoNastaliqUr.variable} ${notoNaskhAr.variable}`}>
       <body>{children}</body>
     </html>
   );
