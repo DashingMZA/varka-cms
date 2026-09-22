@@ -1,0 +1,21 @@
+{
+  "title": "Pages",
+  "addNew": "Add New",
+  "all": "All",
+  "published": "Published",
+  "draft": "Draft",
+  "trash": "Trash",
+  "titleCol": "Title",
+  "author": "Author",
+  "status": "Status",
+  "date": "Date",
+  "searchPages": "Search pages…",
+  "searchButton": "Search",
+  "noPages": "No pages yet.",
+  "bulkActions": "Bulk actions",
+  "editPage": "Edit Page",
+  "newPage": "Add New Page",
+  "parent": "Parent",
+  "template": "Template",
+  "order": "Order"
+}

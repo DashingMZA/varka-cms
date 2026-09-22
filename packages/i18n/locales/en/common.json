@@ -1,5 +1,6 @@
 {
   "appName": "VARKA",
+  "brand": "VARKA",
   "loading": "Loading…",
   "save": "Save",
   "saving": "Saving…",
@@ -50,5 +51,17 @@
   "expandMenu": "Expand menu",
   "help": "Help",
   "screenOptions": "Screen Options",
-  "brand": "VARKA"
+  "addNew": "Add New",
+  "bulkActions": "Bulk actions",
+  "moveToDraft": "Move to Draft",
+  "moveToTrash": "Move to Trash",
+  "noResults": "No results found.",
+  "error": "Something went wrong.",
+  "confirm": "Confirm",
+  "update": "Update",
+  "create": "Create",
+  "submit": "Submit",
+  "signOut": "Sign out",
+  "untitled": "Untitled",
+  "selectAll": "Select all"
 }
