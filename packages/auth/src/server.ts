@@ -11,6 +11,7 @@
  */
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
+import { nextCookies } from 'better-auth/next-js';
 import { prisma } from '@varka/database';
 import { passwordHasher, assertPasswordPolicy } from './password';
 
@@ -70,12 +71,18 @@ export function createAuth() {
     };
   }
 
-  const trustedOrigins = [
-    process.env.ADMIN_URL,
-    process.env.SITE_URL,
-    process.env.BETTER_AUTH_URL,
-    baseURL,
-  ].filter(Boolean) as string[];
+  const trustedOrigins = Array.from(
+    new Set(
+      [
+        process.env.ADMIN_URL,
+        process.env.SITE_URL,
+        process.env.BETTER_AUTH_URL,
+        baseURL,
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
+      ].filter(Boolean) as string[],
+    ),
+  );
 
   return betterAuth({
     database: prismaAdapter(prisma, { provider: 'postgresql' }),
@@ -100,9 +107,9 @@ export function createAuth() {
     session: {
       expiresIn: 60 * 60 * 24 * 7,
       updateAge: 60 * 60 * 24,
+      // Disabled: stale session_data signatures make getSession always null
       cookieCache: {
-        enabled: true,
-        maxAge: 60 * 5,
+        enabled: false,
       },
     },
     advanced: {
@@ -116,6 +123,7 @@ export function createAuth() {
       },
     },
     trustedOrigins,
+    plugins: [nextCookies()],
   });
 }
 
