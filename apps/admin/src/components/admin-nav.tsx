@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { getStoredLocale, useMessages } from '@/lib/i18n';
 
 type NavChild = { href: string; label: string };
 type NavItem = {
@@ -12,61 +13,64 @@ type NavItem = {
   children?: NavChild[];
 };
 
-/** Single WP-style menu tree — no duplicate top-level items */
-const NAV: NavItem[] = [
-  { href: '/dashboard', label: 'Dashboard', icon: '⌂' },
-  {
-    href: '/content',
-    label: 'Posts',
-    icon: '✎',
-    children: [
-      { href: '/content/posts', label: 'All Posts' },
-      { href: '/content/posts?new=1', label: 'Add New' },
-      { href: '/content/categories', label: 'Categories' },
-      { href: '/content/tags', label: 'Tags' },
-      { href: '/content/pages', label: 'Pages' },
-    ],
-  },
-  { href: '/media', label: 'Media', icon: '▣' },
-  { href: '/comments', label: 'Comments', icon: '💬' },
-  {
-    href: '/appearance',
-    label: 'Appearance',
-    icon: '◐',
-    children: [
-      { href: '/appearance/themes', label: 'Themes' },
-      { href: '/appearance/menus', label: 'Menus' },
-      { href: '/appearance/widgets', label: 'Widgets' },
-    ],
-  },
-  {
-    href: '/users',
-    label: 'Users',
-    icon: '👤',
-    children: [
-      { href: '/users', label: 'All Users' },
-      { href: '/users/new', label: 'Add User' },
-      { href: '/users/profile', label: 'Profile' },
-    ],
-  },
-  { href: '/languages', label: 'Languages', icon: '文' },
-  { href: '/seo', label: 'SEO', icon: '◎' },
-  { href: '/system', label: 'Tools', icon: '⚒' },
-  {
-    href: '/settings',
-    label: 'Settings',
-    icon: '⚙',
-    children: [
-      { href: '/settings/general', label: 'General' },
-      { href: '/settings/writing', label: 'Writing' },
-      { href: '/settings/reading', label: 'Reading' },
-      { href: '/settings/discussion', label: 'Discussion' },
-      { href: '/settings/media', label: 'Media' },
-      { href: '/settings/permalinks', label: 'Permalinks' },
-      { href: '/settings/privacy', label: 'Privacy' },
-    ],
-  },
-];
+/** Single WP-style menu tree — labels via i18n (no hard-coded strings) */
+function buildNav(t: (ns: 'nav', key: string) => string): NavItem[] {
+  return [
+    { href: '/dashboard', label: t('nav', 'dashboard'), icon: '⌂' },
+    {
+      href: '/content',
+      label: t('nav', 'posts'),
+      icon: '✎',
+      children: [
+        { href: '/content/posts', label: t('nav', 'allPosts') },
+        { href: '/content/posts?new=1', label: t('nav', 'addNew') },
+        { href: '/content/categories', label: t('nav', 'categories') },
+        { href: '/content/tags', label: t('nav', 'tags') },
+        { href: '/content/pages', label: t('nav', 'pages') },
+      ],
+    },
+    { href: '/media', label: t('nav', 'media'), icon: '▣' },
+    { href: '/comments', label: t('nav', 'comments'), icon: '💬' },
+    {
+      href: '/appearance',
+      label: t('nav', 'appearance'),
+      icon: '◐',
+      children: [
+        { href: '/appearance/themes', label: t('nav', 'themes') },
+        { href: '/appearance/menus', label: t('nav', 'menus') },
+        { href: '/appearance/widgets', label: t('nav', 'widgets') },
+      ],
+    },
+    {
+      href: '/users',
+      label: t('nav', 'users'),
+      icon: '👤',
+      children: [
+        { href: '/users', label: t('nav', 'allUsers') },
+        { href: '/users/new', label: t('nav', 'addUser') },
+        { href: '/users/roles', label: t('nav', 'roles') },
+        { href: '/users/profile', label: t('nav', 'profile') },
+      ],
+    },
+    { href: '/languages', label: t('nav', 'languages'), icon: '文' },
+    { href: '/seo', label: t('nav', 'seo'), icon: '◎' },
+    { href: '/system', label: t('nav', 'tools'), icon: '⚒' },
+    {
+      href: '/settings',
+      label: t('nav', 'settings'),
+      icon: '⚙',
+      children: [
+        { href: '/settings/general', label: t('nav', 'settingsGeneral') },
+        { href: '/settings/writing', label: t('nav', 'settingsWriting') },
+        { href: '/settings/reading', label: t('nav', 'settingsReading') },
+        { href: '/settings/discussion', label: t('nav', 'settingsDiscussion') },
+        { href: '/settings/media', label: t('nav', 'settingsMedia') },
+        { href: '/settings/permalinks', label: t('nav', 'settingsPermalinks') },
+        { href: '/settings/privacy', label: t('nav', 'settingsPrivacy') },
+      ],
+    },
+  ];
+}
 
 function isActivePath(pathname: string, href: string): boolean {
   const clean = href.split('?')[0];
@@ -76,134 +80,71 @@ function isActivePath(pathname: string, href: string): boolean {
 }
 
 export function AdminNav() {
-  const pathname = usePathname() || '';
-  const [folded, setFolded] = useState(false);
-  const [open, setOpen] = useState<Record<string, boolean>>(() => {
-    const init: Record<string, boolean> = {};
-    for (const item of NAV) {
-      if (item.children?.length) {
-        init[item.href] =
-          pathname === item.href || pathname.startsWith(item.href + '/');
-      }
-    }
-    return init;
-  });
+  const pathname = usePathname() || '/dashboard';
+  const [locale, setLocale] = useState(getStoredLocale);
+  const { t } = useMessages(locale);
+  const [open, setOpen] = useState<string | null>(null);
 
   useEffect(() => {
-    try {
-      const f = localStorage.getItem('varka.admin.folded') === '1';
-      setFolded(f);
-      document.body.classList.toggle('folded', f);
-      document.documentElement.classList.toggle('folded', f);
-    } catch {
-      /* ignore */
-    }
-  }, []);
+    setLocale(getStoredLocale());
+  }, [pathname]);
 
-  function toggleFold() {
-    setFolded((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem('varka.admin.folded', next ? '1' : '0');
-      } catch {
-        /* ignore */
-      }
-      document.body.classList.toggle('folded', next);
-      document.documentElement.classList.toggle('folded', next);
-      return next;
-    });
-  }
-
-  async function signOut() {
-    try {
-      await fetch('/api/auth/sign-out', { method: 'POST', credentials: 'include' });
-    } catch {
-      /* ignore */
-    }
-    window.location.href = '/login';
-  }
+  const items = buildNav(t);
 
   return (
     <nav className="v-nav" aria-label="Admin">
-      {NAV.map((item) => {
-        const hasChildren = Boolean(item.children?.length);
-        const childActive =
-          hasChildren &&
-          item.children!.some((c) => {
-            const h = c.href.split('?')[0];
-            return pathname === h || pathname.startsWith(h + '/');
-          });
-        const active = isActivePath(pathname, item.href) || childActive;
-        const isOpen = open[item.href] ?? false;
+      <ul className="v-nav__list">
+        {items.map((item) => {
+          const hasChildren = Boolean(item.children?.length);
+          const childActive = item.children?.some((c) => isActivePath(pathname, c.href));
+          const active = isActivePath(pathname, item.href) || childActive;
+          const expanded = open === item.href || active;
 
-        if (hasChildren) {
           return (
-            <div key={item.href} className="v-nav__group">
-              <button
-                type="button"
-                className={`v-nav__link${active || isOpen ? ' is-active' : ''}`}
-                onClick={() =>
-                  setOpen((prev) => ({ ...prev, [item.href]: !prev[item.href] }))
-                }
-                aria-expanded={isOpen}
-                title={item.label}
-              >
-                {item.icon ? <span className="v-nav__icon">{item.icon}</span> : null}
-                <span className="v-nav__label">{item.label}</span>
-                <span className="v-nav__chev" style={{ fontSize: 10, opacity: 0.7 }}>
-                  {isOpen ? '▼' : '▶'}
-                </span>
-              </button>
-              {isOpen && !folded ? (
-                <div className="v-nav__sub">
-                  {item.children!.map((child) => {
-                    const h = child.href.split('?')[0];
-                    const ca =
-                      pathname === h ||
-                      (h !== item.href && pathname.startsWith(h + '/'));
-                    return (
-                      <Link
-                        key={child.href + child.label}
-                        href={child.href.startsWith('/content/posts?') ? '/content/posts' : child.href}
-                        className={`v-nav__link v-nav__link--sub${ca ? ' is-active' : ''}`}
-                      >
-                        {child.label}
-                      </Link>
-                    );
-                  })}
-                </div>
-              ) : null}
-            </div>
+            <li key={item.href} className={`v-nav__item${active ? ' is-active' : ''}${expanded && hasChildren ? ' is-open' : ''}`}>
+              {hasChildren ? (
+                <>
+                  <button
+                    type="button"
+                    className={`v-nav__link${active ? ' is-active' : ''}`}
+                    onClick={() => setOpen(expanded ? null : item.href)}
+                    aria-expanded={expanded}
+                  >
+                    <span className="v-nav__icon" aria-hidden>
+                      {item.icon}
+                    </span>
+                    <span className="v-nav__label">{item.label}</span>
+                    <span className="v-nav__chev" aria-hidden>
+                      {expanded ? '▾' : '▸'}
+                    </span>
+                  </button>
+                  {expanded ? (
+                    <ul className="v-nav__sub">
+                      {item.children!.map((c) => (
+                        <li key={c.href}>
+                          <Link
+                            href={c.href}
+                            className={`v-nav__sublink${isActivePath(pathname, c.href) ? ' is-active' : ''}`}
+                          >
+                            {c.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </>
+              ) : (
+                <Link href={item.href} className={`v-nav__link${active ? ' is-active' : ''}`}>
+                  <span className="v-nav__icon" aria-hidden>
+                    {item.icon}
+                  </span>
+                  <span className="v-nav__label">{item.label}</span>
+                </Link>
+              )}
+            </li>
           );
-        }
-
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`v-nav__link${active ? ' is-active' : ''}`}
-            title={item.label}
-          >
-            {item.icon ? <span className="v-nav__icon">{item.icon}</span> : null}
-            <span className="v-nav__label">{item.label}</span>
-          </Link>
-        );
-      })}
-
-      <div className="v-nav__footer">
-        <button
-          type="button"
-          className="v-nav__collapse"
-          onClick={toggleFold}
-          aria-pressed={folded}
-          title={folded ? 'Expand menu' : 'Collapse menu'}
-        >
-          {folded ? '»' : '«'} <span className="v-nav__label">Collapse menu</span>
-        </button>
-        <button type="button" className="v-nav__signout" onClick={signOut}>
-          <span className="v-nav__label">Sign out</span>
-        </button>
-      </div>
+        })}
+      </ul>
     </nav>
   );
 }
