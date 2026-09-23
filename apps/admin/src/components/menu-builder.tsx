@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { useMessages } from '@/lib/i18n';
 
 type MenuItem = {
   id: string;
@@ -22,6 +23,7 @@ function uid() {
 }
 
 export function MenuBuilder() {
+  const { t } = useMessages();
   const [menus, setMenus] = useState<MenuRecord[]>([]);
   const [activeId, setActiveId] = useState<string>('');
   const [label, setLabel] = useState('');
@@ -34,13 +36,13 @@ export function MenuBuilder() {
   const load = useCallback(async () => {
     const res = await fetch('/api/menus', { credentials: 'include' });
     if (!res.ok) {
-      setError(`Load failed (${res.status})`);
+      setError(t('errors', 'loadFailed') + ` (${res.status})`);
       return;
     }
     const data = (await res.json()) as { menus: MenuRecord[] };
     setMenus(data.menus ?? []);
     if (!activeId && data.menus?.[0]) setActiveId(data.menus[0].id);
-  }, [activeId]);
+  }, [activeId, t]);
 
   useEffect(() => {
     void load();
@@ -51,9 +53,7 @@ export function MenuBuilder() {
 
   function updateActiveItems(items: MenuItem[]) {
     if (!active) return;
-    setMenus((prev) =>
-      prev.map((m) => (m.id === active.id ? { ...m, items } : m)),
-    );
+    setMenus((prev) => prev.map((m) => (m.id === active.id ? { ...m, items } : m)));
   }
 
   function addItem() {
@@ -121,10 +121,10 @@ export function MenuBuilder() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ menus }),
       });
-      if (!res.ok) throw new Error(`Save failed (${res.status})`);
-      setMessage('Menus saved.');
+      if (!res.ok) throw new Error(t('errors', 'saveFailed') + ` (${res.status})`);
+      setMessage(t('appearance', 'menusSaved'));
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Save error');
+      setError(e instanceof Error ? e.message : t('errors', 'saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -132,23 +132,21 @@ export function MenuBuilder() {
 
   function setLocation(loc: MenuRecord['location']) {
     if (!active) return;
-    setMenus((prev) =>
-      prev.map((m) => (m.id === active.id ? { ...m, location: loc } : m)),
-    );
+    setMenus((prev) => prev.map((m) => (m.id === active.id ? { ...m, location: loc } : m)));
   }
 
   return (
     <div style={{ display: 'grid', gap: 16, maxWidth: 720 }}>
+      <h1 className="v-page-title" style={{ margin: 0 }}>
+        {t('appearance', 'menus')}
+      </h1>
       {message ? <p className="v-alert v-alert--ok">{message}</p> : null}
       {error ? <p className="v-alert v-alert--error">{error}</p> : null}
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
         <label style={{ fontSize: 13 }}>
-          Menu{' '}
-          <select
-            value={active?.id ?? ''}
-            onChange={(e) => setActiveId(e.target.value)}
-          >
+          {t('appearance', 'menuName')}{' '}
+          <select value={active?.id ?? ''} onChange={(e) => setActiveId(e.target.value)}>
             {menus.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.name}
@@ -157,46 +155,46 @@ export function MenuBuilder() {
           </select>
         </label>
         <label style={{ fontSize: 13 }}>
-          Location{' '}
+          {t('appearance', 'location')}{' '}
           <select
             value={active?.location ?? 'none'}
             onChange={(e) => setLocation(e.target.value as MenuRecord['location'])}
           >
-            <option value="primary">Primary</option>
-            <option value="footer">Footer</option>
-            <option value="mobile">Mobile</option>
-            <option value="none">— Not assigned —</option>
+            <option value="primary">{t('appearance', 'locPrimary')}</option>
+            <option value="footer">{t('appearance', 'locFooter')}</option>
+            <option value="mobile">{t('appearance', 'locMobile')}</option>
+            <option value="none">{t('appearance', 'locNone')}</option>
           </select>
         </label>
         <button type="button" className="v-btn v-btn--primary" disabled={saving} onClick={() => void save()}>
-          {saving ? 'Saving…' : 'Save Menu'}
+          {saving ? t('common', 'saving') : t('appearance', 'saveMenu')}
         </button>
       </div>
 
       <div className="v-panel" style={{ padding: 12 }}>
-        <h3 style={{ margin: '0 0 8px', fontSize: 13 }}>Add item</h3>
+        <h3 style={{ margin: '0 0 8px', fontSize: 13 }}>{t('appearance', 'addItem')}</h3>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <input
-            placeholder="Label"
+            placeholder={t('appearance', 'itemLabel')}
             value={label}
             onChange={(e) => setLabel(e.target.value)}
-            aria-label="Item label"
+            aria-label={t('appearance', 'itemLabel')}
           />
           <input
-            placeholder="URL"
+            placeholder={t('appearance', 'itemUrl')}
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            aria-label="Item URL"
+            aria-label={t('appearance', 'itemUrl')}
           />
           <button type="button" className="v-btn" onClick={addItem}>
-            Add to Menu
+            {t('appearance', 'addToMenu')}
           </button>
         </div>
       </div>
 
       <div className="v-panel" style={{ padding: 0 }}>
         <h3 style={{ margin: 0, padding: 12, fontSize: 13, borderBottom: '1px solid var(--wp-border)' }}>
-          Structure (drag to reorder)
+          {t('appearance', 'structure')}
         </h3>
         <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
           {(active?.items ?? []).map((item) => (
@@ -225,21 +223,21 @@ export function MenuBuilder() {
                 {item.url}
               </span>
               <span style={{ marginLeft: 'auto', display: 'flex', gap: 4 }}>
-                <button type="button" className="v-btn" title="Outdent" onClick={() => outdentItem(item.id)}>
+                <button type="button" className="v-btn" title={t('appearance', 'outdent')} onClick={() => outdentItem(item.id)}>
                   ⇤
                 </button>
-                <button type="button" className="v-btn" title="Indent" onClick={() => indentItem(item.id)}>
+                <button type="button" className="v-btn" title={t('appearance', 'indent')} onClick={() => indentItem(item.id)}>
                   ⇥
                 </button>
                 <button type="button" className="v-btn" onClick={() => removeItem(item.id)}>
-                  Remove
+                  {t('common', 'delete')}
                 </button>
               </span>
             </li>
           ))}
           {(active?.items ?? []).length === 0 ? (
             <li className="v-muted" style={{ padding: 12, fontSize: 13 }}>
-              No items yet. Add a label and URL above.
+              {t('appearance', 'noItems')}
             </li>
           ) : null}
         </ul>
