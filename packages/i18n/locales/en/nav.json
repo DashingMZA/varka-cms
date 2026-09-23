@@ -6,6 +6,7 @@
   "categories": "Categories",
   "tags": "Tags",
   "pages": "Pages",
+  "allPages": "All Pages",
   "media": "Media",
   "comments": "Comments",
   "appearance": "Appearance",
@@ -20,5 +21,12 @@
   "languages": "Languages",
   "seo": "SEO",
   "tools": "Tools",
-  "settings": "Settings"
+  "settings": "Settings",
+  "settingsGeneral": "General",
+  "settingsWriting": "Writing",
+  "settingsReading": "Reading",
+  "settingsDiscussion": "Discussion",
+  "settingsMedia": "Media",
+  "settingsPermalinks": "Permalinks",
+  "settingsPrivacy": "Privacy"
 }
