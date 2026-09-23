@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { ScreenMeta } from '@/components/screen-meta/screen-meta';
+import { Subsubsub } from '@/components/list-table/list-table';
+import { useMessages } from '@/lib/i18n';
 
 type PageRow = {
   id: string;
@@ -15,6 +17,7 @@ type PageRow = {
 type Counts = { all: number; published: number; draft: number; trashed: number };
 
 export function PagesAdmin() {
+  const { t } = useMessages();
   const [items, setItems] = useState<PageRow[]>([]);
   const [counts, setCounts] = useState<Counts>({ all: 0, published: 0, draft: 0, trashed: 0 });
   const [status, setStatus] = useState('all');
@@ -33,43 +36,35 @@ export function PagesAdmin() {
       if (q.trim()) params.set('q', q.trim());
       const res = await fetch(`/api/pages?${params}`, { credentials: 'include' });
       if (!res.ok) {
-        setError(`Failed to load (${res.status})`);
+        setError(t('errors', 'loadFailed') + ` (${res.status})`);
         setLoading(false);
         return;
       }
       const data = (await res.json()) as { items: PageRow[]; counts?: Counts };
-      setItems(data.items ?? []);
+      const list = data.items ?? [];
+      setItems(list);
       if (data.counts) setCounts(data.counts);
+      else {
+        setCounts({
+          all: list.length,
+          published: list.filter((p) => p.status === 'PUBLISHED').length,
+          draft: list.filter((p) => p.status === 'DRAFT').length,
+          trashed: list.filter((p) => p.status === 'TRASHED').length,
+        });
+      }
       setSelected(new Set());
     } catch {
-      setError('Network error');
+      setError(t('errors', 'networkError'));
     }
     setLoading(false);
-  }, [status, q]);
+  }, [status, q, t]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
   async function createPage() {
-    setLoading(true);
-    try {
-      const res = await fetch('/api/pages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ title: 'Untitled' }),
-      });
-      if (!res.ok) {
-        setError(`Create failed (${res.status})`);
-        setLoading(false);
-        return;
-      }
-      await load();
-    } catch {
-      setError('Network error');
-    }
-    setLoading(false);
+    window.location.href = '/content/pages/new';
   }
 
   async function applyBulk() {
@@ -92,7 +87,7 @@ export function PagesAdmin() {
       }
       await load();
     } catch {
-      setError('Bulk action failed');
+      setError(t('errors', 'saveFailed'));
     }
     setLoading(false);
   }
@@ -103,54 +98,45 @@ export function PagesAdmin() {
         help={[
           {
             id: 'pages',
-            title: 'Pages',
-            body: 'Pages are hierarchical content. List, filter, and bulk-edit like Posts.',
+            title: t('pages', 'title'),
+            body: t('pages', 'helpBody') || 'Pages are hierarchical content.',
           },
         ]}
         options={[]}
       />
 
       <div className="v-page-header">
-        <h1 className="v-page-title">Pages</h1>
+        <h1 className="v-page-title">{t('pages', 'title')}</h1>
         <button type="button" className="v-btn v-btn--primary" onClick={() => void createPage()}>
-          Add New
+          {t('pages', 'addNew')}
         </button>
       </div>
 
-      <ul className="v-subsub">
-        {(
-          [
-            ['all', 'All', counts.all],
-            ['published', 'Published', counts.published],
-            ['draft', 'Draft', counts.draft],
-            ['trashed', 'Trash', counts.trashed],
-          ] as const
-        ).map(([key, label, n]) => (
-          <li key={key}>
-            <button
-              type="button"
-              className={status === key ? 'is-current' : ''}
-              onClick={() => setStatus(key)}
-              style={{
-                background: 'none',
-                border: 'none',
-                padding: 0,
-                color: 'inherit',
-                cursor: 'pointer',
-              }}
-            >
-              {label} <span className="count">({n})</span>
-            </button>
-          </li>
-        ))}
-      </ul>
+      <Subsubsub
+        active={status}
+        onChange={setStatus}
+        items={[
+          { id: 'all', label: t('pages', 'all') || 'All', count: counts.all },
+          {
+            id: 'published',
+            label: t('pages', 'published') || 'Published',
+            count: counts.published,
+          },
+          { id: 'draft', label: t('pages', 'draft') || 'Draft', count: counts.draft },
+          { id: 'trashed', label: t('pages', 'trash') || 'Trash', count: counts.trashed },
+        ]}
+      />
 
       <div className="v-tablenav">
-        <select value={bulk} onChange={(e) => setBulk(e.target.value)}>
-          <option value="">Bulk actions</option>
-          <option value="publish">Publish</option>
-          <option value="draft">Move to Draft</option>
-          <option value="trash">Move to Trash</option>
+        <select
+          value={bulk}
+          onChange={(e) => setBulk(e.target.value)}
+          aria-label={t('common', 'bulkActions')}
+        >
+          <option value="">{t('common', 'bulkActions')}</option>
+          <option value="publish">{t('common', 'publish') || 'Publish'}</option>
+          <option value="draft">{t('common', 'moveToDraft')}</option>
+          <option value="trash">{t('common', 'moveToTrash')}</option>
         </select>
         <button
           type="button"
@@ -158,21 +144,22 @@ export function PagesAdmin() {
           disabled={!bulk || selected.size === 0}
           onClick={() => void applyBulk()}
         >
-          Apply
+          {t('common', 'apply')}
         </button>
         <input
           type="search"
-          placeholder="Search pages…"
+          placeholder={t('pages', 'searchPages')}
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter') void load();
           }}
+          aria-label={t('common', 'search')}
         />
         <button type="button" className="v-btn" onClick={() => void load()}>
-          Search
+          {t('common', 'search')}
         </button>
-        {loading ? <span className="v-muted">Loading…</span> : null}
+        {loading ? <span className="v-muted">{t('common', 'loading')}</span> : null}
       </div>
 
       {error ? <p className="v-alert v-alert--error">{error}</p> : null}
@@ -189,19 +176,20 @@ export function PagesAdmin() {
                     if (e.target.checked) setSelected(new Set(items.map((p) => p.id)));
                     else setSelected(new Set());
                   }}
+                  aria-label={t('tables', 'selectAll')}
                 />
               </th>
-              <th>Title</th>
-              <th>Author</th>
-              <th>Status</th>
-              <th>Date</th>
+              <th>{t('pages', 'titleCol') || 'Title'}</th>
+              <th>{t('pages', 'author') || 'Author'}</th>
+              <th>{t('pages', 'status') || 'Status'}</th>
+              <th>{t('pages', 'date') || 'Date'}</th>
             </tr>
           </thead>
           <tbody>
             {items.length === 0 ? (
               <tr>
                 <td colSpan={5} className="v-muted" style={{ padding: 16 }}>
-                  No pages yet.
+                  {t('pages', 'noPages')}
                 </td>
               </tr>
             ) : (
@@ -224,8 +212,27 @@ export function PagesAdmin() {
                       />
                     </td>
                     <td>
-                      <span className="row-title">{tr?.title || 'Untitled'}</span>
+                      <Link href={`/content/pages/${p.id}`} className="row-title">
+                        {tr?.title || t('pages', 'untitled') || 'Untitled'}
+                      </Link>
                       <div className="row-actions">
+                        <Link href={`/content/pages/${p.id}`}>{t('common', 'edit') || 'Edit'}</Link>
+                        <a
+                          href="#"
+                          className="trash"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            void (async () => {
+                              await fetch(`/api/pages/${p.id}`, {
+                                method: 'DELETE',
+                                credentials: 'include',
+                              });
+                              await load();
+                            })();
+                          }}
+                        >
+                          {t('common', 'trash') || 'Trash'}
+                        </a>
                         <span className="v-muted" style={{ fontSize: 12 }}>
                           /{tr?.slug}
                         </span>
@@ -237,9 +244,7 @@ export function PagesAdmin() {
                         {p.status.replaceAll('_', ' ').toLowerCase()}
                       </span>
                     </td>
-                    <td style={{ fontSize: 12 }}>
-                      {new Date(p.updatedAt).toLocaleString()}
-                    </td>
+                    <td style={{ fontSize: 12 }}>{new Date(p.updatedAt).toLocaleString()}</td>
                   </tr>
                 );
               })
