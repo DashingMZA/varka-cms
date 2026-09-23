@@ -1,15 +1,12 @@
 'use client';
 
-import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
+import { useMessages } from '@/lib/i18n';
+import { MediaLibrary, type MediaInsertPayload } from './media-library';
 import { TiptapEditor } from '@/components/tiptap-editor';
-import {
-  FeaturedImagePanel,
-  type FeaturedMedia,
-} from '@/components/featured-image-panel';
+import { ScreenMeta } from '@/components/screen-meta/screen-meta';
 import { slugify } from '@/lib/slugify';
 import { useAutosave } from '@/hooks/use-autosave';
-import { RevisionHistory } from '@/components/revision-history';
 
 type Translation = {
   id: string;
@@ -22,517 +19,599 @@ type Translation = {
   seoDescription?: string | null;
 };
 
-type TaxNode = {
-  id: string;
-  translations?: Array<{ name: string }>;
-};
-
-type MediaAsset = FeaturedMedia;
-
 type Post = {
   id: string;
   status: string;
   version: number;
-  updatedAt?: string;
+  publishedAt?: string | null;
   featuredImageId?: string | null;
-  featuredImage?: MediaAsset | null;
   translations: Translation[];
-  categories?: Array<{ category: TaxNode }>;
-  tags?: Array<{ tag: TaxNode }>;
+  categories?: Array<{ categoryId: string }>;
+  tags?: Array<{ tagId: string }>;
 };
 
-type TaxItem = {
+type CatItem = {
   id: string;
-  translations: Array<{ name: string }>;
+  translations?: Array<{ name?: string }>;
 };
 
-function statusClass(status: string): string {
-  return `v-status v-status--${status.toLowerCase()}`;
-}
+type TagItem = {
+  id: string;
+  translations?: Array<{ name?: string }>;
+};
 
-function taxName(t: TaxNode | TaxItem): string {
-  return t.translations?.[0]?.name ?? t.id;
-}
+export function PostEditor({ postId }: { postId: string }) {
+  const { t } = useMessages();
 
-function applyPost(
-  data: Post,
-  setters: {
-    setPost: (p: Post) => void;
-    setTitle: (v: string) => void;
-    setSlug: (v: string) => void;
-    setExcerpt: (v: string) => void;
-    setContentHtml: (v: string) => void;
-    setSeoTitle: (v: string) => void;
-    setSeoDescription: (v: string) => void;
-    setCategoryIds: (v: string[]) => void;
-    setTagIds: (v: string[]) => void;
-    setFeaturedImageId: (v: string | null) => void;
-    setFeaturedImage: (v: MediaAsset | null) => void;
-  },
-) {
-  setters.setPost(data);
-  const tr = data.translations[0];
-  if (tr) {
-    setters.setTitle(tr.title);
-    setters.setSlug(tr.slug);
-    setters.setExcerpt(tr.excerpt ?? '');
-    setters.setContentHtml(tr.contentHtml ?? '');
-    setters.setSeoTitle(tr.seoTitle ?? '');
-    setters.setSeoDescription(tr.seoDescription ?? '');
-  }
-  setters.setCategoryIds((data.categories ?? []).map((c) => c.category.id));
-  setters.setTagIds((data.tags ?? []).map((t) => t.tag.id));
-  setters.setFeaturedImageId(data.featuredImageId ?? null);
-  setters.setFeaturedImage(data.featuredImage ?? null);
-}
-
-export function PostEditor({
-  postId,
-  initialPost = null,
-  initialCategories = [],
-  initialTags = [],
-  initialMedia = [],
-}: {
-  postId: string;
-  initialPost?: Post | null;
-  initialCategories?: TaxItem[];
-  initialTags?: TaxItem[];
-  initialMedia?: MediaAsset[];
-}) {
-  const [post, setPost] = useState<Post | null>(initialPost);
-  const [title, setTitle] = useState(initialPost?.translations[0]?.title ?? '');
-  const [slug, setSlug] = useState(initialPost?.translations[0]?.slug ?? '');
-  const [slugTouched, setSlugTouched] = useState(true);
-  const [excerpt, setExcerpt] = useState(initialPost?.translations[0]?.excerpt ?? '');
-  const [contentHtml, setContentHtml] = useState(
-    initialPost?.translations[0]?.contentHtml ?? '',
-  );
-  const [seoTitle, setSeoTitle] = useState(initialPost?.translations[0]?.seoTitle ?? '');
-  const [seoDescription, setSeoDescription] = useState(
-    initialPost?.translations[0]?.seoDescription ?? '',
-  );
-  const [categoryIds, setCategoryIds] = useState<string[]>(
-    (initialPost?.categories ?? []).map((c) => c.category.id),
-  );
-  const [tagIds, setTagIds] = useState<string[]>(
-    (initialPost?.tags ?? []).map((t) => t.tag.id),
-  );
-  const [featuredImageId, setFeaturedImageId] = useState<string | null>(
-    initialPost?.featuredImageId ?? null,
-  );
-  const [featuredImage, setFeaturedImage] = useState<MediaAsset | null>(
-    initialPost?.featuredImage ?? null,
-  );
-  const [allCategories, setAllCategories] = useState<TaxItem[]>(initialCategories);
-  const [allTags, setAllTags] = useState<TaxItem[]>(initialTags);
-  const [mediaItems, setMediaItems] = useState<MediaAsset[]>(
-    initialMedia.filter((x) => x.mimeType?.startsWith('image/')),
-  );
+  const [post, setPost] = useState<Post | null>(null);
+  const [title, setTitle] = useState('');
+  const [slug, setSlug] = useState('');
+  const [slugTouched, setSlugTouched] = useState(false);
+  const [contentHtml, setContentHtml] = useState('');
+  const [excerpt, setExcerpt] = useState('');
+  const [seoTitle, setSeoTitle] = useState('');
+  const [seoDescription, setSeoDescription] = useState('');
+  const [status, setStatus] = useState('DRAFT');
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [mediaOpen, setMediaOpen] = useState(false);
+  const [mediaMode, setMediaMode] = useState<'insert' | 'featured'>('insert');
+  const [featuredUrl, setFeaturedUrl] = useState<string | null>(null);
+  const [categoryIds, setCategoryIds] = useState<string[]>([]);
+  const [tagIds, setTagIds] = useState<string[]>([]);
+  const [allCategories, setAllCategories] = useState<CatItem[]>([]);
+  const [allTags, setAllTags] = useState<TagItem[]>([]);
+  const [tagInput, setTagInput] = useState('');
   const [saving, setSaving] = useState(false);
-  const [autoStatus, setAutoStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
-  const [newCat, setNewCat] = useState('');
-  const [newTag, setNewTag] = useState('');
+  const [boxes, setBoxes] = useState({
+    publish: true,
+    featured: true,
+    excerpt: true,
+    seo: true,
+    categories: true,
+    tags: true,
+  });
 
   useEffect(() => {
-    if (initialPost) return;
-    void (async () => {
-      const [postRes, catRes, tagRes, mediaRes] = await Promise.all([
-        fetch(`/api/posts/${postId}`, { credentials: 'include' }),
-        fetch('/api/categories', { credentials: 'include' }),
-        fetch('/api/tags', { credentials: 'include' }),
-        fetch('/api/media', { credentials: 'include' }),
-      ]);
+    try {
+      const raw = localStorage.getItem('varka.screen.post-editor');
+      if (raw) setBoxes((s) => ({ ...s, ...JSON.parse(raw) }));
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
-      if (!postRes.ok) {
-        setError(`Load failed (${postRes.status})`);
+  useEffect(() => {
+    void (async () => {
+      const res = await fetch(`/api/posts/${postId}`, { credentials: 'include' });
+      if (!res.ok) {
+        setError(`Load failed (${res.status})`);
         return;
       }
-      const data = (await postRes.json()) as Post;
-      applyPost(data, {
-        setPost,
-        setTitle,
-        setSlug,
-        setExcerpt,
-        setContentHtml,
-        setSeoTitle,
-        setSeoDescription,
-        setCategoryIds,
-        setTagIds,
-        setFeaturedImageId,
-        setFeaturedImage,
-      });
+      const data = (await res.json()) as Post;
+      setPost(data);
+      setStatus(data.status);
+      const tr = data.translations[0];
+      if (tr) {
+        setTitle(tr.title);
+        setSlug(tr.slug);
+        setContentHtml(tr.contentHtml ?? '');
+        setExcerpt(tr.excerpt ?? '');
+        setSeoTitle(tr.seoTitle ?? '');
+        setSeoDescription(tr.seoDescription ?? '');
+        setSlugTouched(Boolean(tr.slug && tr.slug !== 'untitled'));
+      }
+      setCategoryIds((data.categories ?? []).map((c) => c.categoryId));
+      setTagIds((data.tags ?? []).map((tg) => tg.tagId));
+    })();
+  }, [postId]);
 
-      if (catRes.ok) {
-        const c = (await catRes.json()) as { items: TaxItem[] };
-        setAllCategories(c.items ?? []);
-      }
-      if (tagRes.ok) {
-        const t = (await tagRes.json()) as { items: TaxItem[] };
-        setAllTags(t.items ?? []);
-      }
-      if (mediaRes.ok) {
-        const m = (await mediaRes.json()) as { items: MediaAsset[] };
-        setMediaItems((m.items ?? []).filter((x) => x.mimeType.startsWith('image/')));
+  useEffect(() => {
+    void (async () => {
+      try {
+        const [cRes, tRes] = await Promise.all([
+          fetch('/api/categories', { credentials: 'include' }),
+          fetch('/api/tags', { credentials: 'include' }),
+        ]);
+        if (cRes.ok) {
+          const d = (await cRes.json()) as { items?: CatItem[] };
+          setAllCategories(d.items ?? []);
+        }
+        if (tRes.ok) {
+          const d = (await tRes.json()) as { items?: TagItem[] };
+          setAllTags(d.items ?? []);
+        }
+      } catch {
+        /* ignore */
       }
     })();
-  }, [postId, initialPost]);
+  }, []);
 
-  function onTitleChange(value: string) {
-    setTitle(value);
-    if (!slugTouched) setSlug(slugify(value));
+  function onTitleChange(v: string) {
+    setTitle(v);
+    if (!slugTouched) setSlug(slugify(v));
   }
 
-  function onFeaturedChange(asset: FeaturedMedia | null) {
-    setFeaturedImage(asset);
-    setFeaturedImageId(asset?.id ?? null);
-  }
-
-  function onLibraryAdd(asset: FeaturedMedia) {
-    setMediaItems((prev) => {
-      if (prev.some((x) => x.id === asset.id)) return prev;
-      return [asset, ...prev];
+  function toggleBox(key: keyof typeof boxes) {
+    setBoxes((prev) => {
+      const next = { ...prev, [key]: !prev[key] };
+      try {
+        localStorage.setItem('varka.screen.post-editor', JSON.stringify(next));
+      } catch {
+        /* ignore */
+      }
+      return next;
     });
   }
 
   const save = useCallback(
-    async (opts: { publish?: boolean; trash?: boolean; silent?: boolean } = {}) => {
+    async (publish = false, silent = false) => {
       if (!post) return;
-      if (!title.trim() && !opts.trash) {
-        if (!opts.silent) setError('Title is required — empty titles are not saved');
+      if (!title.trim()) {
+        if (!silent) setError(t('blogs', 'titleRequired', 'Title is required before save'));
         return;
       }
-      if (!opts.silent) {
+      if (!silent) {
         setMessage(null);
         setError(null);
-        setSaving(true);
-      } else {
-        setAutoStatus('saving');
       }
+      setSaving(true);
       const tr = post.translations[0];
       if (!tr) {
-        if (!opts.silent) setError('No translation');
+        setError('No translation');
         setSaving(false);
         return;
       }
-
-      let nextStatus: string | undefined;
-      if (opts.trash) nextStatus = 'TRASHED';
-      else if (opts.publish) nextStatus = 'PUBLISHED';
-
       const res = await fetch(`/api/posts/${postId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          title: title.trim(),
-          slug,
-          excerpt: excerpt || null,
+          title,
+          slug: slug || slugify(title),
           contentHtml,
+          excerpt: excerpt || null,
           seoTitle: seoTitle || null,
           seoDescription: seoDescription || null,
-          categoryIds,
-          tagIds,
-          featuredImageId,
           version: post.version,
           languageId: tr.languageId,
-          ...(nextStatus ? { status: nextStatus } : {}),
+          categoryIds,
+          tagIds,
+          ...(publish ? { status: 'PUBLISHED' } : { status }),
         }),
       });
-
+      setSaving(false);
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { error?: string };
-        if (!opts.silent) setError(body.error ?? `Save failed (${res.status})`);
-        setSaving(false);
-        setAutoStatus('idle');
+        if (!silent) setError(body.error ?? `Save failed (${res.status})`);
         return;
       }
       const data = (await res.json()) as Post;
       setPost(data);
-      setFeaturedImage(data.featuredImage ?? null);
-      setFeaturedImageId(data.featuredImageId ?? data.featuredImage?.id ?? null);
-      if (!opts.silent) {
-        setMessage(opts.trash ? 'Moved to Trash' : opts.publish ? 'Published' : 'Draft saved');
+      setStatus(data.status);
+      if (!silent) {
+        setMessage(
+          publish
+            ? t('blogs', 'publishedMsg', 'Published')
+            : t('blogs', 'savedMsg', 'Saved'),
+        );
       } else {
-        setAutoStatus('saved');
+        setMessage(t('blogs', 'autosaved', 'Draft saved'));
       }
-      setSaving(false);
     },
     [
       post,
-      postId,
       title,
       slug,
-      excerpt,
       contentHtml,
+      excerpt,
       seoTitle,
       seoDescription,
+      status,
+      postId,
       categoryIds,
       tagIds,
-      featuredImageId,
+      t,
     ],
   );
 
   useAutosave(
     Boolean(post && title.trim()),
-    [title, slug, excerpt, contentHtml, seoTitle, seoDescription, categoryIds, tagIds, featuredImageId],
-    () => save({ silent: true }),
+    [title, slug, contentHtml, excerpt, seoTitle, seoDescription, categoryIds, tagIds, status],
+    () => save(false, true),
   );
 
-  async function addCategory() {
-    const name = newCat.trim();
-    if (!name) return;
-    const res = await fetch('/api/categories', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ name }),
-    });
-    if (!res.ok) return;
-    const cat = (await res.json()) as TaxItem;
-    setAllCategories((prev) => [...prev, cat]);
-    setCategoryIds((prev) => [...prev, cat.id]);
-    setNewCat('');
+  function insertMedia(payload: MediaInsertPayload) {
+    const dim =
+      payload.width && payload.height
+        ? ` width="${payload.width}" height="${payload.height}"`
+        : '';
+    const fig =
+      payload.asset.caption || payload.alt
+        ? `<figure class="wp-block-image size-${payload.size}"><img src="${payload.src}" alt="${escapeAttr(payload.alt)}"${dim} loading="lazy" decoding="async" /><figcaption>${escapeHtml(payload.asset.caption || payload.alt)}</figcaption></figure>\n`
+        : `<p><img src="${payload.src}" alt="${escapeAttr(payload.alt)}"${dim} loading="lazy" decoding="async" /></p>\n`;
+    setContentHtml((prev) => (prev ? `${prev}\n${fig}` : fig));
+    setMediaOpen(false);
+    setMessage(t('blogs', 'imageInserted', 'Image inserted'));
   }
 
-  async function addTag() {
-    const name = newTag.trim();
-    if (!name) return;
-    const res = await fetch('/api/tags', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ name }),
-    });
-    if (!res.ok) return;
-    const tag = (await res.json()) as TaxItem;
-    setAllTags((prev) => [...prev, tag]);
-    setTagIds((prev) => [...prev, tag.id]);
-    setNewTag('');
+  function setFeatured(payload: MediaInsertPayload) {
+    setFeaturedUrl(payload.src);
+    setMediaOpen(false);
+    setMessage(`${t('blogs', 'featuredImage')} ${t('blogs', 'set', 'set')}`);
   }
 
-  if (!post && !error) {
-    return <p className="v-muted">Loading…</p>;
+  function toggleCategory(id: string) {
+    setCategoryIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
   }
+
+  function toggleTag(id: string) {
+    setTagIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  }
+
+  if (!post && !error) return <p className="v-muted">{t('blogs', 'loading', 'Loading…')}</p>;
+
+  const isPublished = status === 'PUBLISHED';
 
   return (
     <div>
-      <div className="v-page-header">
-        <h1 className="v-page-title">Edit Post</h1>
-        <Link href="/content/posts" className="v-btn">
-          ← All Posts
-        </Link>
-      </div>
+      <ScreenMeta
+        help={[
+          {
+            id: 'title',
+            title: 'Title & editor',
+            body: 'Enter a title; the permalink slug updates automatically until you edit it. Use Add Media to insert images.',
+          },
+          {
+            id: 'publish',
+            title: t('blogs', 'publishBox'),
+            body: 'Save Draft keeps the post unpublished. Publish sets status to PUBLISHED.',
+          },
+        ]}
+        options={[
+          {
+            id: 'publish',
+            label: t('blogs', 'publishBox'),
+            checked: boxes.publish,
+            onChange: () => toggleBox('publish'),
+          },
+          {
+            id: 'featured',
+            label: t('blogs', 'featuredImage'),
+            checked: boxes.featured,
+            onChange: () => toggleBox('featured'),
+          },
+          {
+            id: 'categories',
+            label: t('blogs', 'categories'),
+            checked: boxes.categories,
+            onChange: () => toggleBox('categories'),
+          },
+          {
+            id: 'tags',
+            label: t('blogs', 'tags'),
+            checked: boxes.tags,
+            onChange: () => toggleBox('tags'),
+          },
+          {
+            id: 'excerpt',
+            label: t('blogs', 'excerpt'),
+            checked: boxes.excerpt,
+            onChange: () => toggleBox('excerpt'),
+          },
+          {
+            id: 'seo',
+            label: t('blogs', 'seo'),
+            checked: boxes.seo,
+            onChange: () => toggleBox('seo'),
+          },
+        ]}
+      />
 
-      {message ? <div className="v-alert v-alert--ok">{message}</div> : null}
+      <div className="v-page-header">
+        <h1 className="v-page-title">{t('blogs', 'editPost')}</h1>
+      </div>
+      {message ? <p className="v-alert v-alert--ok">{message}</p> : null}
       {error ? (
-        <div className="v-alert v-alert--error" role="alert">
+        <p role="alert" className="v-alert v-alert--error">
           {error}
-        </div>
+        </p>
       ) : null}
 
       <div className="v-editor">
-        <div>
+        <div className="v-editor__main">
           <input
             className="v-editor__title"
             value={title}
             onChange={(e) => onTitleChange(e.target.value)}
-            placeholder="Add title"
-            aria-label="Post title"
+            placeholder={t('blogs', 'addTitle', 'Add title')}
           />
-          <div className="v-editor__slug">
-            <span>Permalink:</span>
+          <p className="v-editor__slug">
+            {t('blogs', 'slug')}:{' '}
             <input
               value={slug}
               onChange={(e) => {
                 setSlugTouched(true);
                 setSlug(e.target.value);
               }}
-              aria-label="Slug"
             />
+          </p>
+
+          <div className="v-btn-row">
+            <button
+              type="button"
+              className="v-btn"
+              onClick={() => {
+                setMediaMode('insert');
+                setMediaOpen(true);
+              }}
+            >
+              {t('blogs', 'addMedia', 'Add Media')}
+            </button>
           </div>
-          <label className="v-muted" style={{ display: 'block', marginBottom: 6, fontWeight: 600 }}>
-            Content
-          </label>
-          <TiptapEditor value={contentHtml} onChange={setContentHtml} />
-        </div>
 
-        <aside className="v-editor__meta">
-          <section className="v-panel" style={{ marginTop: 0 }}>
-            <h2 className="v-panel__h">Publish</h2>
-            <div className="v-panel__b">
-              <p style={{ margin: '0 0 8px' }}>
-                Status:{' '}
-                <span className={statusClass(post?.status ?? 'DRAFT')}>
-                  {(post?.status ?? 'DRAFT').replaceAll('_', ' ').toLowerCase()}
-                </span>
-              </p>
-              <p className="v-muted" style={{ margin: '0 0 8px', fontSize: 12 }}>
-                Version v{post?.version}
-                {post?.updatedAt
-                  ? ` · Updated ${new Date(post.updatedAt).toLocaleString()}`
-                  : ''}
-                {autoStatus === 'saving'
-                  ? ' · Autosaving…'
-                  : autoStatus === 'saved'
-                    ? ' · Autosaved'
-                    : ''}
-              </p>
-              <div className="v-btn-row" style={{ marginTop: 12 }}>
-                <button
-                  type="button"
-                  className="v-btn v-btn--primary"
-                  disabled={saving || !post || !title.trim()}
-                  onClick={() => void save()}
-                >
-                  {saving ? 'Saving…' : 'Save Draft'}
-                </button>
-                <button
-                  type="button"
-                  className="v-btn v-btn--success"
-                  disabled={saving || !post || !title.trim()}
-                  onClick={() => void save({ publish: true })}
-                >
-                  Publish
-                </button>
-              </div>
-              <div className="v-btn-row">
-                <button
-                  type="button"
-                  className="v-btn v-btn--danger"
-                  disabled={saving || !post}
-                  onClick={() => {
-                    if (confirm('Move this post to Trash?')) void save({ trash: true });
-                  }}
-                >
-                  Move to Trash
-                </button>
-              </div>
-            </div>
-          </section>
-
-          <FeaturedImagePanel
-            value={featuredImage}
-            library={mediaItems}
-            onChange={onFeaturedChange}
-            onLibraryAdd={onLibraryAdd}
+          <TiptapEditor
+            value={contentHtml}
+            onChange={setContentHtml}
+            placeholder={t('blogs', 'writeContent', 'Write content…')}
+            onInsertImage={() => {
+              setMediaMode('insert');
+              setMediaOpen(true);
+            }}
           />
 
-          <section className="v-panel">
-            <h2 className="v-panel__h">Categories</h2>
-            <div className="v-panel__b">
-              <div style={{ display: 'grid', gap: 4, maxHeight: 160, overflow: 'auto' }}>
-                {allCategories.map((c) => (
-                  <label
-                    key={c.id}
-                    style={{ display: 'flex', gap: 6, alignItems: 'center', fontWeight: 400 }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={categoryIds.includes(c.id)}
-                      onChange={(e) => {
-                        setCategoryIds((prev) =>
-                          e.target.checked ? [...prev, c.id] : prev.filter((x) => x !== c.id),
-                        );
-                      }}
-                    />
-                    {taxName(c)}
-                  </label>
-                ))}
-              </div>
-              <div style={{ display: 'flex', gap: 4, marginTop: 8 }}>
-                <input
-                  value={newCat}
-                  onChange={(e) => setNewCat(e.target.value)}
-                  placeholder="New category"
-                  style={{ flex: 1, padding: 6 }}
-                />
-                <button type="button" className="v-btn" onClick={() => void addCategory()}>
-                  Add
-                </button>
-              </div>
-            </div>
-          </section>
-
-          <section className="v-panel">
-            <h2 className="v-panel__h">Tags</h2>
-            <div className="v-panel__b">
-              <div style={{ display: 'grid', gap: 4, maxHeight: 120, overflow: 'auto' }}>
-                {allTags.map((t) => (
-                  <label
-                    key={t.id}
-                    style={{ display: 'flex', gap: 6, alignItems: 'center', fontWeight: 400 }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={tagIds.includes(t.id)}
-                      onChange={(e) => {
-                        setTagIds((prev) =>
-                          e.target.checked ? [...prev, t.id] : prev.filter((x) => x !== t.id),
-                        );
-                      }}
-                    />
-                    {taxName(t)}
-                  </label>
-                ))}
-              </div>
-              <div style={{ display: 'flex', gap: 4, marginTop: 8 }}>
-                <input
-                  value={newTag}
-                  onChange={(e) => setNewTag(e.target.value)}
-                  placeholder="New tag"
-                  style={{ flex: 1, padding: 6 }}
-                />
-                <button type="button" className="v-btn" onClick={() => void addTag()}>
-                  Add
-                </button>
-              </div>
-            </div>
-          </section>
-
-          <section className="v-panel">
-            <h2 className="v-panel__h">Excerpt</h2>
-            <div className="v-panel__b">
-              <textarea
-                rows={3}
-                value={excerpt}
-                onChange={(e) => setExcerpt(e.target.value)}
-                placeholder="Optional summary"
-              />
-            </div>
-          </section>
-
-          <section className="v-panel">
-            <h2 className="v-panel__h">SEO</h2>
-            <div className="v-panel__b">
-              <label>
-                SEO title
-                <input
-                  value={seoTitle}
-                  onChange={(e) => setSeoTitle(e.target.value)}
-                  maxLength={200}
-                />
-              </label>
-              <label style={{ marginTop: 8 }}>
-                Meta description
+          {boxes.excerpt ? (
+            <div className="v-panel">
+              <h3 className="v-panel__h">{t('blogs', 'excerpt')}</h3>
+              <div className="v-panel__b">
                 <textarea
+                  value={excerpt}
+                  onChange={(e) => setExcerpt(e.target.value)}
                   rows={3}
-                  value={seoDescription}
-                  onChange={(e) => setSeoDescription(e.target.value)}
-                  maxLength={500}
+                  placeholder={t('blogs', 'excerptHelp', 'Write an excerpt (optional)')}
                 />
-              </label>
-              <p className="v-muted" style={{ fontSize: 11, margin: '6px 0 0' }}>
-                {(seoTitle || title).length}/60 title · {seoDescription.length}/160 description
-                (guide)
-              </p>
+              </div>
             </div>
-          </section>
+          ) : null}
 
-          <RevisionHistory postId={postId} />
+          {boxes.seo ? (
+            <div className="v-panel">
+              <h3 className="v-panel__h">{t('blogs', 'seo')}</h3>
+              <div className="v-panel__b" style={{ display: 'grid', gap: 8 }}>
+                <label>
+                  {t('blogs', 'seoTitle')}
+                  <input
+                    value={seoTitle}
+                    onChange={(e) => setSeoTitle(e.target.value)}
+                  />
+                </label>
+                <label>
+                  {t('blogs', 'seoDescription')}
+                  <textarea
+                    value={seoDescription}
+                    onChange={(e) => setSeoDescription(e.target.value)}
+                    rows={2}
+                  />
+                </label>
+                <div
+                  style={{
+                    border: '1px solid var(--wp-border)',
+                    borderRadius: 3,
+                    padding: 12,
+                    background: '#fff',
+                    maxWidth: 600,
+                  }}
+                >
+                  <div style={{ color: '#1a0dab', fontSize: 18, lineHeight: 1.3 }}>
+                    {seoTitle || title || t('blogs', 'addTitle', 'Add title')}
+                  </div>
+                  <div style={{ color: '#006621', fontSize: 13 }}>
+                    example.com/{slug || '…'}
+                  </div>
+                  <div style={{ color: '#545454', fontSize: 13, marginTop: 2 }}>
+                    {seoDescription ||
+                      excerpt ||
+                      t('blogs', 'noDescription', 'No description')}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        <aside className="v-editor__side">
+          {boxes.publish ? (
+            <div className="v-panel">
+              <h3 className="v-panel__h">{t('blogs', 'publishBox')}</h3>
+              <div className="v-panel__b">
+                <p style={{ margin: '0 0 8px' }}>
+                  {t('blogs', 'status')}:{' '}
+                  <select value={status} onChange={(e) => setStatus(e.target.value)}>
+                    <option value="DRAFT">{t('blogs', 'draft')}</option>
+                    <option value="PENDING_REVIEW">{t('blogs', 'pendingReview')}</option>
+                    <option value="PUBLISHED">{t('blogs', 'published')}</option>
+                  </select>
+                </p>
+                <p className="v-muted" style={{ fontSize: 12, margin: '0 0 10px' }}>
+                  Version {post?.version}
+                  {saving ? ` · ${t('blogs', 'saving', 'Saving…')}` : null}
+                </p>
+                <div className="v-btn-row">
+                  <button type="button" className="v-btn" onClick={() => void save(false)} disabled={saving}>
+                    {t('blogs', 'saveDraft', 'Save Draft')}
+                  </button>
+                  <button
+                    type="button"
+                    className="v-btn v-btn--primary"
+                    onClick={() => void save(true)}
+                    disabled={saving}
+                  >
+                    {isPublished ? t('blogs', 'update') : t('blogs', 'publish')}
+                  </button>
+                </div>
+                <p style={{ marginTop: 10 }}>
+                  <button
+                    type="button"
+                    className="v-btn"
+                    style={{ color: 'var(--wp-danger)' }}
+                    onClick={() => {
+                      setStatus('TRASHED');
+                      void save(false);
+                    }}
+                  >
+                    {t('blogs', 'moveToTrash')}
+                  </button>
+                </p>
+              </div>
+            </div>
+          ) : null}
+
+          {boxes.featured ? (
+            <div className="v-panel">
+              <h3 className="v-panel__h">{t('blogs', 'featuredImage')}</h3>
+              <div className="v-panel__b">
+                {featuredUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={featuredUrl}
+                    alt=""
+                    style={{ maxWidth: '100%', marginBottom: 8, borderRadius: 3 }}
+                  />
+                ) : (
+                  <p className="v-muted" style={{ fontSize: 12 }}>
+                    {t('blogs', 'noFeatured', 'No featured image')}
+                  </p>
+                )}
+                <button
+                  type="button"
+                  className="v-btn"
+                  onClick={() => {
+                    setMediaMode('featured');
+                    setMediaOpen(true);
+                  }}
+                >
+                  {featuredUrl
+                    ? t('blogs', 'replaceFeatured', 'Replace image')
+                    : t('blogs', 'setFeatured')}
+                </button>
+                {featuredUrl ? (
+                  <button
+                    type="button"
+                    className="v-btn"
+                    style={{ marginLeft: 6 }}
+                    onClick={() => setFeaturedUrl(null)}
+                  >
+                    {t('blogs', 'removeFeatured')}
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+
+          {boxes.categories ? (
+            <div className="v-panel">
+              <h3 className="v-panel__h">{t('blogs', 'categories')}</h3>
+              <div className="v-panel__b">
+                {allCategories.length === 0 ? (
+                  <p className="v-muted" style={{ fontSize: 12, margin: 0 }}>
+                    {t('blogs', 'noCategories', 'No categories yet.')}
+                  </p>
+                ) : (
+                  <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                    {allCategories.map((c) => {
+                      const name = c.translations?.[0]?.name ?? c.id;
+                      return (
+                        <li key={c.id} style={{ marginBottom: 4 }}>
+                          <label style={{ fontWeight: 400, display: 'flex', gap: 6, alignItems: 'center' }}>
+                            <input
+                              type="checkbox"
+                              checked={categoryIds.includes(c.id)}
+                              onChange={() => toggleCategory(c.id)}
+                            />
+                            {name}
+                          </label>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+            </div>
+          ) : null}
+
+          {boxes.tags ? (
+            <div className="v-panel">
+              <h3 className="v-panel__h">{t('blogs', 'tags')}</h3>
+              <div className="v-panel__b">
+                {allTags.length === 0 ? (
+                  <p className="v-muted" style={{ fontSize: 12, margin: 0 }}>
+                    {t('blogs', 'noTags', 'No tags yet.')}
+                  </p>
+                ) : (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {allTags.map((tg) => {
+                      const name = tg.translations?.[0]?.name ?? tg.id;
+                      const on = tagIds.includes(tg.id);
+                      return (
+                        <button
+                          key={tg.id}
+                          type="button"
+                          className="v-btn"
+                          style={{
+                            fontWeight: on ? 700 : 400,
+                            background: on ? '#dbeafe' : undefined,
+                          }}
+                          onClick={() => toggleTag(tg.id)}
+                        >
+                          {name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+                <p className="v-muted" style={{ fontSize: 11, marginTop: 8 }}>
+                  {t('blogs', 'addTags', 'Separate tags with commas')}
+                </p>
+              </div>
+            </div>
+          ) : null}
         </aside>
       </div>
+
+      {mediaOpen ? (
+        <div className="v-media-modal" role="dialog" aria-modal="true" aria-label="Media">
+          <div className="v-media-modal__frame">
+            <div className="v-media-modal__bar">
+              <strong>{t('blogs', 'mediaLibrary')}</strong>
+              <button type="button" className="v-btn" onClick={() => setMediaOpen(false)}>
+                {t('blogs', 'close', 'Close')}
+              </button>
+            </div>
+            <div className="v-media-modal__body">
+              <MediaLibrary
+                imagesOnly
+                onClose={() => setMediaOpen(false)}
+                onInsert={(p) => {
+                  if (mediaMode === 'featured') setFeatured(p);
+                  else insertMedia(p);
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
+}
+
+function escapeAttr(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
