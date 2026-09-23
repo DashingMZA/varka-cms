@@ -1,0 +1,10 @@
+{
+  "title": "Languages",
+  "code": "Code",
+  "name": "Name",
+  "nativeName": "Native name",
+  "direction": "Direction",
+  "default": "Default",
+  "enabled": "Enabled",
+  "addLanguage": "Add language"
+}

@@ -1,0 +1,23 @@
+{
+  "title": "Profile",
+  "personalOptions": "Personal Options",
+  "name": "Name",
+  "firstName": "First Name",
+  "lastName": "Last Name",
+  "nickname": "Nickname",
+  "displayName": "Display name publicly as",
+  "contactInfo": "Contact Info",
+  "website": "Website",
+  "about": "About Yourself",
+  "biographicalInfo": "Biographical Info",
+  "profilePicture": "Profile Picture",
+  "adminColorScheme": "Admin Color Scheme",
+  "changePassword": "Account Management",
+  "newPassword": "New Password",
+  "updateProfile": "Update Profile",
+  "loading": "Loading profile…",
+  "aboutYourself": "About Yourself",
+  "accountManagement": "Account Management",
+  "bio": "Biographical Info",
+  "sessions": "Sessions"
+}

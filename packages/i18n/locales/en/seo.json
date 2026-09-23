@@ -1,0 +1,13 @@
+{
+  "title": "SEO",
+  "titleTemplate": "Title template",
+  "metaDescription": "Meta Description",
+  "robots": "Robots",
+  "canonical": "Canonical URL",
+  "ogTitle": "Open Graph title",
+  "ogDescription": "Open Graph description",
+  "metaTitle": "Meta Title",
+  "ogImage": "Open Graph Image",
+  "sitemap": "Sitemap",
+  "save": "Save SEO settings"
+}

@@ -1,0 +1,11 @@
+{
+  "title": "Notifications",
+  "success": "Success",
+  "error": "Error",
+  "warning": "Warning",
+  "info": "Info",
+  "saved": "Changes saved.",
+  "deleted": "Deleted.",
+  "copied": "Copied to clipboard.",
+  "uploaded": "Upload complete."
+}

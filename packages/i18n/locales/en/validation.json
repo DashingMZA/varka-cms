@@ -1,0 +1,8 @@
+{
+  "required": "Required",
+  "email": "Invalid email",
+  "minLength": "Too short",
+  "maxLength": "Too long",
+  "passwordPolicy": "Password does not meet requirements.",
+  "url": "Invalid URL"
+}

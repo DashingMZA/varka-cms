@@ -1,0 +1,6 @@
+{
+  "title": "Storage",
+  "driver": "Driver",
+  "local": "Local disk",
+  "s3": "S3 / R2"
+}
