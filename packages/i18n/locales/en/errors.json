@@ -1,0 +1,10 @@
+{
+  "generic": "Something went wrong.",
+  "notFound": "Not found.",
+  "unauthorized": "You are not authorized.",
+  "forbidden": "Forbidden.",
+  "validation": "Please check the form for errors.",
+  "network": "Network error. Try again.",
+  "sessionExpired": "Your session has expired. Please sign in again.",
+  "rateLimited": "Too many attempts. Please wait."
+}

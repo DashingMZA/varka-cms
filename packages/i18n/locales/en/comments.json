@@ -1,0 +1,20 @@
+{
+  "title": "Comments",
+  "all": "All",
+  "pending": "Pending",
+  "approved": "Approved",
+  "spam": "Spam",
+  "trash": "Trash",
+  "approve": "Approve",
+  "unapprove": "Unapprove",
+  "markSpam": "Mark as spam",
+  "moveToTrash": "Move to Trash",
+  "reply": "Reply",
+  "author": "Author",
+  "comment": "Comment",
+  "inResponseTo": "In response to",
+  "submittedOn": "Submitted on",
+  "bulkActions": "Bulk actions",
+  "searchComments": "Search comments",
+  "noComments": "No comments yet."
+}
