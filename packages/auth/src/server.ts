@@ -8,21 +8,21 @@
  * - Secure / HttpOnly / SameSite cookies in production
  * - Trusted origins only
  * - Min password length 12; max 128
+ * - Email verification OTP + password reset email
+ * - TOTP 2FA (twoFactor plugin) + email OTP for 2FA challenge
  */
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { nextCookies } from 'better-auth/next-js';
+import { twoFactor } from 'better-auth/plugins';
 import { prisma } from '@varka/database';
 import { passwordHasher, assertPasswordPolicy } from './password';
+import { sendAuthEmail, generateOtpCode } from './email';
 
 const PLACEHOLDER_SECRET = 'dev-only-insecure-secret-change-me-now!!';
 
-/**
- * Parse KEY=VALUE .env lines into process.env (does not override existing).
- * Handles optional quotes and skips comments / empty lines.
- */
 function parseEnvFile(filePath: string): void {
   if (!existsSync(filePath)) return;
   let text: string;
@@ -50,7 +50,6 @@ function parseEnvFile(filePath: string): void {
   }
 }
 
-/** Load monorepo root / app .env before AUTH_SECRET is read. */
 export function ensureEnvLoaded(): void {
   const cwd = process.cwd();
   const candidates = [
@@ -140,15 +139,26 @@ export function createAuth() {
     ),
   );
 
+  const requireEmailVerification =
+    process.env.AUTH_REQUIRE_EMAIL_VERIFICATION === 'true' || isProd;
+
   return betterAuth({
     database: prismaAdapter(prisma, { provider: 'postgresql' }),
     secret,
     baseURL,
+    appName: process.env.AUTH_APP_NAME || 'VARKA',
     emailAndPassword: {
       enabled: true,
       minPasswordLength: 12,
       maxPasswordLength: 128,
-      requireEmailVerification: process.env.AUTH_REQUIRE_EMAIL_VERIFICATION === 'true',
+      requireEmailVerification,
+      sendResetPassword: async ({ user, url }) => {
+        await sendAuthEmail({
+          to: user.email,
+          type: 'password-reset',
+          url,
+        });
+      },
       password: {
         hash: async (password: string) => {
           assertPasswordPolicy(password);
@@ -157,6 +167,19 @@ export function createAuth() {
         verify: async (data: { hash: string; password: string }) => {
           return passwordHasher.verify(data);
         },
+      },
+    },
+    emailVerification: {
+      sendOnSignUp: true,
+      autoSignInAfterVerification: true,
+      sendVerificationEmail: async ({ user, url }) => {
+        const code = generateOtpCode();
+        await sendAuthEmail({
+          to: user.email,
+          type: 'email-verification',
+          url,
+          code,
+        });
       },
     },
     socialProviders: Object.keys(socialProviders).length ? socialProviders : undefined,
@@ -178,13 +201,27 @@ export function createAuth() {
       },
     },
     trustedOrigins,
-    plugins: [nextCookies()],
+    plugins: [
+      twoFactor({
+        issuer: process.env.AUTH_APP_NAME || 'VARKA',
+        otpOptions: {
+          async sendOTP({ user, otp }) {
+            await sendAuthEmail({
+              to: user.email,
+              type: 'two-factor-otp',
+              code: otp,
+            });
+          },
+          period: 5,
+        },
+      }),
+      nextCookies(),
+    ],
   });
 }
 
 export type Auth = ReturnType<typeof createAuth>;
 
-/** True when resolved secret is the insecure dev placeholder */
 export function isUsingPlaceholderSecret(): boolean {
   return resolveAuthSecret() === PLACEHOLDER_SECRET;
 }
