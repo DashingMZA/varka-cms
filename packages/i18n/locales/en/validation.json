@@ -1,8 +1,19 @@
 {
-  "required": "Required",
-  "email": "Invalid email",
-  "minLength": "Too short",
-  "maxLength": "Too long",
-  "passwordPolicy": "Password does not meet requirements.",
-  "url": "Invalid URL"
+  "required": "This field is required.",
+  "email": "Enter a valid email address.",
+  "emailRequired": "Email is required.",
+  "passwordRequired": "Password is required.",
+  "passwordMin": "Password must be at least 12 characters.",
+  "passwordMax": "Password must be at most 128 characters.",
+  "passwordPolicy": "Password does not meet security requirements.",
+  "passwordMismatch": "Passwords do not match.",
+  "otpRequired": "Verification code is required.",
+  "otpInvalid": "Invalid or expired verification code.",
+  "otpLength": "Enter the 6-digit code.",
+  "nameRequired": "Name is required.",
+  "nameMax": "Name is too long.",
+  "tokenRequired": "Reset token is required.",
+  "url": "Enter a valid URL.",
+  "slug": "Use lowercase letters, numbers, and hyphens only.",
+  "locale": "Invalid language code."
 }
