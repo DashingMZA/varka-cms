@@ -23,6 +23,10 @@ import { sendAuthEmail, generateOtpCode } from './email';
 
 const PLACEHOLDER_SECRET = 'dev-only-insecure-secret-change-me-now!!';
 
+/**
+ * Parse KEY=VALUE .env lines into process.env (does not override existing).
+ * Handles optional quotes and skips comments / empty lines.
+ */
 function parseEnvFile(filePath: string): void {
   if (!existsSync(filePath)) return;
   let text: string;
@@ -50,6 +54,7 @@ function parseEnvFile(filePath: string): void {
   }
 }
 
+/** Load monorepo root / app .env before AUTH_SECRET is read. */
 export function ensureEnvLoaded(): void {
   const cwd = process.cwd();
   const candidates = [
@@ -222,6 +227,7 @@ export function createAuth() {
 
 export type Auth = ReturnType<typeof createAuth>;
 
+/** True when resolved secret is the insecure dev placeholder */
 export function isUsingPlaceholderSecret(): boolean {
   return resolveAuthSecret() === PLACEHOLDER_SECRET;
 }
