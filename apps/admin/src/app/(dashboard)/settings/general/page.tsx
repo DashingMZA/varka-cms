@@ -18,6 +18,39 @@ const DEFAULTS = {
   homeUrl: '',
 };
 
+/** Browser-supported IANA zones; common ones first for admin UX */
+function listTimeZones(): string[] {
+  let zones: string[] = [];
+  try {
+    zones =
+      (Intl as unknown as { supportedValuesOf?: (k: string) => string[] }).supportedValuesOf?.(
+        'timeZone',
+      ) ?? [];
+  } catch {
+    zones = [];
+  }
+  const preferred = [
+    'UTC',
+    'Asia/Karachi',
+    'Asia/Dubai',
+    'Asia/Kolkata',
+    'Asia/Riyadh',
+    'Europe/London',
+    'Europe/Paris',
+    'America/New_York',
+    'America/Chicago',
+    'America/Los_Angeles',
+    'Australia/Sydney',
+  ];
+  if (!zones.length) return preferred;
+  const set = new Set(zones);
+  const head = preferred.filter((z) => set.has(z));
+  const rest = zones.filter((z) => !preferred.includes(z));
+  return [...head, ...rest];
+}
+
+const TIMEZONES = listTimeZones();
+
 export default function GeneralSettingsPage() {
   const { t } = useMessages();
   return (
@@ -106,10 +139,11 @@ export default function GeneralSettingsPage() {
               value={String(v.timezone ?? 'UTC')}
               onChange={(e) => set('timezone', e.target.value)}
             >
-              <option value="UTC">UTC+0</option>
-              <option value="Asia/Karachi">Asia/Karachi (PKT)</option>
-              <option value="America/New_York">America/New_York</option>
-              <option value="Europe/London">Europe/London</option>
+              {TIMEZONES.map((tz) => (
+                <option key={tz} value={tz}>
+                  {tz}
+                </option>
+              ))}
             </select>
           </Field>
           <Field label={t('settings', 'dateFormat')}>
