@@ -91,37 +91,35 @@ function pathMatches(pathname: string, href: string): boolean {
   return pathname.startsWith(clean + '/');
 }
 
-function sectionOpen(pathname: string, item: NavItem): boolean {
-  if (!item.children?.length) return false;
-  if (pathname === item.href || pathname.startsWith(item.href + '/')) return true;
-  return item.children.some((c) => {
-    const h = c.href.split('?')[0];
-    return pathname === h || pathname.startsWith(h + '/');
-  });
-}
-
 export function AdminNav(props: { locale?: AppLocale | string } = {}) {
   const { locale } = props;
   const pathname = usePathname() || '';
-  const { t } = useMessages(locale);
+  const { t, locale: resolvedLocale } = useMessages(locale);
+  // Rebuild labels only when locale changes — not every render (t is unstable)
   const NAV = useMemo(
     () => buildNav((ns, key) => t(ns as 'nav', key)),
-    [t],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [resolvedLocale],
   );
   const [folded, setFolded] = useState(false);
   const [open, setOpen] = useState<Record<string, boolean>>({});
 
+  // Open parent for current path; only setState when a section actually opens
   useEffect(() => {
+    const parents = ['/content', '/appearance', '/users', '/settings'] as const;
     setOpen((prev) => {
+      let changed = false;
       const next = { ...prev };
-      for (const item of NAV) {
-        if (item.children?.length && sectionOpen(pathname, item)) {
-          next[item.href] = true;
+      for (const href of parents) {
+        const shouldOpen = pathname === href || pathname.startsWith(`${href}/`);
+        if (shouldOpen && !next[href]) {
+          next[href] = true;
+          changed = true;
         }
       }
-      return next;
+      return changed ? next : prev;
     });
-  }, [pathname, NAV]);
+  }, [pathname]);
 
   useEffect(() => {
     try {
