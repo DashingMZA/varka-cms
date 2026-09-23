@@ -1,0 +1,13 @@
+{
+  "title": "زمرے",
+  "addNew": "زمرہ شامل کریں",
+  "name": "نام",
+  "slug": "سلگ",
+  "description": "تفصیل",
+  "parent": "والد",
+  "count": "تعداد",
+  "noCategories": "ابھی کوئی زمرہ نہیں۔",
+  "search": "زمرے تلاش کریں…",
+  "namePlaceholder": "نئے زمرے کا نام",
+  "bulkNotWired": "بڑی حذف ابھی دستیاب نہیں۔"
+}

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { ListTable, TableNav } from '@/components/list-table/list-table';
+import { useMessages } from '@/lib/i18n';
 
 type Row = {
   id: string;
@@ -10,6 +11,7 @@ type Row = {
 };
 
 export function CategoriesAdmin() {
+  const { t } = useMessages();
   const [items, setItems] = useState<Row[]>([]);
   const [name, setName] = useState('');
   const [q, setQ] = useState('');
@@ -20,12 +22,12 @@ export function CategoriesAdmin() {
   const load = useCallback(async () => {
     const res = await fetch('/api/categories', { credentials: 'include' });
     if (!res.ok) {
-      setError(`Load failed (${res.status})`);
+      setError(t('errors', 'loadFailed') + ` (${res.status})`);
       return;
     }
     const data = (await res.json()) as { items: Row[] };
     setItems(data.items ?? []);
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     void load();
@@ -41,7 +43,7 @@ export function CategoriesAdmin() {
       body: JSON.stringify({ name: name.trim() }),
     });
     if (!res.ok) {
-      setError(`Create failed (${res.status})`);
+      setError(t('errors', 'saveFailed') + ` (${res.status})`);
       return;
     }
     setName('');
@@ -56,35 +58,42 @@ export function CategoriesAdmin() {
 
   return (
     <div style={{ marginTop: 12 }}>
+      <h1 className="v-page-title" style={{ marginBottom: 12 }}>
+        {t('categories', 'title')}
+      </h1>
       {error ? <p className="v-alert v-alert--error">{error}</p> : null}
       <form onSubmit={onCreate} style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="New category name"
-          aria-label="Category name"
+          placeholder={t('categories', 'namePlaceholder')}
+          aria-label={t('categories', 'name')}
         />
         <button type="submit" className="v-btn v-btn--primary">
-          Add Category
+          {t('categories', 'addNew')}
         </button>
       </form>
       <TableNav
-        bulkOptions={[{ value: 'delete', label: 'Delete' }]}
+        bulkOptions={[{ value: 'delete', label: t('common', 'delete') }]}
         bulkValue={bulk}
         onBulkChange={setBulk}
-        onBulkApply={() => setError('Bulk delete not wired yet — use editor flows.')}
+        bulkLabel={t('common', 'bulkActions')}
+        applyLabel={t('common', 'apply')}
+        searchLabel={t('common', 'search')}
+        onBulkApply={() => setError(t('categories', 'bulkNotWired'))}
         search={q}
         onSearchChange={setQ}
         onSearchSubmit={() => setSearch(q)}
+        searchPlaceholder={t('categories', 'search')}
       />
       <ListTable
         isEmpty={filtered.length === 0}
-        empty="No categories yet."
+        empty={t('categories', 'noCategories')}
         headers={
           <>
-            <th>Name</th>
-            <th>Slug</th>
-            <th>Count</th>
+            <th>{t('categories', 'name')}</th>
+            <th>{t('categories', 'slug')}</th>
+            <th>{t('categories', 'count')}</th>
           </>
         }
       >

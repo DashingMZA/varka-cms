@@ -1,0 +1,13 @@
+{
+  "title": "Categories",
+  "addNew": "Add Category",
+  "name": "Name",
+  "slug": "Slug",
+  "description": "Description",
+  "parent": "Parent",
+  "count": "Count",
+  "noCategories": "No categories yet.",
+  "search": "Search categories…",
+  "namePlaceholder": "New category name",
+  "bulkNotWired": "Bulk delete not wired yet."
+}

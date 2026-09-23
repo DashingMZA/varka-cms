@@ -1,0 +1,12 @@
+{
+  "title": "Tags",
+  "addNew": "Add Tag",
+  "name": "Name",
+  "slug": "Slug",
+  "description": "Description",
+  "count": "Count",
+  "noTags": "No tags yet.",
+  "search": "Search tags…",
+  "namePlaceholder": "New tag name",
+  "bulkNotWired": "Bulk delete not wired yet."
+}
