@@ -23,6 +23,7 @@
     "@varka/themes": "workspace:*",
     "@varka/cache": "workspace:*",
     "@varka/content": "workspace:*",
+    "@varka/media": "workspace:*",
     "@varka/security": "workspace:*",
     "@tiptap/react": "^2.11.5",
     "@tiptap/starter-kit": "^2.11.5",
