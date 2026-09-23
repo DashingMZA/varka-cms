@@ -38,10 +38,18 @@ function buildNav(t: (ns: 'nav' | 'common', key: string) => string): NavItem[] {
         { href: '/content/posts/new', label: L(t, 'addNew', 'Add New') },
         { href: '/content/categories', label: L(t, 'categories', 'Categories') },
         { href: '/content/tags', label: L(t, 'tags', 'Tags') },
-        { href: '/content/pages', label: L(t, 'pages', 'Pages') },
       ],
     },
     { href: '/media', label: L(t, 'media', 'Media'), icon: '▣' },
+    {
+      href: '/content/pages',
+      label: L(t, 'pages', 'Pages'),
+      icon: '📄',
+      children: [
+        { href: '/content/pages', label: L(t, 'allPages', 'All Pages') },
+        { href: '/content/pages/new', label: L(t, 'addNew', 'Add New') },
+      ],
+    },
     { href: '/comments', label: L(t, 'comments', 'Comments'), icon: '💬' },
     {
       href: '/appearance',
@@ -88,6 +96,8 @@ function pathMatches(pathname: string, href: string): boolean {
   const clean = href.split('?')[0];
   if (pathname === clean) return true;
   if (clean === '/dashboard' || clean === '/users') return false;
+  // Posts (/content) must not highlight for Pages (/content/pages)
+  if (clean === '/content' && pathname.startsWith('/content/pages')) return false;
   return pathname.startsWith(clean + '/');
 }
 
@@ -106,12 +116,16 @@ export function AdminNav(props: { locale?: AppLocale | string } = {}) {
 
   // Open parent for current path; only setState when a section actually opens
   useEffect(() => {
-    const parents = ['/content', '/appearance', '/users', '/settings'] as const;
+    const parents = ['/content', '/content/pages', '/appearance', '/users', '/settings'] as const;
     setOpen((prev) => {
       let changed = false;
       const next = { ...prev };
       for (const href of parents) {
-        const shouldOpen = pathname === href || pathname.startsWith(`${href}/`);
+        let shouldOpen = pathname === href || pathname.startsWith(`${href}/`);
+        // Posts section must not auto-open on Pages routes
+        if (href === '/content' && pathname.startsWith('/content/pages')) {
+          shouldOpen = false;
+        }
         if (shouldOpen && !next[href]) {
           next[href] = true;
           changed = true;
