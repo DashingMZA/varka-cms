@@ -1,0 +1,13 @@
+{
+  "title": "Categorías",
+  "addNew": "Añadir categoría",
+  "name": "Nombre",
+  "slug": "Slug",
+  "description": "Descripción",
+  "parent": "Padre",
+  "count": "Recuento",
+  "noCategories": "Aún no hay categorías.",
+  "search": "Buscar categorías…",
+  "namePlaceholder": "Nombre de la nueva categoría",
+  "bulkNotWired": "Eliminación masiva aún no disponible."
+}
