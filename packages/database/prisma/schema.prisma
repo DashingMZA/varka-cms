@@ -159,11 +159,17 @@ model Verification {
 }
 
 model TwoFactor {
-  id          String @id @default(cuid())
-  secret      String
-  backupCodes String
-  userId      String @unique
-  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                      String    @id @default(cuid())
+  secret                  String
+  backupCodes             String
+  userId                  String    @unique
+  /// Whether TOTP secret was verified during enrollment (Better Auth)
+  verified                Boolean   @default(false)
+  /// Consecutive failed second-factor verifications (lockout)
+  failedVerificationCount Int       @default(0)
+  /// When 2FA challenge lockout expires
+  lockedUntil             DateTime?
+  user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("twoFactor")
 }
