@@ -90,6 +90,8 @@ model User {
   disabled         Boolean   @default(false)
   failedLogins     Int       @default(0)
   lockedUntil      DateTime?
+  /// TOTP 2FA enabled (Better Auth twoFactor plugin)
+  twoFactorEnabled Boolean   @default(false)
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
@@ -103,6 +105,7 @@ model User {
   revisions     Revision[]
   comments      Comment[]
   uploadedMedia MediaAsset[]
+  twoFactor     TwoFactor?
 
   @@index([siteId])
   @@index([disabled])
@@ -153,6 +156,16 @@ model Verification {
   updatedAt  DateTime @updatedAt
 
   @@index([identifier])
+}
+
+model TwoFactor {
+  id          String @id @default(cuid())
+  secret      String
+  backupCodes String
+  userId      String @unique
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("twoFactor")
 }
 
 model Role {
