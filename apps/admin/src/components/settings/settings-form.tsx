@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react';
+import { useMessages } from '@/lib/i18n';
 
 export type SettingsGroup =
   | 'general'
@@ -8,7 +9,8 @@ export type SettingsGroup =
   | 'reading'
   | 'discussion'
   | 'media'
-  | 'permalinks';
+  | 'permalinks'
+  | 'privacy';
 
 type Props = {
   group: SettingsGroup;
@@ -22,6 +24,7 @@ type Props = {
 };
 
 export function SettingsForm({ group, title, description, defaults, children }: Props) {
+  const { t } = useMessages();
   const [values, setValues] = useState<Record<string, unknown>>(defaults);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -33,13 +36,13 @@ export function SettingsForm({ group, title, description, defaults, children }: 
     (async () => {
       try {
         const res = await fetch(`/api/settings?group=${group}`, { credentials: 'include' });
-        if (!res.ok) throw new Error('Failed to load settings');
+        if (!res.ok) throw new Error(t('errors', 'loadFailed'));
         const data = (await res.json()) as { settings?: Record<string, unknown> };
         if (!cancelled) {
           setValues({ ...defaults, ...(data.settings ?? {}) });
         }
       } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : 'Load error');
+        if (!cancelled) setError(e instanceof Error ? e.message : t('errors', 'loadFailed'));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -67,18 +70,18 @@ export function SettingsForm({ group, title, description, defaults, children }: 
       });
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(body.error ?? `Save failed (${res.status})`);
+        throw new Error(body.error ?? t('errors', 'saveFailed'));
       }
-      setMessage('Settings saved.');
+      setMessage(t('settings', 'saved'));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Save error');
+      setError(err instanceof Error ? err.message : t('errors', 'saveFailed'));
     } finally {
       setSaving(false);
     }
   }
 
   if (loading) {
-    return <p style={{ color: 'var(--muted)' }}>Loading settings…</p>;
+    return <p style={{ color: 'var(--muted)' }}>{t('settings', 'loading')}</p>;
   }
 
   return (
@@ -96,6 +99,7 @@ export function SettingsForm({ group, title, description, defaults, children }: 
         <button
           type="submit"
           disabled={saving}
+          className="v-btn v-btn--primary"
           style={{
             padding: '10px 18px',
             borderRadius: 6,
@@ -106,7 +110,7 @@ export function SettingsForm({ group, title, description, defaults, children }: 
             cursor: saving ? 'wait' : 'pointer',
           }}
         >
-          {saving ? 'Saving…' : 'Save Changes'}
+          {saving ? t('common', 'saving') : t('settings', 'saveChanges')}
         </button>
         {message ? <span style={{ color: 'green', fontSize: 13 }}>{message}</span> : null}
         {error ? (
