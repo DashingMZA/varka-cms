@@ -18,14 +18,6 @@ export type ContentDb = {
     findFirst: (args: unknown) => Promise<unknown>;
     update: (args: unknown) => Promise<unknown>;
   };
-  postCategory?: {
-    deleteMany: (args: unknown) => Promise<unknown>;
-    createMany?: (args: unknown) => Promise<unknown>;
-  };
-  postTag?: {
-    deleteMany: (args: unknown) => Promise<unknown>;
-    createMany?: (args: unknown) => Promise<unknown>;
-  };
   revision: {
     create: (args: unknown) => Promise<unknown>;
   };
@@ -39,25 +31,24 @@ export const createPostInput = z.object({
   languageId: z.string().min(1).optional(),
   locale: z.string().optional(),
   excerpt: z.string().max(2000).optional(),
-  contentHtml: z.string().optional().default(''),
+  contentHtml: z.string().default(''),
   authorId: z.string().optional(),
 });
 
-export type CreatePostInput = z.input<typeof createPostInput>;
+export type CreatePostInput = z.infer<typeof createPostInput>;
 
 export const updatePostInput = z.object({
   title: z.string().min(1).max(300).optional(),
   slug: z.string().min(1).max(200).optional(),
   excerpt: z.string().max(2000).optional().nullable(),
   contentHtml: z.string().optional(),
-  seoTitle: z.string().max(200).optional().nullable(),
+  seoTitle: z.string().max(300).optional().nullable(),
   seoDescription: z.string().max(500).optional().nullable(),
-  categoryIds: z.array(z.string()).optional(),
-  tagIds: z.array(z.string()).optional(),
-  featuredImageId: z.string().nullable().optional(),
   status: z.enum(['DRAFT', 'PENDING_REVIEW', 'SCHEDULED', 'PUBLISHED', 'TRASHED']).optional(),
   version: z.number().int().positive(),
   languageId: z.string().min(1),
+  categoryIds: z.array(z.string()).optional(),
+  tagIds: z.array(z.string()).optional(),
 });
 
 export type UpdatePostInput = z.infer<typeof updatePostInput>;
@@ -68,35 +59,6 @@ function stripDangerousHtml(html: string): string {
     .replace(/\son\w+="[^"]*"/gi, '')
     .replace(/\son\w+='[^']*'/gi, '')
     .replace(/javascript:/gi, '');
-}
-
-const postInclude = {
-  translations: true,
-  author: { select: { id: true, name: true, email: true } },
-  categories: { include: { category: { include: { translations: true } } } },
-  tags: { include: { tag: { include: { translations: true } } } },
-  featuredImage: true,
-};
-
-async function uniqueSlug(
-  db: ContentDb,
-  languageId: string,
-  base: string,
-): Promise<string> {
-  let candidate = base;
-  let n = 0;
-  while (true) {
-    const existing = await db.postTranslation.findFirst({
-      where: { languageId, slug: candidate },
-    });
-    if (!existing) return candidate;
-    n += 1;
-    candidate = `${base}-${n}`;
-    if (n > 50) {
-      candidate = `${base}-${Date.now().toString(36)}`;
-      return candidate;
-    }
-  }
 }
 
 export async function listPosts(
@@ -117,7 +79,10 @@ export async function listPosts(
     take: limit + 1,
     ...(opts.cursor ? { cursor: { id: opts.cursor }, skip: 1 } : {}),
     orderBy: { updatedAt: 'desc' },
-    include: postInclude,
+    include: {
+      translations: true,
+      author: { select: { id: true, name: true, email: true } },
+    },
   })) as Array<{ id: string }>;
 
   const hasMore = items.length > limit;
@@ -129,21 +94,11 @@ export async function listPosts(
   };
 }
 
-export async function getPost(db: ContentDb, ctx: AuthContext, postId: string) {
-  requirePermission(ctx, 'posts.read');
-  const post = await db.post.findUnique({
-    where: { id: postId },
-    include: postInclude,
-  });
-  if (!post) throw new Error('Post not found');
-  return post;
-}
-
 export async function createPost(db: ContentDb, ctx: AuthContext, raw: CreatePostInput) {
   requirePermission(ctx, 'posts.create');
   const input = createPostInput.parse(raw);
-  const baseSlug = input.slug ? input.slug : slugify(input.title);
-  assertSlugAllowed(baseSlug);
+  const slug = input.slug ? input.slug : slugify(input.title);
+  assertSlugAllowed(slug);
 
   let languageId = input.languageId;
   if (!languageId) {
@@ -157,16 +112,17 @@ export async function createPost(db: ContentDb, ctx: AuthContext, raw: CreatePos
     languageId = lang.id;
   }
 
-  const slug = await uniqueSlug(db, languageId, baseSlug);
+  const existing = await db.postTranslation.findFirst({
+    where: { languageId, slug },
+  });
+  if (existing) throw new Error(`Slug already exists: ${slug}`);
 
   const contentHtml = stripDangerousHtml(input.contentHtml ?? '');
-  const authorId =
-    input.authorId ?? (ctx.userId && ctx.userId !== 'dev-user' ? ctx.userId : undefined);
 
   return db.post.create({
     data: {
       siteId: input.siteId,
-      authorId,
+      authorId: input.authorId ?? ctx.userId,
       status: 'DRAFT',
       translations: {
         create: {
@@ -179,7 +135,7 @@ export async function createPost(db: ContentDb, ctx: AuthContext, raw: CreatePos
         },
       },
     },
-    include: postInclude,
+    include: { translations: true },
   });
 }
 
@@ -197,16 +153,9 @@ export async function updatePost(
     include: { translations: true },
   })) as {
     id: string;
-    siteId: string;
     version: number;
     status: string;
-    translations: Array<{
-      id: string;
-      languageId: string;
-      slug: string;
-      title: string;
-      contentHtml: string;
-    }>;
+    translations: Array<{ id: string; languageId: string; slug: string; title: string; contentHtml: string }>;
   } | null;
 
   if (!post) throw new Error('Post not found');
@@ -226,7 +175,7 @@ export async function updatePost(
     await tx.revision.create({
       data: {
         postId,
-        authorId: ctx.userId === 'dev-user' ? undefined : ctx.userId,
+        authorId: ctx.userId,
         languageId: input.languageId,
         title: input.title ?? translation.title,
         contentHtml: nextHtml,
@@ -247,37 +196,49 @@ export async function updatePost(
       },
     });
 
-    if (input.categoryIds !== undefined && tx.postCategory) {
-      await tx.postCategory.deleteMany({ where: { postId } });
-      if (input.categoryIds.length > 0 && tx.postCategory.createMany) {
-        await tx.postCategory.createMany({
-          data: input.categoryIds.map((categoryId) => ({ postId, categoryId })),
-          skipDuplicates: true,
-        });
+    // Sync categories / tags when provided
+    if (input.categoryIds !== undefined) {
+      const dbAny = tx as ContentDb & {
+        postCategory: {
+          deleteMany: (a: unknown) => Promise<unknown>;
+          createMany: (a: unknown) => Promise<unknown>;
+        };
+      };
+      if (dbAny.postCategory) {
+        await dbAny.postCategory.deleteMany({ where: { postId } });
+        if (input.categoryIds.length > 0) {
+          await dbAny.postCategory.createMany({
+            data: input.categoryIds.map((categoryId) => ({ postId, categoryId })),
+            skipDuplicates: true,
+          });
+        }
       }
     }
-
-    if (input.tagIds !== undefined && tx.postTag) {
-      await tx.postTag.deleteMany({ where: { postId } });
-      if (input.tagIds.length > 0 && tx.postTag.createMany) {
-        await tx.postTag.createMany({
-          data: input.tagIds.map((tagId) => ({ postId, tagId })),
-          skipDuplicates: true,
-        });
+    if (input.tagIds !== undefined) {
+      const dbAny = tx as ContentDb & {
+        postTag: {
+          deleteMany: (a: unknown) => Promise<unknown>;
+          createMany: (a: unknown) => Promise<unknown>;
+        };
+      };
+      if (dbAny.postTag) {
+        await dbAny.postTag.deleteMany({ where: { postId } });
+        if (input.tagIds.length > 0) {
+          await dbAny.postTag.createMany({
+            data: input.tagIds.map((tagId) => ({ postId, tagId })),
+            skipDuplicates: true,
+          });
+        }
       }
     }
 
     const publishFields: Record<string, unknown> = {
       version: { increment: 1 },
     };
-    if (input.featuredImageId !== undefined) {
-      publishFields.featuredImageId = input.featuredImageId;
-    }
     if (input.status === 'PUBLISHED') {
       requirePermission(ctx, 'posts.publish');
       publishFields.status = 'PUBLISHED';
       publishFields.publishedAt = new Date();
-      publishFields.deletedAt = null;
     } else if (input.status) {
       if (input.status === 'TRASHED') requirePermission(ctx, 'posts.delete');
       publishFields.status = input.status;
@@ -287,7 +248,11 @@ export async function updatePost(
     return tx.post.update({
       where: { id: postId },
       data: publishFields,
-      include: postInclude,
+      include: {
+        translations: true,
+        categories: true,
+        tags: true,
+      },
     });
   });
 }
@@ -301,22 +266,5 @@ export async function publishPost(db: ContentDb, ctx: AuthContext, postId: strin
     version: post.version,
     languageId,
     status: 'PUBLISHED',
-  });
-}
-
-export async function trashPost(
-  db: ContentDb,
-  ctx: AuthContext,
-  postId: string,
-  languageId: string,
-) {
-  const post = (await db.post.findUnique({ where: { id: postId } })) as {
-    version: number;
-  } | null;
-  if (!post) throw new Error('Post not found');
-  return updatePost(db, ctx, postId, {
-    version: post.version,
-    languageId,
-    status: 'TRASHED',
   });
 }
