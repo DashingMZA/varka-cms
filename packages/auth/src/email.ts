@@ -1,7 +1,9 @@
 /**
  * Transactional email sender for auth flows (OTP, verify, reset, 2FA).
- * Dev: logs to console when SMTP is not configured.
- * Prod: SMTP via env (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM).
+ *
+ * Delivery modes (no nodemailer — avoids Turbopack resolve warnings):
+ * 1. EMAIL_WEBHOOK_URL set → POST JSON to webhook (Resend/Postmark/custom)
+ * 2. Otherwise → log to console (dev-safe)
  */
 import { createHash, randomInt } from 'node:crypto';
 
@@ -64,47 +66,43 @@ export async function sendAuthEmail(input: SendAuthEmailInput): Promise<void> {
     'noreply@varka.local';
   const subject = SUBJECTS[input.type];
   const text = bodyFor(input);
+  const webhook = process.env.EMAIL_WEBHOOK_URL?.trim();
 
-  const host = process.env.SMTP_HOST;
-  if (!host) {
-    console.info(
-      `[varka/auth-email] DEV (no SMTP_HOST) → to=${input.to} type=${input.type} code=${input.code ?? ''} url=${input.url ?? ''}\n${text}`,
-    );
-    return;
-  }
-
-  try {
-    const nodemailer = (await import('nodemailer' as string).catch(() => null)) as {
-      createTransport: (opts: unknown) => {
-        sendMail: (opts: unknown) => Promise<unknown>;
+  if (webhook) {
+    try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
       };
-    } | null;
+      const token = process.env.EMAIL_WEBHOOK_TOKEN?.trim();
+      if (token) headers.Authorization = `Bearer ${token}`;
 
-    if (!nodemailer) {
-      console.warn('[varka/auth-email] nodemailer not installed — logging email instead');
-      console.info(`[varka/auth-email] to=${input.to} subject=${subject}\n${text}`);
+      const res = await fetch(webhook, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          from,
+          to: input.to,
+          subject,
+          text,
+          type: input.type,
+          code: input.code,
+          url: input.url,
+          locale: input.locale,
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.text().catch(() => '');
+        console.error('[varka/auth-email] webhook failed', res.status, body);
+        throw new Error('Failed to send email');
+      }
       return;
+    } catch (err) {
+      console.error('[varka/auth-email] webhook error', err);
+      throw new Error('Failed to send email');
     }
-
-    const port = Number(process.env.SMTP_PORT ?? 587);
-    const transport = nodemailer.createTransport({
-      host,
-      port,
-      secure: port === 465,
-      auth:
-        process.env.SMTP_USER && process.env.SMTP_PASS
-          ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-          : undefined,
-    });
-
-    await transport.sendMail({
-      from,
-      to: input.to,
-      subject,
-      text,
-    });
-  } catch (err) {
-    console.error('[varka/auth-email] send failed', err);
-    throw new Error('Failed to send email');
   }
+
+  console.info(
+    `[varka/auth-email] DEV (no EMAIL_WEBHOOK_URL) → to=${input.to} type=${input.type} code=${input.code ?? ''} url=${input.url ?? ''}\nSubject: ${subject}\n${text}`,
+  );
 }
