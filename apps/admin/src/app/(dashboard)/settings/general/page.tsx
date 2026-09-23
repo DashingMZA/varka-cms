@@ -1,6 +1,7 @@
 'use client';
 
 import { Field, SettingsForm, inputStyle, selectStyle } from '@/components/settings/settings-form';
+import { useMessages } from '@/lib/i18n';
 
 const DEFAULTS = {
   siteTitle: 'VARKA',
@@ -18,30 +19,31 @@ const DEFAULTS = {
 };
 
 export default function GeneralSettingsPage() {
+  const { t } = useMessages();
   return (
     <SettingsForm
       group="general"
-      title="General Settings"
-      description="Site identity, URLs, language, timezone, and date/time formats — WordPress-style."
+      title={t('settings', 'generalTitle')}
+      description={t('settings', 'generalDesc')}
       defaults={DEFAULTS}
     >
       {(v, set) => (
         <>
-          <Field label="Site Title">
+          <Field label={t('settings', 'siteTitle')}>
             <input
               style={inputStyle}
               value={String(v.siteTitle ?? '')}
               onChange={(e) => set('siteTitle', e.target.value)}
             />
           </Field>
-          <Field label="Tagline" hint="In a few words, explain what this site is about.">
+          <Field label={t('settings', 'tagline')} hint={t('settings', 'taglineHint')}>
             <input
               style={inputStyle}
               value={String(v.tagline ?? '')}
               onChange={(e) => set('tagline', e.target.value)}
             />
           </Field>
-          <Field label="Administration Email Address">
+          <Field label={t('settings', 'adminEmail')}>
             <input
               type="email"
               style={inputStyle}
@@ -49,7 +51,7 @@ export default function GeneralSettingsPage() {
               onChange={(e) => set('adminEmail', e.target.value)}
             />
           </Field>
-          <Field label="Site Address (URL)">
+          <Field label={t('settings', 'siteUrl')}>
             <input
               style={inputStyle}
               value={String(v.siteUrl ?? '')}
@@ -57,47 +59,48 @@ export default function GeneralSettingsPage() {
               placeholder="https://example.com"
             />
           </Field>
-          <Field label="Home URL" hint="Usually same as Site Address unless WP is in a subdirectory.">
+          <Field label={t('settings', 'homeUrl')} hint={t('settings', 'homeUrlHint')}>
             <input
               style={inputStyle}
               value={String(v.homeUrl ?? '')}
               onChange={(e) => set('homeUrl', e.target.value)}
             />
           </Field>
-          <Field label="Membership">
+          <Field label={t('settings', 'membership')}>
             <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 14 }}>
               <input
                 type="checkbox"
                 checked={Boolean(v.membership)}
                 onChange={(e) => set('membership', e.target.checked)}
               />
-              Anyone can register
+              {t('settings', 'membershipAnyone')}
             </label>
           </Field>
-          <Field label="New User Default Role">
+          <Field label={t('settings', 'defaultRole')}>
             <select
               style={selectStyle}
               value={String(v.defaultRole ?? 'subscriber')}
               onChange={(e) => set('defaultRole', e.target.value)}
             >
-              <option value="subscriber">Subscriber</option>
-              <option value="author">Author</option>
-              <option value="editor">Editor</option>
-              <option value="admin">Administrator</option>
+              <option value="subscriber">{t('settings', 'roleSubscriber')}</option>
+              <option value="author">{t('settings', 'roleAuthor')}</option>
+              <option value="editor">{t('settings', 'roleEditor')}</option>
+              <option value="admin">{t('settings', 'roleAdmin')}</option>
             </select>
           </Field>
-          <Field label="Site Language">
+          <Field label={t('settings', 'siteLanguage')}>
             <select
               style={selectStyle}
               value={String(v.siteLanguage ?? 'en')}
               onChange={(e) => set('siteLanguage', e.target.value)}
             >
               <option value="en">English</option>
-              <option value="ur">Urdu</option>
-              <option value="pa">Punjabi</option>
+              <option value="ur">اردو</option>
+              <option value="ar">العربية</option>
+              <option value="es">Español</option>
             </select>
           </Field>
-          <Field label="Timezone">
+          <Field label={t('settings', 'timezone')}>
             <select
               style={selectStyle}
               value={String(v.timezone ?? 'UTC')}
@@ -109,7 +112,7 @@ export default function GeneralSettingsPage() {
               <option value="Europe/London">Europe/London</option>
             </select>
           </Field>
-          <Field label="Date Format">
+          <Field label={t('settings', 'dateFormat')}>
             <select
               style={selectStyle}
               value={String(v.dateFormat ?? 'F j, Y')}
@@ -121,7 +124,7 @@ export default function GeneralSettingsPage() {
               <option value="d/m/Y">17/09/2026</option>
             </select>
           </Field>
-          <Field label="Time Format">
+          <Field label={t('settings', 'timeFormat')}>
             <select
               style={selectStyle}
               value={String(v.timeFormat ?? 'g:i a')}
@@ -132,14 +135,14 @@ export default function GeneralSettingsPage() {
               <option value="H:i">19:51</option>
             </select>
           </Field>
-          <Field label="Week Starts On">
+          <Field label={t('settings', 'weekStartsOn')}>
             <select
               style={selectStyle}
               value={String(v.weekStartsOn ?? 'monday')}
               onChange={(e) => set('weekStartsOn', e.target.value)}
             >
-              <option value="sunday">Sunday</option>
-              <option value="monday">Monday</option>
+              <option value="sunday">{t('settings', 'sunday')}</option>
+              <option value="monday">{t('settings', 'monday')}</option>
             </select>
           </Field>
         </>
