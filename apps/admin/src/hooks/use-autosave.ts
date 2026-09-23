@@ -2,11 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-/**
- * Debounced autosave — WordPress-style.
- * Never runs when `enabled` is false (e.g. empty title).
- * Interval can be customized in Settings (SiteSetting admin.autosaveIntervalMs).
- */
+/** Debounced autosave — WordPress-style. Never runs when enabled is false. */
 export function useAutosave(
   enabled: boolean,
   deps: unknown[],
@@ -28,9 +24,7 @@ export function useAutosave(
         const res = await fetch('/api/settings/autosave', { credentials: 'include' });
         if (!res.ok) return;
         const data = (await res.json()) as { intervalMs?: number };
-        if (data.intervalMs && data.intervalMs >= 1000) {
-          setDelayMs(data.intervalMs);
-        }
+        if (data.intervalMs && data.intervalMs >= 1000) setDelayMs(data.intervalMs);
       } catch {
         /* keep default */
       }
