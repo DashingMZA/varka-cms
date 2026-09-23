@@ -40,7 +40,11 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const body = (await req.json()) as { name?: string; description?: string };
+    const body = (await req.json()) as {
+      name?: string;
+      slug?: string;
+      description?: string;
+    };
     const name = (body.name ?? '').trim();
     if (!name) return NextResponse.json({ error: 'name required' }, { status: 400 });
     const sid = await siteId();
@@ -48,7 +52,7 @@ export async function POST(req: Request) {
       where: { siteId: sid, defaultLanguage: true },
     });
     if (!lang) return NextResponse.json({ error: 'No default language' }, { status: 400 });
-    const slug = slugify(name);
+    const slug = (body.slug ?? '').trim() ? slugify(body.slug!) : slugify(name);
     const cat = await prisma.category.create({
       data: {
         siteId: sid,
