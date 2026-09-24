@@ -43,45 +43,29 @@ export async function getDashboardAction(): Promise<
       recentComments,
       recentAudit,
     ] = await Promise.all([
-      prisma.post.count({ where: { siteId } }),
-      prisma.post.count({ where: { siteId, status: 'PUBLISHED' } }),
-      prisma.post.count({ where: { siteId, status: 'DRAFT' } }),
+      prisma.post.count({ where: { siteId, deletedAt: null } }),
+      prisma.post.count({ where: { siteId, deletedAt: null, status: 'PUBLISHED' } }),
+      prisma.post.count({ where: { siteId, deletedAt: null, status: 'DRAFT' } }),
       prisma.page.count({ where: { siteId } }),
       prisma.mediaAsset.count({ where: { siteId } }),
       prisma.comment.count({ where: { siteId } }),
       prisma.comment.count({ where: { siteId, status: 'PENDING' } }),
       prisma.user.count(),
       prisma.post.findMany({
-        where: { siteId },
+        where: { siteId, deletedAt: null },
         orderBy: { updatedAt: 'desc' },
         take: 5,
-        include: {
-          translations: { take: 1, select: { title: true, slug: true } },
-        },
+        include: { translations: { take: 1 } },
       }),
       prisma.comment.findMany({
         where: { siteId },
         orderBy: { createdAt: 'desc' },
         take: 5,
-        select: {
-          id: true,
-          authorName: true,
-          body: true,
-          status: true,
-          createdAt: true,
-        },
       }),
       prisma.auditLog.findMany({
         orderBy: { createdAt: 'desc' },
         take: 8,
-        select: {
-          id: true,
-          action: true,
-          entityType: true,
-          createdAt: true,
-          actorEmail: true,
-        },
-      }),
+      }).catch(() => []),
     ]);
 
     return {
@@ -105,12 +89,24 @@ export async function getDashboardAction(): Promise<
             updatedAt: p.updatedAt.toISOString(),
           })),
           comments: recentComments.map((c) => ({
-            ...c,
+            id: c.id,
+            authorName: c.authorName ?? 'Anonymous',
+            body: c.body ?? '',
+            status: c.status,
             createdAt: c.createdAt.toISOString(),
           })),
-          audit: recentAudit.map((a) => ({
-            ...a,
+          audit: (recentAudit as Array<{
+            id: string;
+            action: string;
+            entityType: string | null;
+            createdAt: Date;
+            actorEmail: string | null;
+          }>).map((a) => ({
+            id: a.id,
+            action: a.action,
+            entityType: a.entityType,
             createdAt: a.createdAt.toISOString(),
+            actorEmail: a.actorEmail,
           })),
         },
       },
