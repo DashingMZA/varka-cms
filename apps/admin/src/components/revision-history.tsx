@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { listRevisionsAction, restoreRevisionAction } from '@/actions/posts';
 
 type Rev = {
   id: string;
@@ -21,13 +22,12 @@ export function RevisionHistory({
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
-    const res = await fetch(`/api/posts/${postId}/revisions`, { credentials: 'include' });
-    if (!res.ok) {
-      setError(`Failed to load revisions (${res.status})`);
+    const result = await listRevisionsAction(postId);
+    if (!result.ok) {
+      setError(result.error || 'Failed to load revisions');
       return;
     }
-    const data = (await res.json()) as { items: Rev[] };
-    setItems(data.items ?? []);
+    setItems((result.data.items as Rev[]) ?? []);
   }, [postId]);
 
   useEffect(() => {
@@ -38,16 +38,10 @@ export function RevisionHistory({
     if (!confirm('Restore this revision? Current content will be replaced.')) return;
     setBusy(true);
     setError(null);
-    const res = await fetch(`/api/posts/${postId}/revisions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ revisionId }),
-    });
+    const result = await restoreRevisionAction(postId, revisionId);
     setBusy(false);
-    if (!res.ok) {
-      const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(body.error ?? 'Restore failed');
+    if (!result.ok) {
+      setError(result.error ?? 'Restore failed');
       return;
     }
     await load();
