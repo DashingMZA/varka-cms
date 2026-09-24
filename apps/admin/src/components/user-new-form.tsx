@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { listRolesAction, createUserAction } from '@/actions/users';
 
 type Role = { slug: string; name: string };
 
@@ -13,12 +14,6 @@ function generatePassword(len = 20): string {
   return Array.from(arr, (n) => chars[n % chars.length]).join('');
 }
 
-function strengthLabel(pw: string): { label: string; color: string } {
-  if (pw.length < 12) return { label: 'Weak', color: '#d63638' };
-  if (pw.length < 16) return { label: 'Medium', color: '#dba617' };
-  return { label: 'Strong', color: '#00a32a' };
-}
-
 export function UserNewForm() {
   const router = useRouter();
   const [roles, setRoles] = useState<Role[]>([]);
@@ -27,113 +22,104 @@ export function UserNewForm() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [website, setWebsite] = useState('');
-  const [password, setPassword] = useState(() => generatePassword());
-  const [showPw, setShowPw] = useState(true);
-  const [roleSlug, setRoleSlug] = useState('reader');
-  const [notify, setNotify] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [password, setPassword] = useState('');
+  const [roleSlug, setRoleSlug] = useState('author');
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    void fetch('/api/users?roles=1', { credentials: 'include' })
-      .then((r) => r.json())
-      .then((d: { roles?: Role[] }) => {
-        const list = d.roles ?? [];
+    void listRolesAction().then((res) => {
+      if (res.ok) {
+        const list = (res.data.roles as Role[]) ?? [];
         setRoles(list);
-        if (list.some((r) => r.slug === 'author')) setRoleSlug('author');
-        else if (list[0]) setRoleSlug(list[0].slug);
-      })
-      .catch(() => undefined);
-  }, []);
-
-  const strength = strengthLabel(password);
+        if (list.length && !list.some((r) => r.slug === roleSlug)) {
+          setRoleSlug(list[0]!.slug);
+        }
+      }
+    });
+  }, [roleSlug]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    setSaving(true);
     setError(null);
-    try {
-      const res = await fetch('/api/users', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username,
-          email,
-          password,
-          firstName,
-          lastName,
-          website,
-          roleSlug,
-          sendNotification: notify,
-        }),
-      });
-      const body = (await res.json()) as { error?: string };
-      if (!res.ok) throw new Error(body.error ?? 'Create failed');
-      router.push('/users');
-      router.refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error');
-    } finally {
-      setSaving(false);
+    setLoading(true);
+    const res = await createUserAction({
+      username,
+      email,
+      password,
+      firstName: firstName || undefined,
+      lastName: lastName || undefined,
+      website: website || undefined,
+      roleSlug,
+    });
+    setLoading(false);
+    if (!res.ok) {
+      setError(res.error);
+      return;
     }
+    router.push('/users');
   }
 
   return (
-    <form onSubmit={onSubmit} style={{ maxWidth: 520 }}>
-      <p className="v-page-desc">Create a brand new user and add them to this site.</p>
-      {error ? <p className="v-alert v-alert--error">{error}</p> : null}
-      <label style={field}>
-        <span>Username (required)</span>
-        <input required value={username} onChange={(e) => setUsername(e.target.value)} style={input} />
+    <form onSubmit={onSubmit} style={{ maxWidth: 480, display: 'grid', gap: 12 }}>
+      <h1 className="v-page-title" style={{ margin: 0 }}>
+        Add New User
+      </h1>
+      {error ? (
+        <p role="alert" className="v-alert v-alert--error">
+          {error}
+        </p>
+      ) : null}
+
+      <label>
+        Username
+        <input required value={username} onChange={(e) => setUsername(e.target.value)} />
       </label>
-      <label style={field}>
-        <span>Email (required)</span>
-        <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} style={input} />
+      <label>
+        Email
+        <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
       </label>
-      <label style={field}>
-        <span>First Name</span>
-        <input value={firstName} onChange={(e) => setFirstName(e.target.value)} style={input} />
+      <label>
+        First name
+        <input value={firstName} onChange={(e) => setFirstName(e.target.value)} />
       </label>
-      <label style={field}>
-        <span>Last Name</span>
-        <input value={lastName} onChange={(e) => setLastName(e.target.value)} style={input} />
+      <label>
+        Last name
+        <input value={lastName} onChange={(e) => setLastName(e.target.value)} />
       </label>
-      <label style={field}>
-        <span>Website</span>
-        <input value={website} onChange={(e) => setWebsite(e.target.value)} style={input} />
+      <label>
+        Website
+        <input value={website} onChange={(e) => setWebsite(e.target.value)} />
       </label>
-      <div style={field}>
-        <span>Password</span>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          <button type="button" className="v-btn" onClick={() => { setPassword(generatePassword()); setShowPw(true); }}>
-            Generate password
+      <label>
+        Password
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input
+            type="text"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            style={{ flex: 1 }}
+          />
+          <button type="button" className="v-btn" onClick={() => setPassword(generatePassword())}>
+            Generate
           </button>
-          <input type={showPw ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} style={{ ...input, maxWidth: 280 }} required minLength={12} />
-          <button type="button" className="v-btn" onClick={() => setShowPw((v) => !v)}>{showPw ? 'Hide' : 'Show'}</button>
         </div>
-        <div style={{ marginTop: 6, height: 22, borderRadius: 4, background: strength.color, color: '#fff', fontSize: 12, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', maxWidth: 280 }}>
-          {strength.label}
-        </div>
-      </div>
-      <label style={{ ...field, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-        <input type="checkbox" checked={notify} onChange={(e) => setNotify(e.target.checked)} />
-        <span>Send the new user an email about their account</span>
       </label>
-      <label style={field}>
-        <span>Role</span>
-        <select value={roleSlug} onChange={(e) => setRoleSlug(e.target.value)} style={input}>
+      <label>
+        Role
+        <select value={roleSlug} onChange={(e) => setRoleSlug(e.target.value)}>
           {roles.map((r) => (
-            <option key={r.slug} value={r.slug}>{r.name}</option>
+            <option key={r.slug} value={r.slug}>
+              {r.name}
+            </option>
           ))}
         </select>
       </label>
-      <button type="submit" className="v-btn v-btn--primary" disabled={saving}>
-        {saving ? 'Adding…' : 'Add User'}
+
+      <button type="submit" className="v-btn v-btn--primary" disabled={loading}>
+        {loading ? 'Creating…' : 'Add New User'}
       </button>
     </form>
   );
 }
-
-const field: React.CSSProperties = { display: 'grid', gap: 6, marginBottom: 14, fontSize: 13, fontWeight: 600 };
-const input: React.CSSProperties = { fontWeight: 400, padding: '8px 10px', border: '1px solid var(--wp-border, #c3c4c7)', borderRadius: 4, maxWidth: 360, width: '100%' };
