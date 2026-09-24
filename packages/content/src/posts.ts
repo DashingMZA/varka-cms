@@ -94,10 +94,16 @@ export async function listPosts(
   };
 }
 
+function realUserId(userId: string | undefined | null): string | undefined {
+  if (!userId || userId === 'dev-user') return undefined;
+  return userId;
+}
+
 export async function createPost(db: ContentDb, ctx: AuthContext, raw: CreatePostInput) {
   requirePermission(ctx, 'posts.create');
   const input = createPostInput.parse(raw);
-  const slug = input.slug ? input.slug : slugify(input.title);
+  let slug = input.slug ? input.slug : slugify(input.title);
+  if (!slug) slug = 'untitled';
   assertSlugAllowed(slug);
 
   let languageId = input.languageId;
@@ -112,17 +118,26 @@ export async function createPost(db: ContentDb, ctx: AuthContext, raw: CreatePos
     languageId = lang.id;
   }
 
-  const existing = await db.postTranslation.findFirst({
-    where: { languageId, slug },
-  });
-  if (existing) throw new Error(`Slug already exists: ${slug}`);
+  // Ensure unique slug (WordPress-style: untitled, untitled-2, …)
+  let candidate = slug;
+  for (let i = 0; i < 50; i++) {
+    const existing = await db.postTranslation.findFirst({
+      where: { languageId, slug: candidate },
+    });
+    if (!existing) {
+      slug = candidate;
+      break;
+    }
+    candidate = `${slug}-${i + 2}`;
+  }
 
   const contentHtml = stripDangerousHtml(input.contentHtml ?? '');
+  const authorId = input.authorId ?? realUserId(ctx.userId);
 
   return db.post.create({
     data: {
       siteId: input.siteId,
-      authorId: input.authorId ?? ctx.userId,
+      ...(authorId ? { authorId } : {}),
       status: 'DRAFT',
       translations: {
         create: {
@@ -175,7 +190,7 @@ export async function updatePost(
     await tx.revision.create({
       data: {
         postId,
-        authorId: ctx.userId,
+        ...(realUserId(ctx.userId) ? { authorId: realUserId(ctx.userId) } : {}),
         languageId: input.languageId,
         title: input.title ?? translation.title,
         contentHtml: nextHtml,
