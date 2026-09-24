@@ -1,5 +1,12 @@
 'use server';
 
+import {
+  createStorageAdapterFromEnv,
+  listMedia,
+  uploadMedia,
+  deleteMedia,
+  updateMediaMeta,
+} from '@varka/media';
 import { prisma, requireServerAuth } from '@/lib/server-db';
 import { revalidatePath } from 'next/cache';
 
@@ -13,24 +20,40 @@ function fail(e: unknown): ActionResult<never> {
 
 export async function listMediaAction(limit = 100): Promise<ActionResult<{ items: unknown[] }>> {
   try {
-    const { siteId } = await requireServerAuth('media.read');
-    const items = await prisma.mediaAsset.findMany({
-      where: { siteId },
-      take: Math.min(limit, 200),
-      orderBy: { createdAt: 'desc' },
-    });
+    const { ctx, siteId } = await requireServerAuth('media.read');
+    const result = (await listMedia(prisma as never, ctx, { siteId })) as { items?: unknown[] };
+    const items = (result.items ?? []).slice(0, Math.min(limit, 200));
     return { ok: true, data: { items: JSON.parse(JSON.stringify(items)) } };
   } catch (e) {
     return fail(e);
   }
 }
 
-export async function deleteMediaAction(id: string): Promise<ActionResult<{ id: string }>> {
+export async function uploadMediaAction(formData: FormData): Promise<ActionResult<unknown>> {
   try {
-    await requireServerAuth('media.delete');
-    await prisma.mediaAsset.delete({ where: { id } });
+    const { ctx, siteId } = await requireServerAuth('media.upload');
+    const file = formData.get('file');
+    if (!(file instanceof File)) return { ok: false, error: 'file required' };
+    const buf = Buffer.from(await file.arrayBuffer());
+    const storage = createStorageAdapterFromEnv();
+    const result = await uploadMedia(
+      prisma as never,
+      storage,
+      ctx,
+      {
+        siteId,
+        filename: file.name || 'upload.bin',
+        mimeType: file.type || 'application/octet-stream',
+        alt: String(formData.get('alt') ?? '') || undefined,
+        title: String(formData.get('title') ?? '') || undefined,
+        caption: String(formData.get('caption') ?? '') || undefined,
+        keywords: String(formData.get('keywords') ?? '') || undefined,
+        folder: String(formData.get('folder') ?? '/') || '/',
+      },
+      buf,
+    );
     revalidatePath('/media');
-    return { ok: true, data: { id } };
+    return { ok: true, data: JSON.parse(JSON.stringify(result)) };
   } catch (e) {
     return fail(e);
   }
@@ -38,19 +61,31 @@ export async function deleteMediaAction(id: string): Promise<ActionResult<{ id: 
 
 export async function updateMediaAction(
   id: string,
-  data: { alt?: string | null; title?: string | null },
+  data: {
+    alt?: string | null;
+    title?: string | null;
+    caption?: string | null;
+    keywords?: string | null;
+    folder?: string | null;
+  },
 ): Promise<ActionResult<unknown>> {
   try {
-    await requireServerAuth('media.update');
-    const item = await prisma.mediaAsset.update({
-      where: { id },
-      data: {
-        ...(data.alt !== undefined ? { alt: data.alt } : {}),
-        ...(data.title !== undefined ? { title: data.title } : {}),
-      },
-    });
+    const { ctx } = await requireServerAuth('media.update');
+    const asset = await updateMediaMeta(prisma as never, ctx, id, data as never);
     revalidatePath('/media');
-    return { ok: true, data: JSON.parse(JSON.stringify(item)) };
+    return { ok: true, data: JSON.parse(JSON.stringify(asset)) };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function deleteMediaAction(id: string): Promise<ActionResult<{ id: string }>> {
+  try {
+    const { ctx } = await requireServerAuth('media.delete');
+    const storage = createStorageAdapterFromEnv();
+    await deleteMedia(prisma as never, storage, ctx, id);
+    revalidatePath('/media');
+    return { ok: true, data: { id } };
   } catch (e) {
     return fail(e);
   }
