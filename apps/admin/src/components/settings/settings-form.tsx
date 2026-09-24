@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { useMessages } from '@/lib/i18n';
+import { getSettingsAction, saveSettingsAction } from '@/actions/settings';
 
 export type SettingsGroup =
   | 'general'
@@ -35,9 +36,9 @@ export function SettingsForm({ group, title, description, defaults, children }: 
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`/api/settings?group=${group}`, { credentials: 'include' });
-        if (!res.ok) throw new Error(t('errors', 'loadFailed'));
-        const data = (await res.json()) as { settings?: Record<string, unknown> };
+        const res = await getSettingsAction(group);
+        if (!res.ok) throw new Error(res.error || t('errors', 'loadFailed'));
+        const data = res.data as { settings?: Record<string, unknown> };
         if (!cancelled) {
           setValues({ ...defaults, ...(data.settings ?? {}) });
         }
@@ -62,17 +63,9 @@ export function SettingsForm({ group, title, description, defaults, children }: 
     setMessage(null);
     setError(null);
     try {
-      const res = await fetch(`/api/settings?group=${group}`, {
-        method: 'PUT',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ settings: values }),
-      });
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(body.error ?? t('errors', 'saveFailed'));
-      }
-      setMessage(t('settings', 'saved'));
+      const res = await saveSettingsAction(group, values);
+      if (!res.ok) throw new Error(res.error || t('errors', 'saveFailed'));
+      setMessage(t('settings', 'saved') || 'Settings saved.');
     } catch (err) {
       setError(err instanceof Error ? err.message : t('errors', 'saveFailed'));
     } finally {
@@ -81,48 +74,45 @@ export function SettingsForm({ group, title, description, defaults, children }: 
   }
 
   if (loading) {
-    return <p style={{ color: 'var(--muted)' }}>{t('settings', 'loading')}</p>;
+    return <p className="v-muted">{t('settings', 'loading') || 'Loading…'}</p>;
   }
 
   return (
-    <form onSubmit={onSubmit} style={{ maxWidth: 720 }}>
-      <header style={{ marginBottom: 24 }}>
-        <h1 style={{ margin: '0 0 8px', fontSize: 22 }}>{title}</h1>
-        {description ? (
-          <p style={{ margin: 0, color: 'var(--muted)', fontSize: 14 }}>{description}</p>
+    <div className="v-wrap">
+      <form onSubmit={onSubmit}>
+        <div className="v-page-header">
+          <h1 className="v-page-title">{title}</h1>
+        </div>
+        {description ? <p className="v-page-desc">{description}</p> : null}
+
+        {message ? (
+          <div className="v-notice v-notice--success">
+            <p>{message}</p>
+          </div>
         ) : null}
-      </header>
-
-      <div style={{ display: 'grid', gap: 20 }}>{children(values, set)}</div>
-
-      <div style={{ marginTop: 28, display: 'flex', alignItems: 'center', gap: 12 }}>
-        <button
-          type="submit"
-          disabled={saving}
-          className="v-btn v-btn--primary"
-          style={{
-            padding: '10px 18px',
-            borderRadius: 6,
-            border: 'none',
-            background: 'var(--accent, #2271b1)',
-            color: '#fff',
-            fontWeight: 600,
-            cursor: saving ? 'wait' : 'pointer',
-          }}
-        >
-          {saving ? t('common', 'saving') : t('settings', 'saveChanges')}
-        </button>
-        {message ? <span style={{ color: 'green', fontSize: 13 }}>{message}</span> : null}
         {error ? (
-          <span role="alert" style={{ color: 'var(--danger, #b32d2e)', fontSize: 13 }}>
-            {error}
-          </span>
+          <div className="v-notice v-notice--error" role="alert">
+            <p>{error}</p>
+          </div>
         ) : null}
-      </div>
-    </form>
+
+        <table className="v-form-table form-table">
+          <tbody>{children(values, set)}</tbody>
+        </table>
+
+        <p className="submit" style={{ marginTop: 20 }}>
+          <button type="submit" className="v-btn v-btn--primary" disabled={saving}>
+            {saving
+              ? t('common', 'saving') || 'Saving…'
+              : t('settings', 'saveChanges') || 'Save Changes'}
+          </button>
+        </p>
+      </form>
+    </div>
   );
 }
 
+/** WordPress form-table row */
 export function Field({
   label,
   hint,
@@ -133,22 +123,23 @@ export function Field({
   children: ReactNode;
 }) {
   return (
-    <div style={{ display: 'grid', gap: 6 }}>
-      <label style={{ fontWeight: 600, fontSize: 13 }}>{label}</label>
-      {children}
-      {hint ? <p style={{ margin: 0, fontSize: 12, color: 'var(--muted)' }}>{hint}</p> : null}
-    </div>
+    <tr>
+      <th scope="row">
+        <label>{label}</label>
+      </th>
+      <td>
+        {children}
+        {hint ? <p className="description">{hint}</p> : null}
+      </td>
+    </tr>
   );
 }
 
 export const inputStyle: React.CSSProperties = {
-  padding: '8px 10px',
-  borderRadius: 4,
-  border: '1px solid var(--border, #8c8f94)',
-  fontSize: 14,
-  maxWidth: 400,
+  maxWidth: '25em',
   width: '100%',
-  background: '#fff',
 };
 
-export const selectStyle: React.CSSProperties = { ...inputStyle, maxWidth: 280 };
+export const selectStyle: React.CSSProperties = {
+  maxWidth: '25em',
+};
