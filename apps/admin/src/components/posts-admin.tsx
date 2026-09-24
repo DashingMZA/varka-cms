@@ -5,19 +5,28 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScreenMeta } from '@/components/screen-meta/screen-meta';
 import { Subsubsub } from '@/components/list-table/list-table';
 import { useMessages } from '@/lib/i18n';
+import {
+  listPostsAction,
+  createPostAction,
+  trashPostAction,
+  bulkPostsAction,
+} from '@/actions/posts';
 
 type PostRow = {
   id: string;
   status: string;
-  publishedAt?: string | null;
   updatedAt?: string;
+  publishedAt?: string | null;
   translations?: Array<{ title?: string; slug?: string }>;
   author?: { name?: string | null; email?: string } | null;
 };
 
+type Counts = { all: number; published: number; draft: number; trashed: number };
+
 export function PostsAdmin() {
   const { t } = useMessages();
   const [items, setItems] = useState<PostRow[]>([]);
+  const [counts, setCounts] = useState<Counts>({ all: 0, published: 0, draft: 0, trashed: 0 });
   const [status, setStatus] = useState('all');
   const [q, setQ] = useState('');
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -51,51 +60,44 @@ export function PostsAdmin() {
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams();
-      if (status && status !== 'all') params.set('status', status.toUpperCase());
-      const res = await fetch(`/api/posts?${params}`, { credentials: 'include' });
-      if (!res.ok) {
-        setError(t('errors', 'loadFailed') + ` (${res.status})`);
+      const result = await listPostsAction({
+        limit: 100,
+        status: status !== 'all' ? status.toUpperCase() : undefined,
+        q: q.trim() || undefined,
+      });
+      if (!result.ok) {
+        setError(t('errors', 'loadFailed') + `: ${result.error}`);
         setLoading(false);
         return;
       }
-      const data = (await res.json()) as { items?: PostRow[] };
-      setItems(data.items ?? []);
+      setItems((result.data.items as PostRow[]) ?? []);
+      setCounts((result.data.counts as Counts) ?? counts);
+      setSelected(new Set());
     } catch {
       setError(t('errors', 'networkError'));
     }
     setLoading(false);
-  }, [status, t]);
+  }, [status, q, t]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
   const filtered = useMemo(() => {
-    if (!q.trim()) return items;
-    const qq = q.toLowerCase();
-    return items.filter((p) => {
-      const title = p.translations?.[0]?.title ?? '';
-      return title.toLowerCase().includes(qq);
-    });
-  }, [items, q]);
+    if (status === 'all') return items;
+    return items.filter((p) => p.status === status.toUpperCase());
+  }, [items, status]);
 
   async function createPost() {
     setLoading(true);
     try {
-      const res = await fetch('/api/posts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ title: 'Untitled' }),
-      });
-      if (!res.ok) {
-        setError(t('errors', 'saveFailed') + ` (${res.status})`);
+      const result = await createPostAction('Untitled');
+      if (!result.ok) {
+        setError(t('errors', 'saveFailed') + `: ${result.error}`);
         setLoading(false);
         return;
       }
-      const post = (await res.json()) as { id: string };
-      window.location.href = `/content/posts/${post.id}`;
+      window.location.href = `/content/posts/${result.data.id}`;
     } catch {
       setError(t('errors', 'networkError'));
       setLoading(false);
@@ -106,22 +108,13 @@ export function PostsAdmin() {
     if (!bulk || selected.size === 0) return;
     setLoading(true);
     try {
-      for (const id of selected) {
-        if (bulk === 'trash') {
-          await fetch(`/api/posts/${id}`, {
-            method: 'DELETE',
-            credentials: 'include',
-          });
-        } else if (bulk === 'publish' || bulk === 'draft') {
-          await fetch(`/api/posts/${id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({
-              status: bulk === 'publish' ? 'PUBLISHED' : 'DRAFT',
-            }),
-          });
-        }
+      const ids = Array.from(selected);
+      if (bulk === 'trash') {
+        await bulkPostsAction(ids, 'trash');
+      } else if (bulk === 'publish') {
+        await bulkPostsAction(ids, 'publish');
+      } else if (bulk === 'draft') {
+        await bulkPostsAction(ids, 'draft');
       }
       await load();
       setSelected(new Set());
@@ -187,11 +180,11 @@ export function PostsAdmin() {
         active={status}
         onChange={setStatus}
         items={[
-          { id: 'all', label: t('blogs', 'all') },
-          { id: 'published', label: t('blogs', 'published') },
-          { id: 'draft', label: t('blogs', 'draft') },
+          { id: 'all', label: `${t('blogs', 'all')} (${counts.all})` },
+          { id: 'published', label: `${t('blogs', 'published')} (${counts.published})` },
+          { id: 'draft', label: `${t('blogs', 'draft')} (${counts.draft})` },
           { id: 'pending', label: t('blogs', 'pending') },
-          { id: 'trash', label: t('blogs', 'trash') },
+          { id: 'trash', label: `${t('blogs', 'trash')} (${counts.trashed})` },
         ]}
       />
 
@@ -212,10 +205,14 @@ export function PostsAdmin() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder={t('blogs', 'searchPosts')}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') void load();
+            }}
           />
           <button type="button" className="v-btn" onClick={() => void load()}>
             {t('blogs', 'searchButton')}
           </button>
+          {loading ? <span className="v-muted">{t('common', 'loading')}</span> : null}
         </div>
       </div>
 
@@ -280,6 +277,20 @@ export function PostsAdmin() {
                       <span>
                         <Link href={`/content/posts/${p.id}`}>{t('common', 'edit') || 'Edit'}</Link>
                       </span>
+                      {' | '}
+                      <a
+                        href="#"
+                        className="trash"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          void (async () => {
+                            await trashPostAction(p.id);
+                            await load();
+                          })();
+                        }}
+                      >
+                        {t('common', 'trash') || 'Trash'}
+                      </a>
                     </div>
                   </td>
                   {cols.author ? <td>{p.author?.name || p.author?.email || '—'}</td> : null}
