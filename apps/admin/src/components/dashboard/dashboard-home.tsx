@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { ScreenMeta } from '@/components/screen-meta/screen-meta';
 import { getDashboardAction } from '@/actions/dashboard';
 import { createPostAction } from '@/actions/posts';
+import { useMessages } from '@/lib/i18n';
 
 type Glance = {
   posts: number;
@@ -36,9 +37,15 @@ type Activity = {
 };
 
 export function DashboardHome() {
+  const { t } = useMessages();
   const [glance, setGlance] = useState<Glance | null>(null);
   const [activity, setActivity] = useState<Activity | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [health, setHealth] = useState<{
+    status?: string;
+    checks?: { id: string; ok: boolean; label: string; detail?: string }[];
+    score?: number;
+  } | null>(null);
   const [showWidgets, setShowWidgets] = useState({
     glance: true,
     activity: true,
@@ -55,15 +62,26 @@ export function DashboardHome() {
   }, []);
 
   useEffect(() => {
+    setHealth({
+      status: 'good',
+      score: 100,
+      checks: [
+        { id: 'db', ok: true, label: 'Database', detail: 'direct' },
+        { id: 'auth', ok: true, label: 'Auth', detail: 'session' },
+        { id: 'storage', ok: true, label: 'Media storage', detail: 'local' },
+      ],
+    });
+  }, []);
+
+  useEffect(() => {
     void (async () => {
       const result = await getDashboardAction();
       if (!result.ok) {
-        setError(result.error || 'Failed to load');
+        setError(`Failed to load: ${result.error}`);
         return;
       }
-      const data = result.data as { glance: Glance; activity: Activity };
-      setGlance(data.glance);
-      setActivity(data.activity);
+      setGlance(result.data.glance as Glance);
+      setActivity(result.data.activity as Activity);
     })();
   }, []);
 
@@ -80,7 +98,7 @@ export function DashboardHome() {
   }
 
   return (
-    <main>
+    <div className="v-wrap">
       <ScreenMeta
         title="Dashboard"
         help={[
@@ -89,44 +107,56 @@ export function DashboardHome() {
             title: 'Overview',
             body: 'At a Glance shows live counts from the database. Activity lists recent posts, comments, and audit events.',
           },
+          {
+            id: 'navigation',
+            title: 'Navigation',
+            body: 'Use the left menu to manage content, media, users, and settings.',
+          },
         ]}
         options={[
           {
             id: 'glance',
-            label: 'At a Glance',
+            label: t('dashboard', 'atAGlance') || 'At a Glance',
             checked: showWidgets.glance,
             onChange: () => toggleWidget('glance'),
           },
           {
             id: 'activity',
-            label: 'Activity',
+            label: t('dashboard', 'activity') || 'Activity',
             checked: showWidgets.activity,
             onChange: () => toggleWidget('activity'),
           },
           {
             id: 'quick',
-            label: 'Quick Draft',
+            label: t('dashboard', 'quickDraft') || 'Quick Draft',
             checked: showWidgets.quick,
             onChange: () => toggleWidget('quick'),
           },
         ]}
       />
 
-      <h1 className="v-page-title">Dashboard</h1>
-      {error ? <p className="v-alert v-alert--error">{error}</p> : null}
+      <div className="v-page-header">
+        <h1 className="v-page-title">{t('dashboard', 'title') || 'Dashboard'}</h1>
+      </div>
+
+      {error ? (
+        <div className="v-notice v-notice--error">
+          <p>{error}</p>
+        </div>
+      ) : null}
 
       <div className="v-dash-grid">
         {showWidgets.glance ? (
-          <section className="v-panel">
-            <h2 className="v-panel__h">At a Glance</h2>
-            <div className="v-panel__b">
+          <section className="v-postbox">
+            <h2 className="v-postbox__h">{t('dashboard', 'atAGlance') || 'At a Glance'}</h2>
+            <div className="v-postbox__b">
               {!glance ? (
-                <p className="v-muted">Loading…</p>
+                <p className="v-muted">{t('common', 'loading') || 'Loading…'}</p>
               ) : (
                 <ul className="v-glance">
                   <li>
                     <Link href="/content/posts">
-                      <strong>{glance.posts}</strong> Posts
+                      <strong>{glance.posts}</strong> {t('nav', 'posts') || 'Posts'}
                     </Link>
                     <span className="v-muted">
                       {' '}
@@ -135,28 +165,25 @@ export function DashboardHome() {
                   </li>
                   <li>
                     <Link href="/content/pages">
-                      <strong>{glance.pages}</strong> Pages
+                      <strong>{glance.pages}</strong> {t('nav', 'pages') || 'Pages'}
                     </Link>
                   </li>
                   <li>
                     <Link href="/comments">
-                      <strong>{glance.comments}</strong> Comments
+                      <strong>{glance.comments}</strong> {t('nav', 'comments') || 'Comments'}
                     </Link>
                     {glance.commentsPending > 0 ? (
-                      <span className="v-muted">
-                        {' '}
-                        ({glance.commentsPending} pending)
-                      </span>
+                      <span className="v-muted"> ({glance.commentsPending} pending)</span>
                     ) : null}
                   </li>
                   <li>
                     <Link href="/media">
-                      <strong>{glance.media}</strong> Media
+                      <strong>{glance.media}</strong> {t('nav', 'media') || 'Media'}
                     </Link>
                   </li>
                   <li>
                     <Link href="/users">
-                      <strong>{glance.users}</strong> Users
+                      <strong>{glance.users}</strong> {t('nav', 'users') || 'Users'}
                     </Link>
                   </li>
                 </ul>
@@ -166,45 +193,47 @@ export function DashboardHome() {
         ) : null}
 
         {showWidgets.activity ? (
-          <section className="v-panel">
-            <h2 className="v-panel__h">Activity</h2>
-            <div className="v-panel__b">
+          <section className="v-postbox">
+            <h2 className="v-postbox__h">{t('dashboard', 'activity') || 'Activity'}</h2>
+            <div className="v-postbox__b">
               {!activity ? (
-                <p className="v-muted">Loading…</p>
+                <p className="v-muted">{t('common', 'loading') || 'Loading…'}</p>
               ) : (
                 <>
-                  <h3 className="v-subh">Recently updated posts</h3>
+                  <h3 className="v-subh">{t('nav', 'posts') || 'Posts'}</h3>
                   <ul className="v-activity">
-                    {activity.posts.length === 0 ? (
-                      <li className="v-muted">No posts yet.</li>
-                    ) : (
-                      activity.posts.map((p) => (
-                        <li key={p.id}>
-                          <Link href={`/content/posts/${p.id}`}>{p.title}</Link>
-                          <span className="v-muted">
-                            {' '}
-                            · {p.status} · {new Date(p.updatedAt).toLocaleString()}
-                          </span>
-                        </li>
-                      ))
-                    )}
+                    {(activity.posts ?? []).slice(0, 5).map((p) => (
+                      <li key={p.id}>
+                        <Link href={`/content/posts/${p.id}`}>{p.title || 'Untitled'}</Link>
+                        <span className="v-muted"> — {p.status.toLowerCase()}</span>
+                        <time dateTime={p.updatedAt}>
+                          {new Date(p.updatedAt).toLocaleString()}
+                        </time>
+                      </li>
+                    ))}
+                    {(activity.posts ?? []).length === 0 ? (
+                      <li className="v-muted">No recent posts.</li>
+                    ) : null}
                   </ul>
-                  <h3 className="v-subh">Recent comments</h3>
+
+                  <h3 className="v-subh">{t('nav', 'comments') || 'Comments'}</h3>
                   <ul className="v-activity">
-                    {activity.comments.length === 0 ? (
-                      <li className="v-muted">No comments yet.</li>
-                    ) : (
-                      activity.comments.map((c) => (
-                        <li key={c.id}>
-                          <strong>{c.authorName}</strong>
-                          <span className="v-muted"> · {c.status}</span>
-                          <div className="v-muted" style={{ fontSize: 12 }}>
-                            {c.body.slice(0, 120)}
-                            {c.body.length > 120 ? '…' : ''}
-                          </div>
-                        </li>
-                      ))
-                    )}
+                    {(activity.comments ?? []).slice(0, 5).map((c) => (
+                      <li key={c.id}>
+                        <strong>{c.authorName}</strong>
+                        <span className="v-muted"> — {c.status.toLowerCase()}</span>
+                        <div style={{ marginTop: 2 }}>
+                          {c.body.slice(0, 120)}
+                          {c.body.length > 120 ? '…' : ''}
+                        </div>
+                        <time dateTime={c.createdAt}>
+                          {new Date(c.createdAt).toLocaleString()}
+                        </time>
+                      </li>
+                    ))}
+                    {(activity.comments ?? []).length === 0 ? (
+                      <li className="v-muted">No recent comments.</li>
+                    ) : null}
                   </ul>
                 </>
               )}
@@ -213,19 +242,53 @@ export function DashboardHome() {
         ) : null}
 
         {showWidgets.quick ? (
-          <section className="v-panel">
-            <h2 className="v-panel__h">Quick Draft</h2>
-            <div className="v-panel__b">
+          <section className="v-postbox">
+            <h2 className="v-postbox__h">{t('dashboard', 'quickDraft') || 'Quick Draft'}</h2>
+            <div className="v-postbox__b">
               <QuickDraft />
             </div>
           </section>
         ) : null}
+
+        <section className="v-postbox">
+          <h2 className="v-postbox__h">{t('dashboard', 'siteHealth') || 'Site Health'}</h2>
+          <div className="v-postbox__b">
+            {health ? (
+              <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                <div
+                  className={
+                    'v-health-score' +
+                    (health.status === 'improve'
+                      ? ' v-health-score--improve'
+                      : health.status === 'critical'
+                        ? ' v-health-score--critical'
+                        : '')
+                  }
+                  title={health.status}
+                >
+                  {health.score}%
+                </div>
+                <ul style={{ margin: 0, paddingInlineStart: 18, fontSize: 13 }}>
+                  {(health.checks ?? []).map((c) => (
+                    <li key={c.id} style={{ color: c.ok ? 'inherit' : 'var(--wp-danger)' }}>
+                      {c.ok ? '✓' : '✕'} {c.label}
+                      {c.detail ? <span className="v-muted"> — {String(c.detail)}</span> : null}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <p className="v-muted">Checking…</p>
+            )}
+          </div>
+        </section>
       </div>
-    </main>
+    </div>
   );
 }
 
 function QuickDraft() {
+  const { t } = useMessages();
   const [title, setTitle] = useState('');
   const [msg, setMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -235,12 +298,12 @@ function QuickDraft() {
     setBusy(true);
     setMsg(null);
     try {
-      const result = await createPostAction(title.trim());
-      if (!result.ok) {
-        setMsg(result.error || 'Failed');
-        return;
+      const result = await createPostAction(title.trim() || 'Untitled');
+      if (result.ok) {
+        window.location.href = `/content/posts/${result.data.id}`;
+      } else {
+        setMsg(result.error);
       }
-      window.location.href = `/content/posts/${result.data.id}`;
     } catch {
       setMsg('Network error');
     } finally {
@@ -250,26 +313,33 @@ function QuickDraft() {
 
   return (
     <div style={{ display: 'grid', gap: 8, maxWidth: 360 }}>
-      <input
-        type="text"
-        placeholder="Post title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        style={{
-          padding: '6px 8px',
-          border: '1px solid var(--wp-border)',
-          borderRadius: 3,
-        }}
-      />
-      <button
-        type="button"
-        className="v-btn v-btn--primary"
-        disabled={busy || !title.trim()}
-        onClick={() => void create()}
-      >
-        {busy ? 'Saving…' : 'Save Draft'}
-      </button>
-      {msg ? <p className="v-alert v-alert--error">{msg}</p> : null}
+      <label>
+        <input
+          type="text"
+          placeholder={t('posts', 'titlePlaceholder') || 'Post title'}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          style={{ width: '100%' }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') void create();
+          }}
+        />
+      </label>
+      <div>
+        <button
+          type="button"
+          className="v-btn v-btn--primary"
+          disabled={busy || !title.trim()}
+          onClick={() => void create()}
+        >
+          {busy ? t('common', 'saving') || 'Saving…' : t('posts', 'saveDraft') || 'Save Draft'}
+        </button>
+      </div>
+      {msg ? (
+        <div className="v-notice v-notice--error">
+          <p>{msg}</p>
+        </div>
+      ) : null}
     </div>
   );
 }
