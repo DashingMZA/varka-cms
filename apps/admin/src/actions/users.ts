@@ -84,8 +84,7 @@ export async function updateUserAction(
     if (typeof body.disabled === 'boolean') data.disabled = body.disabled;
     if (typeof body.firstName === 'string') data.firstName = body.firstName;
     if (typeof body.lastName === 'string') data.lastName = body.lastName;
-    if (typeof body.website === 'string') data.website = body.website;
-    if (typeof body.bio === 'string') data.bio = body.bio;
+    if (typeof body.nickname === 'string') data.nickname = body.nickname;
 
     const user = await prisma.user.update({
       where: { id },

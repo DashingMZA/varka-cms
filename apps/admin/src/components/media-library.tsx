@@ -1,549 +1,392 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  listMediaAction,
+  deleteMediaAction,
+  updateMediaAction,
+  uploadMediaAction,
+} from '@/actions/media';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMessages } from '@/lib/i18n';
 
-type SizeMeta = {
+export type MediaSizeKey = 'thumbnail' | 'medium' | 'large' | 'original';
+
+export type MediaSizeInfo = {
   key: string;
-  width: number;
-  height: number;
-  mimeType: string;
-  sizeBytes: number;
+  width?: number;
+  height?: number;
+  sizeBytes?: number;
+  mimeType?: string;
 };
 
-type Asset = {
+export type MediaAsset = {
   id: string;
   filename: string;
   mimeType: string;
   sizeBytes: number;
+  width?: number | null;
+  height?: number | null;
   alt: string | null;
-  title?: string | null;
+  title: string | null;
   caption?: string | null;
   keywords?: string | null;
   key: string;
   storage: string;
+  sizes?: Partial<Record<MediaSizeKey, MediaSizeInfo>> | null;
   createdAt: string;
-  width?: number | null;
-  height?: number | null;
-  sizes?: Record<string, SizeMeta> | null;
 };
 
-function previewUrl(a: Asset, size?: string): string {
-  if (size && a.sizes?.[size]?.key) {
-    const k = a.sizes[size].key;
-    return k.startsWith('http') ? k : `/api/media/file/${k}`;
-  }
-  if (a.key.startsWith('http')) return a.key;
-  return `/api/media/file/${a.key}`;
+export type MediaInsertPayload = {
+  asset: MediaAsset;
+  size: MediaSizeKey;
+  src: string;
+  alt: string;
+  width?: number;
+  height?: number;
+};
+
+type Props = {
+  onInsert?: (payload: MediaInsertPayload) => void;
+  onClose?: () => void;
+  imagesOnly?: boolean;
+  /** Compatibility alias used by post-editor */
+  mode?: 'insert' | 'select' | 'browse';
+};
+
+function previewUrl(a: MediaAsset, size: MediaSizeKey = 'thumbnail'): string {
+  const k = a.sizes?.[size]?.key ?? a.sizes?.medium?.key ?? a.key;
+  return `/api/media/file/${k}`;
 }
 
 function formatBytes(n: number): string {
   if (n < 1024) return `${n} B`;
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
-  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(n / (1024 * 1024)).toFixed(2)} MB`;
 }
 
-function fileKind(mime: string): 'image' | 'video' | 'audio' | 'pdf' | 'file' {
-  if (mime.startsWith('image/')) return 'image';
-  if (mime.startsWith('video/')) return 'video';
-  if (mime.startsWith('audio/')) return 'audio';
-  if (mime === 'application/pdf') return 'pdf';
-  return 'file';
-}
+const SIZE_LABELS: { key: MediaSizeKey; label: string }[] = [
+  { key: 'thumbnail', label: 'Thumbnail' },
+  { key: 'medium', label: 'Medium' },
+  { key: 'large', label: 'Large' },
+  { key: 'original', label: 'Full size' },
+];
 
-function kindLabel(k: ReturnType<typeof fileKind>): string {
-  switch (k) {
-    case 'image':
-      return 'Image';
-    case 'video':
-      return 'Video';
-    case 'audio':
-      return 'Audio';
-    case 'pdf':
-      return 'PDF';
-    default:
-      return 'File';
-  }
-}
-
-export function MediaLibrary() {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [items, setItems] = useState<Asset[]>([]);
+export function MediaLibrary({ onInsert, onClose, imagesOnly }: Props) {
+  const { t } = useMessages();
+  const [items, setItems] = useState<MediaAsset[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [msg, setMsg] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [dragOver, setDragOver] = useState(false);
-  const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<'all' | 'image' | 'video' | 'audio' | 'pdf' | 'file'>('all');
-  const [selected, setSelected] = useState<string | null>(null);
-  const [view, setView] = useState<'grid' | 'list'>('grid');
-  const [editTitle, setEditTitle] = useState('');
-  const [editAlt, setEditAlt] = useState('');
-  const [editCaption, setEditCaption] = useState('');
-  const [editKeywords, setEditKeywords] = useState('');
-  const [savingMeta, setSavingMeta] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [insertSize, setInsertSize] = useState<MediaSizeKey>('large');
+  const [title, setTitle] = useState('');
+  const [alt, setAlt] = useState('');
+  const [caption, setCaption] = useState('');
+  const [keywords, setKeywords] = useState('');
+
+  const selected = useMemo(
+    () => items.find((a) => a.id === selectedId) ?? null,
+    [items, selectedId],
+  );
 
   const load = useCallback(async () => {
-    const res = await fetch('/api/media', { credentials: 'include' });
-    if (!res.ok) {
-      setError(`Load failed (${res.status})`);
+    const result = await listMediaAction(100);
+    if (!result.ok) {
+      setError(`Load failed: ${result.error}`);
       return;
     }
-    const data = (await res.json()) as { items: Asset[] };
-    setItems(data.items ?? []);
-  }, []);
+    let list = (result.data.items as MediaAsset[]) ?? [];
+    if (imagesOnly) {
+      list = list.filter((a) => a.mimeType.startsWith('image/'));
+    }
+    setItems(list);
+  }, [imagesOnly]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
   useEffect(() => {
-    const a = selected ? items.find((x) => x.id === selected) : null;
-    setEditTitle(a?.title ?? a?.filename ?? '');
-    setEditAlt(a?.alt ?? '');
-    setEditCaption(a?.caption ?? '');
-    setEditKeywords(a?.keywords ?? '');
-    setMsg(null);
-  }, [selected, items]);
+    if (!selected) {
+      setTitle('');
+      setAlt('');
+      setCaption('');
+      setKeywords('');
+      return;
+    }
+    setTitle(selected.title ?? '');
+    setAlt(selected.alt ?? '');
+    setCaption(selected.caption ?? '');
+    setKeywords(selected.keywords ?? '');
+  }, [selected]);
 
-  async function uploadFiles(files: FileList | File[] | null) {
-    if (!files || files.length === 0) return;
+  async function onUpload(files: FileList | null) {
+    if (!files?.length) return;
     setUploading(true);
     setError(null);
     try {
-      let lastId: string | null = null;
       for (const file of Array.from(files)) {
         const fd = new FormData();
         fd.set('file', file);
-        fd.set('title', file.name);
-        const res = await fetch('/api/media', {
-          method: 'POST',
-          body: fd,
-          credentials: 'include',
-        });
-        if (!res.ok) {
-          const body = (await res.json().catch(() => ({}))) as { error?: string };
-          setError(body.error ?? `Upload failed (${res.status})`);
+        const result = await uploadMediaAction(fd);
+        if (!result.ok) {
+          setError(result.error);
           break;
         }
-        const body = (await res.json()) as { asset?: Asset; id?: string };
-        lastId = body.asset?.id ?? body.id ?? null;
       }
       await load();
-      if (lastId) setSelected(lastId);
     } catch {
-      setError('Network error');
+      setError(t('errors', 'networkError') || 'Upload failed');
     }
     setUploading(false);
   }
 
-  async function remove(id: string) {
-    if (!confirm('Delete this file permanently?')) return;
-    const res = await fetch(`/api/media/${id}`, {
-      method: 'DELETE',
-      credentials: 'include',
+  async function saveMeta() {
+    if (!selected) return;
+    setSaving(true);
+    const result = await updateMediaAction(selected.id, {
+      title: title || null,
+      alt: alt || null,
+      caption: caption || null,
+      keywords: keywords || null,
     });
-    if (!res.ok) {
-      setError(`Delete failed (${res.status})`);
+    setSaving(false);
+    if (!result.ok) {
+      setError(result.error);
       return;
     }
-    if (selected === id) setSelected(null);
     await load();
   }
 
-  async function saveMeta() {
+  async function removeSelected() {
     if (!selected) return;
-    setSavingMeta(true);
-    setMsg(null);
-    setError(null);
-    try {
-      const res = await fetch(`/api/media/${selected}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          title: editTitle.trim() || null,
-          alt: editAlt.trim() || null,
-          caption: editCaption.trim() || null,
-          keywords: editKeywords.trim() || null,
-        }),
-      });
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { error?: string };
-        setError(body.error ?? `Save failed (${res.status})`);
-        setSavingMeta(false);
-        return;
-      }
-      await load();
-      setMsg('Attachment details saved');
-    } catch {
-      setError('Network error');
+    if (!confirm('Delete this media file?')) return;
+    const result = await deleteMediaAction(selected.id);
+    if (!result.ok) {
+      setError(result.error);
+      return;
     }
-    setSavingMeta(false);
+    setSelectedId(null);
+    await load();
   }
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return items.filter((a) => {
-      const kind = fileKind(a.mimeType);
-      if (filter !== 'all' && kind !== filter) return false;
-      if (!q) return true;
-      return (
-        a.filename.toLowerCase().includes(q) ||
-        (a.alt ?? '').toLowerCase().includes(q) ||
-        (a.title ?? '').toLowerCase().includes(q) ||
-        (a.caption ?? '').toLowerCase().includes(q) ||
-        (a.keywords ?? '').toLowerCase().includes(q) ||
-        a.mimeType.toLowerCase().includes(q)
-      );
+  function insertSelected() {
+    if (!selected || !onInsert) return;
+    const src = previewUrl(selected, insertSize);
+    const sizeInfo = selected.sizes?.[insertSize];
+    onInsert({
+      asset: selected,
+      size: insertSize,
+      src,
+      alt: alt || selected.alt || '',
+      width: sizeInfo?.width ?? selected.width ?? undefined,
+      height: sizeInfo?.height ?? selected.height ?? undefined,
     });
-  }, [items, search, filter]);
+  }
 
-  const selectedAsset = selected ? items.find((x) => x.id === selected) ?? null : null;
-
-  return (
-    <div>
-      <div className="v-page-header">
-        <h1 className="v-page-title">Media</h1>
-        <button
-          type="button"
-          className="v-btn v-btn--primary"
-          disabled={uploading}
-          onClick={() => inputRef.current?.click()}
-        >
-          {uploading ? 'Uploading…' : 'Add New'}
+  const body = (
+    <div className="v-media">
+      <div className="v-media__toolbar" style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+        <label className="v-btn v-btn--primary" style={{ cursor: 'pointer' }}>
+          {uploading ? (t('common', 'loading') || 'Uploading…') : (t('media', 'upload') || 'Upload')}
+          <input
+            type="file"
+            multiple
+            accept={imagesOnly ? 'image/*' : undefined}
+            style={{ display: 'none' }}
+            disabled={uploading}
+            onChange={(e) => void onUpload(e.target.files)}
+          />
+        </label>
+        <button type="button" className="v-btn" onClick={() => void load()}>
+          {t('common', 'refresh') || 'Refresh'}
         </button>
-        <input
-          ref={inputRef}
-          type="file"
-          hidden
-          multiple
-          disabled={uploading}
-          accept="image/*,application/pdf,video/*,audio/*"
-          onChange={(e) => {
-            void uploadFiles(e.target.files);
-            e.target.value = '';
-          }}
-        />
-      </div>
-
-      <p className="v-page-desc">
-        Original images stay full quality. Thumbnail / medium / large are WebP derivatives. Edit title,
-        alt, caption, and keywords.
-      </p>
-
-      <div
-        className={`v-media-drop${dragOver ? ' is-over' : ''}`}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setDragOver(true);
-        }}
-        onDragLeave={() => setDragOver(false)}
-        onDrop={(e) => {
-          e.preventDefault();
-          setDragOver(false);
-          void uploadFiles(e.dataTransfer.files);
-        }}
-        onClick={() => inputRef.current?.click()}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') inputRef.current?.click();
-        }}
-      >
-        <strong>Drop files to upload</strong>
-        <span className="v-muted"> or click to browse · images, PDF, video, audio</span>
+        {onClose ? (
+          <button type="button" className="v-btn" onClick={onClose}>
+            {t('common', 'close') || 'Close'}
+          </button>
+        ) : null}
       </div>
 
       {error ? (
-        <div className="v-alert v-alert--error" role="alert">
+        <p role="alert" className="v-alert v-alert--error">
           {error}
-        </div>
+        </p>
       ) : null}
-      {msg ? <div className="v-alert v-alert--ok">{msg}</div> : null}
 
-      <div className="v-tablenav">
-        <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value as typeof filter)}
-          aria-label="Filter by type"
+      <div style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 280px' : '1fr', gap: 16 }}>
+        <div
+          className="v-media__grid"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+            gap: 10,
+          }}
         >
-          <option value="all">All media</option>
-          <option value="image">Images</option>
-          <option value="video">Video</option>
-          <option value="audio">Audio</option>
-          <option value="pdf">PDF</option>
-          <option value="file">Other</option>
-        </select>
-        <input
-          type="search"
-          placeholder="Search media…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ minWidth: 180 }}
-        />
-        <span className="v-muted" style={{ marginLeft: 4 }}>
-          {filtered.length} item{filtered.length === 1 ? '' : 's'}
-        </span>
-        <span style={{ marginLeft: 'auto', display: 'flex', gap: 4 }}>
-          <button
-            type="button"
-            className={`v-btn${view === 'grid' ? ' v-btn--primary' : ''}`}
-            onClick={() => setView('grid')}
-            aria-pressed={view === 'grid'}
-          >
-            Grid
-          </button>
-          <button
-            type="button"
-            className={`v-btn${view === 'list' ? ' v-btn--primary' : ''}`}
-            onClick={() => setView('list')}
-            aria-pressed={view === 'list'}
-          >
-            List
-          </button>
-        </span>
-      </div>
-
-      <div className="v-media-layout">
-        <div className="v-media-main">
-          {filtered.length === 0 ? (
-            <p className="v-muted" style={{ padding: 24 }}>
-              No media found.
-            </p>
-          ) : view === 'grid' ? (
-            <div className="v-media-grid">
-              {filtered.map((a) => {
-                const kind = fileKind(a.mimeType);
-                const isImage = kind === 'image';
-                const isSelected = selected === a.id;
-                return (
-                  <button
-                    key={a.id}
-                    type="button"
-                    className={`v-media-card${isSelected ? ' is-selected' : ''}`}
-                    onClick={() => setSelected(a.id)}
-                    title={a.filename}
-                  >
-                    <div className="v-media-card__thumb">
-                      {isImage ? (
-                        <img
-                          src={previewUrl(a, 'thumbnail')}
-                          alt={a.alt ?? a.filename}
-                          loading="lazy"
-                          decoding="async"
-                        />
-                      ) : (
-                        <span className="v-media-card__icon" data-kind={kind}>
-                          {kindLabel(kind)}
-                        </span>
-                      )}
-                    </div>
-                    <div className="v-media-card__meta">
-                      <span className="v-media-card__name">{a.filename}</span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+          {items.length === 0 ? (
+            <p className="v-muted">{t('media', 'empty') || 'No media yet. Upload files to get started.'}</p>
           ) : (
-            <div className="v-table-wrap">
-              <table className="v-table">
-                <thead>
-                  <tr>
-                    <th style={{ width: 48 }} />
-                    <th>File</th>
-                    <th>Type</th>
-                    <th>Size</th>
-                    <th>Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((a) => {
-                    const kind = fileKind(a.mimeType);
-                    return (
-                      <tr
-                        key={a.id}
-                        className={selected === a.id ? 'is-selected-row' : undefined}
-                        onClick={() => setSelected(a.id)}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        <td>
-                          {kind === 'image' ? (
-                            <img
-                              src={previewUrl(a, 'thumbnail')}
-                              alt=""
-                              width={36}
-                              height={36}
-                              loading="lazy"
-                              decoding="async"
-                              style={{
-                                width: 36,
-                                height: 36,
-                                objectFit: 'cover',
-                                borderRadius: 3,
-                                border: '1px solid var(--wp-border)',
-                              }}
-                            />
-                          ) : (
-                            <span className="v-badge">{kindLabel(kind)}</span>
-                          )}
-                        </td>
-                        <td className="row-title">{a.filename}</td>
-                        <td className="v-muted">{a.mimeType}</td>
-                        <td className="v-muted">{formatBytes(a.sizeBytes)}</td>
-                        <td className="v-muted">{new Date(a.createdAt).toLocaleString()}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+            items.map((a) => {
+              const isImg = a.mimeType.startsWith('image/');
+              const active = a.id === selectedId;
+              return (
+                <button
+                  key={a.id}
+                  type="button"
+                  onClick={() => setSelectedId(a.id)}
+                  style={{
+                    border: active ? '2px solid #2271b1' : '1px solid #c3c4c7',
+                    borderRadius: 4,
+                    padding: 4,
+                    background: '#fff',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                  }}
+                >
+                  {isImg ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={previewUrl(a, 'thumbnail')}
+                      alt={a.alt || a.filename}
+                      style={{ width: '100%', height: 90, objectFit: 'cover', display: 'block' }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        height: 90,
+                        display: 'grid',
+                        placeItems: 'center',
+                        background: '#f0f0f1',
+                        fontSize: 11,
+                      }}
+                    >
+                      {a.mimeType}
+                    </div>
+                  )}
+                  <div style={{ fontSize: 11, marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {a.title || a.filename}
+                  </div>
+                </button>
+              );
+            })
           )}
         </div>
 
-        <aside className="v-media-detail">
-          {selectedAsset ? (
-            <>
-              <h2
-                className="v-panel__h"
-                style={{ borderRadius: 'var(--wp-radius) var(--wp-radius) 0 0' }}
-              >
-                Attachment details
-              </h2>
-              <div className="v-panel__b">
-                {fileKind(selectedAsset.mimeType) === 'image' ? (
-                  <img
-                    src={previewUrl(selectedAsset)}
-                    alt={selectedAsset.alt ?? selectedAsset.filename}
-                    style={{
-                      width: '100%',
-                      maxHeight: 200,
-                      objectFit: 'contain',
-                      background: '#f0f0f1',
-                      borderRadius: 4,
-                      marginBottom: 10,
-                    }}
-                  />
-                ) : null}
-                <p style={{ margin: '0 0 6px', fontWeight: 600, wordBreak: 'break-all' }}>
-                  {selectedAsset.filename}
-                </p>
-                <dl className="v-media-dl">
-                  <div>
-                    <dt>Type</dt>
-                    <dd>{selectedAsset.mimeType}</dd>
-                  </div>
-                  <div>
-                    <dt>Original size</dt>
-                    <dd>{formatBytes(selectedAsset.sizeBytes)}</dd>
-                  </div>
-                  {selectedAsset.width && selectedAsset.height ? (
-                    <div>
-                      <dt>Dimensions</dt>
-                      <dd>
-                        {selectedAsset.width} × {selectedAsset.height}
-                      </dd>
-                    </div>
-                  ) : null}
-                  {selectedAsset.sizes ? (
-                    <div>
-                      <dt>Sizes</dt>
-                      <dd style={{ fontSize: 11 }}>
-                        {Object.entries(selectedAsset.sizes).map(([name, s]) => (
-                          <div key={name}>
-                            {name}: {s.width}×{s.height} ({formatBytes(s.sizeBytes)})
-                          </div>
-                        ))}
-                      </dd>
-                    </div>
-                  ) : null}
-                  <div>
-                    <dt>Uploaded</dt>
-                    <dd>{new Date(selectedAsset.createdAt).toLocaleString()}</dd>
-                  </div>
-                  <div>
-                    <dt>URL (original)</dt>
-                    <dd>
-                      <code style={{ fontSize: 11, wordBreak: 'break-all' }}>
-                        {previewUrl(selectedAsset)}
-                      </code>
-                    </dd>
-                  </div>
-                </dl>
+        {selected ? (
+          <aside className="v-panel" style={{ alignSelf: 'start' }}>
+            <h3 className="v-panel__h">{t('media', 'attachmentDetails') || 'Attachment details'}</h3>
+            <div className="v-panel__b" style={{ display: 'grid', gap: 8 }}>
+              {selected.mimeType.startsWith('image/') ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={previewUrl(selected, 'medium')}
+                  alt={selected.alt || ''}
+                  style={{ maxWidth: '100%', borderRadius: 3 }}
+                />
+              ) : null}
+              <p className="v-muted" style={{ margin: 0, fontSize: 12 }}>
+                {selected.filename} · {formatBytes(selected.sizeBytes)}
+                {selected.width && selected.height
+                  ? ` · ${selected.width}×${selected.height}`
+                  : ''}
+              </p>
+              <label style={{ fontSize: 12 }}>
+                {t('media', 'title') || 'Title'}
+                <input value={title} onChange={(e) => setTitle(e.target.value)} />
+              </label>
+              <label style={{ fontSize: 12 }}>
+                {t('media', 'alt') || 'Alt text'}
+                <input value={alt} onChange={(e) => setAlt(e.target.value)} />
+              </label>
+              <label style={{ fontSize: 12 }}>
+                {t('media', 'caption') || 'Caption'}
+                <textarea value={caption} onChange={(e) => setCaption(e.target.value)} rows={2} />
+              </label>
+              <label style={{ fontSize: 12 }}>
+                {t('media', 'keywords') || 'Keywords'}
+                <input value={keywords} onChange={(e) => setKeywords(e.target.value)} />
+              </label>
+              <div className="v-btn-row">
+                <button type="button" className="v-btn" disabled={saving} onClick={() => void saveMeta()}>
+                  {saving ? (t('common', 'saving') || 'Saving…') : (t('common', 'save') || 'Save')}
+                </button>
+                <button type="button" className="v-btn" style={{ color: 'var(--wp-danger)' }} onClick={() => void removeSelected()}>
+                  {t('common', 'delete') || 'Delete'}
+                </button>
+              </div>
 
-                <label style={{ display: 'grid', gap: 4, marginBottom: 8, fontWeight: 600 }}>
-                  Title
-                  <input
-                    value={editTitle}
-                    onChange={(e) => setEditTitle(e.target.value)}
-                    style={{ fontWeight: 400, padding: 6, border: '1px solid var(--wp-border)' }}
-                  />
-                </label>
-                <label style={{ display: 'grid', gap: 4, marginBottom: 8, fontWeight: 600 }}>
-                  Alt text
-                  <textarea
-                    rows={2}
-                    value={editAlt}
-                    onChange={(e) => setEditAlt(e.target.value)}
-                    placeholder="Describe the image for SEO & accessibility"
-                    style={{ fontWeight: 400, padding: 6, border: '1px solid var(--wp-border)' }}
-                  />
-                </label>
-                <label style={{ display: 'grid', gap: 4, marginBottom: 8, fontWeight: 600 }}>
-                  Caption
-                  <textarea
-                    rows={2}
-                    value={editCaption}
-                    onChange={(e) => setEditCaption(e.target.value)}
-                    placeholder="Shown under the image when used in content"
-                    style={{ fontWeight: 400, padding: 6, border: '1px solid var(--wp-border)' }}
-                  />
-                </label>
-                <label style={{ display: 'grid', gap: 4, marginBottom: 8, fontWeight: 600 }}>
-                  Keywords
-                  <input
-                    value={editKeywords}
-                    onChange={(e) => setEditKeywords(e.target.value)}
-                    placeholder="comma, separated, tags"
-                    style={{ fontWeight: 400, padding: 6, border: '1px solid var(--wp-border)' }}
-                  />
-                </label>
-                <div className="v-btn-row">
+              {onInsert ? (
+                <div style={{ borderTop: '1px solid #dcdcde', paddingTop: 10, marginTop: 4 }}>
+                  <label style={{ fontSize: 12 }}>
+                    {t('media', 'size') || 'Size'}
+                    <select
+                      value={insertSize}
+                      onChange={(e) => setInsertSize(e.target.value as MediaSizeKey)}
+                    >
+                      {SIZE_LABELS.map((s) => (
+                        <option key={s.key} value={s.key}>
+                          {s.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                   <button
                     type="button"
                     className="v-btn v-btn--primary"
-                    disabled={savingMeta}
-                    onClick={() => void saveMeta()}
+                    style={{ marginTop: 8 }}
+                    onClick={insertSelected}
                   >
-                    {savingMeta ? 'Saving…' : 'Save'}
-                  </button>
-                  <a
-                    className="v-btn"
-                    href={previewUrl(selectedAsset)}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    View original
-                  </a>
-                  <button
-                    type="button"
-                    className="v-btn v-btn--danger"
-                    onClick={() => void remove(selectedAsset.id)}
-                  >
-                    Delete
+                    {t('media', 'insertIntoPost') || 'Insert into post'}
                   </button>
                 </div>
-              </div>
-            </>
-          ) : (
-            <div className="v-panel__b">
-              <p className="v-muted" style={{ margin: 0 }}>
-                Select an item to edit title, alt, caption, keywords, and sizes.
-              </p>
+              ) : null}
             </div>
-          )}
-        </aside>
+          </aside>
+        ) : null}
       </div>
     </div>
   );
+
+  if (onClose || onInsert) {
+    return (
+      <div
+        className="v-media-modal"
+        role="dialog"
+        aria-modal="true"
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.55)',
+          zIndex: 100000,
+          display: 'grid',
+          placeItems: 'center',
+          padding: 24,
+        }}
+      >
+        <div
+          style={{
+            background: '#fff',
+            borderRadius: 4,
+            maxWidth: 960,
+            width: '100%',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            padding: 16,
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+            <strong>{t('media', 'library') || 'Media Library'}</strong>
+            {onClose ? (
+              <button type="button" className="v-btn" onClick={onClose}>
+                ×
+              </button>
+            ) : null}
+          </div>
+          {body}
+        </div>
+      </div>
+    );
+  }
+
+  return body;
 }
