@@ -12,6 +12,7 @@ import Color from '@tiptap/extension-color';
 import Highlight from '@tiptap/extension-highlight';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { getStoredLocale, isRtlLocale } from '@/lib/i18n';
+import { searchContentAction } from '@/actions/posts';
 
 const TEXT_COLORS = [
   { label: 'Default', value: '' },
@@ -43,6 +44,32 @@ type ContentHit = {
   url: string;
   date?: string;
 };
+
+function escapeAttr(s: string) {
+  return s.replace(/&/g, '&').replace(/"/g, '"').replace(/</g, '<');
+}
+function escapeHtml(s: string) {
+  return s.replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>');
+}
+
+function ToolBtn(props: {
+  label: ReactNode;
+  active?: boolean;
+  title: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className={`v-tiptap-btn${props.active ? ' is-active' : ''}`}
+      title={props.title}
+      aria-label={props.title}
+      onClick={props.onClick}
+    >
+      {props.label}
+    </button>
+  );
+}
 
 /** WordPress Classic Editor–style Tiptap with colors + link-to-content. */
 export function TiptapEditor(props: {
@@ -134,65 +161,28 @@ export function TiptapEditor(props: {
   const loadExistingContent = useCallback(async (q: string) => {
     setContentLoading(true);
     try {
-      const [postsRes, pagesRes] = await Promise.all([
-        fetch('/api/posts', { credentials: 'include' }),
-        fetch(
-          `/api/pages?limit=50${q ? `&q=${encodeURIComponent(q)}` : ''}`,
-          { credentials: 'include' },
-        ),
-      ]);
+      const result = await searchContentAction(q);
       const hits: ContentHit[] = [];
-
-      if (postsRes.ok) {
-        const data = (await postsRes.json()) as {
-          items?: Array<{
-            id: string;
-            updatedAt?: string;
-            publishedAt?: string | null;
-            translations?: Array<{ title?: string; slug?: string }>;
-          }>;
-        };
-        const qq = q.trim().toLowerCase();
-        for (const p of data.items ?? []) {
-          const tr = p.translations?.[0];
-          const title = tr?.title ?? '';
-          const slug = tr?.slug ?? '';
-          if (qq && !title.toLowerCase().includes(qq) && !slug.toLowerCase().includes(qq)) {
-            continue;
-          }
+      if (result.ok) {
+        for (const p of result.data.posts) {
           hits.push({
             id: p.id,
             kind: 'post',
-            title: title || '(no title)',
-            slug,
-            url: `/${slug}`,
-            date: p.publishedAt ?? p.updatedAt,
+            title: p.title || '(no title)',
+            slug: p.slug,
+            url: `/${p.slug}`,
           });
         }
-      }
-
-      if (pagesRes.ok) {
-        const data = (await pagesRes.json()) as {
-          items?: Array<{
-            id: string;
-            updatedAt?: string;
-            translations?: Array<{ title?: string; slug?: string }>;
-          }>;
-        };
-        for (const p of data.items ?? []) {
-          const tr = p.translations?.[0];
+        for (const p of result.data.pages) {
           hits.push({
             id: p.id,
             kind: 'page',
-            title: tr?.title || '(no title)',
-            slug: tr?.slug ?? '',
-            url: `/${tr?.slug ?? ''}`,
-            date: p.updatedAt,
+            title: p.title || '(no title)',
+            slug: p.slug,
+            url: `/${p.slug}`,
           });
         }
       }
-
-      hits.sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''));
       setContentHits(hits.slice(0, 40));
     } catch {
       setContentHits([]);
@@ -339,13 +329,18 @@ export function TiptapEditor(props: {
             <ToolBtn label="≡" active={editor.isActive({ textAlign: 'center' })} title="Align center" onClick={() => editor.chain().focus().setTextAlign('center').run()} />
             <ToolBtn label="➡" active={editor.isActive({ textAlign: 'right' })} title="Align right" onClick={() => editor.chain().focus().setTextAlign('right').run()} />
             <ToolBtn label="🔗" active={editor.isActive('link')} title="Insert/edit link" onClick={openLinkModal} />
-            <ToolBtn label="🖼" active={false} title="Add media" onClick={() => {
-              if (props.onInsertImage) props.onInsertImage();
-              else {
-                const url = prompt('Image URL');
-                if (url) editor.chain().focus().setImage({ src: url }).run();
-              }
-            }} />
+            <ToolBtn
+              label="🖼"
+              active={false}
+              title="Add media"
+              onClick={() => {
+                if (props.onInsertImage) props.onInsertImage();
+                else {
+                  const url = prompt('Image URL');
+                  if (url) editor.chain().focus().setImage({ src: url }).run();
+                }
+              }}
+            />
             <ToolBtn label="▾" active={kitchenSink} title="Toolbar Toggle" onClick={() => setKitchenSink((v) => !v)} />
           </div>
 
@@ -470,32 +465,27 @@ export function TiptapEditor(props: {
                   {contentLoading ? (
                     <p className="v-muted" style={{ margin: 8, fontSize: 12 }}>Loading…</p>
                   ) : contentHits.length === 0 ? (
-                    <p className="v-muted" style={{ margin: 8, fontSize: 12 }}>
-                      {linkSearch ? 'No matching content.' : 'No search term specified. Showing recent items.'}
-                    </p>
+                    <p className="v-muted" style={{ margin: 8, fontSize: 12 }}>No matches</p>
                   ) : (
-                    <ul>
-                      {contentHits.map((h) => (
-                        <li key={`${h.kind}-${h.id}`}>
-                          <button
-                            type="button"
-                            className={linkUrl === h.url ? 'is-selected' : ''}
-                            onClick={() => pickExistingContent(h)}
-                          >
-                            <span className="v-link-hit__title">{h.title}</span>
-                            <span className="v-link-hit__meta">
-                              <span className="v-link-hit__kind">{h.kind.toUpperCase()}</span>
-                              {h.date ? <span className="v-link-hit__date">{String(h.date).slice(0, 10)}</span> : null}
-                            </span>
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
+                    contentHits.map((hit) => (
+                      <button
+                        key={`${hit.kind}-${hit.id}`}
+                        type="button"
+                        className="v-link-modal__hit"
+                        onClick={() => pickExistingContent(hit)}
+                      >
+                        <strong>{hit.title}</strong>
+                        <span className="v-muted">
+                          {' '}
+                          {hit.kind} · /{hit.slug}
+                        </span>
+                      </button>
+                    ))
                   )}
                 </div>
               </div>
             </div>
-            <div className="v-link-modal__foot">
+            <div className="v-link-modal__footer">
               <button type="button" className="v-btn" onClick={() => setLinkOpen(false)}>Cancel</button>
               <button type="button" className="v-btn v-btn--primary" onClick={applyLink}>Add Link</button>
             </div>
@@ -504,32 +494,4 @@ export function TiptapEditor(props: {
       ) : null}
     </div>
   );
-}
-
-function ToolBtn(props: {
-  label: ReactNode;
-  active: boolean;
-  title: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      className={`v-tiptap-btn${props.active ? ' is-active' : ''}`}
-      onClick={props.onClick}
-      title={props.title}
-      aria-label={props.title}
-      aria-pressed={props.active}
-    >
-      {props.label}
-    </button>
-  );
-}
-
-function escapeAttr(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-}
-
-function escapeHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
