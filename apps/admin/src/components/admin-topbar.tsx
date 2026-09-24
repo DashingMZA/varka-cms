@@ -8,6 +8,7 @@ import {
   useMessages,
 } from '@/lib/i18n';
 import type { AppLocale } from '@varka/i18n';
+import { signOutAction } from '@/actions/auth';
 
 const LOCALE_LABELS: Record<string, string> = {
   en: 'English',
@@ -36,17 +37,7 @@ export function AdminTopbar(props: { locale?: AppLocale | string } = {}) {
 
   async function signOut() {
     try {
-      await fetch('/api/auth/sign-out', { method: 'POST', credentials: 'include' });
-    } catch {
-      /* ignore */
-    }
-    try {
-      await fetch('/api/auth/sign-out', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: '{}',
-      });
+      await signOutAction();
     } catch {
       /* ignore */
     }
