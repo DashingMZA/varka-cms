@@ -182,3 +182,102 @@
   border-top: 1px solid var(--wp-border, #c3c4c7);
   background: #fcfcfc;
 }
+
+/* Color swatches */
+.v-tiptap-color-wrap {
+  position: relative;
+  display: inline-flex;
+}
+.v-tiptap-swatches {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 50;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  width: 140px;
+  padding: 8px;
+  background: #fff;
+  border: 1px solid var(--wp-border, #c3c4c7);
+  border-radius: 3px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+.v-tiptap-swatch {
+  width: 22px;
+  height: 22px;
+  border: 1px solid #c3c4c7;
+  border-radius: 2px;
+  cursor: pointer;
+  padding: 0;
+}
+.v-tiptap-swatch:hover {
+  outline: 2px solid var(--wp-accent, #2271b1);
+  outline-offset: 1px;
+}
+
+/* Link modal — existing content (WP style) */
+.v-link-modal__existing {
+  margin-top: 8px;
+  border-top: 1px solid var(--wp-border, #c3c4c7);
+  padding-top: 12px;
+}
+.v-link-modal__existing-title {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.v-link-modal__existing > input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #8c8f94;
+  border-radius: 3px;
+  font: inherit;
+  box-sizing: border-box;
+  margin-bottom: 8px;
+}
+.v-link-modal__hits {
+  max-height: 200px;
+  overflow: auto;
+  border: 1px solid var(--wp-border, #c3c4c7);
+  border-radius: 3px;
+  background: #fff;
+}
+.v-link-modal__hits ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.v-link-modal__hits li button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-bottom: 1px solid #f0f0f1;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+.v-link-modal__hits li button:hover,
+.v-link-modal__hits li button.is-selected {
+  background: #f0f6fc;
+}
+.v-link-hit__title {
+  font-size: 13px;
+  color: var(--wp-ink, #1d2327);
+  font-weight: 500;
+}
+.v-link-hit__meta {
+  display: flex;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--wp-muted, #646970);
+}
+.v-link-hit__kind {
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
