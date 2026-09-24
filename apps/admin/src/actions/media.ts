@@ -21,7 +21,9 @@ function fail(e: unknown): ActionResult<never> {
 export async function listMediaAction(limit = 100): Promise<ActionResult<{ items: unknown[] }>> {
   try {
     const { ctx, siteId } = await requireServerAuth('media.read');
-    const result = (await listMedia(prisma as never, ctx, { siteId })) as { items?: unknown[] };
+    const result = (await listMedia(prisma as never, ctx, {
+      siteId,
+    })) as { items?: unknown[] };
     const items = (result.items ?? []).slice(0, Math.min(limit, 200));
     return { ok: true, data: { items: JSON.parse(JSON.stringify(items)) } };
   } catch (e) {
@@ -34,6 +36,7 @@ export async function uploadMediaAction(formData: FormData): Promise<ActionResul
     const { ctx, siteId } = await requireServerAuth('media.upload');
     const file = formData.get('file');
     if (!(file instanceof File)) return { ok: false, error: 'file required' };
+
     const buf = Buffer.from(await file.arrayBuffer());
     const storage = createStorageAdapterFromEnv();
     const result = await uploadMedia(
