@@ -3,10 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMessages } from '@/lib/i18n';
+import { createPostAction } from '@/actions/posts';
 
-/**
- * WordPress-style "Add New": create a draft via API, then redirect to the editor.
- */
+/** WordPress-style Add New: create draft via server action, then redirect. */
 export default function NewPostPage() {
   const router = useRouter();
   const { t } = useMessages();
@@ -16,19 +15,12 @@ export default function NewPostPage() {
     let cancelled = false;
     void (async () => {
       try {
-        const res = await fetch('/api/posts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ title: 'Untitled' }),
-        });
-        if (!res.ok) {
-          const body = (await res.json().catch(() => ({}))) as { error?: string };
-          if (!cancelled) setError(body.error ?? `Create failed (${res.status})`);
+        const result = await createPostAction('Untitled');
+        if (!result.ok) {
+          if (!cancelled) setError(result.error);
           return;
         }
-        const post = (await res.json()) as { id: string };
-        if (!cancelled) router.replace(`/content/posts/${post.id}`);
+        if (!cancelled) router.replace(`/content/posts/${result.data.id}`);
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : 'Create failed');
       }
