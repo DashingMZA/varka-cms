@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { ScreenMeta } from '@/components/screen-meta/screen-meta';
+import { getDashboardAction } from '@/actions/dashboard';
+import { createPostAction } from '@/actions/posts';
 
 type Glance = {
   posts: number;
@@ -54,12 +56,12 @@ export function DashboardHome() {
 
   useEffect(() => {
     void (async () => {
-      const res = await fetch('/api/dashboard', { credentials: 'include' });
-      if (!res.ok) {
-        setError(`Failed to load (${res.status})`);
+      const result = await getDashboardAction();
+      if (!result.ok) {
+        setError(result.error || 'Failed to load');
         return;
       }
-      const data = (await res.json()) as { glance: Glance; activity: Activity };
+      const data = result.data as { glance: Glance; activity: Activity };
       setGlance(data.glance);
       setActivity(data.activity);
     })();
@@ -86,11 +88,6 @@ export function DashboardHome() {
             id: 'overview',
             title: 'Overview',
             body: 'At a Glance shows live counts from the database. Activity lists recent posts, comments, and audit events.',
-          },
-          {
-            id: 'navigation',
-            title: 'Navigation',
-            body: 'Use the left menu to manage content, media, users, and settings. Collapse the menu with the button at the bottom of the sidebar.',
           },
         ]}
         options={[
@@ -209,25 +206,6 @@ export function DashboardHome() {
                       ))
                     )}
                   </ul>
-                  <h3 className="v-subh">Audit</h3>
-                  <ul className="v-activity">
-                    {activity.audit.length === 0 ? (
-                      <li className="v-muted">No audit events.</li>
-                    ) : (
-                      activity.audit.map((a) => (
-                        <li key={a.id}>
-                          <code style={{ fontSize: 12 }}>{a.action}</code>
-                          {a.entityType ? (
-                            <span className="v-muted"> · {a.entityType}</span>
-                          ) : null}
-                          <span className="v-muted">
-                            {' '}
-                            · {new Date(a.createdAt).toLocaleString()}
-                          </span>
-                        </li>
-                      ))
-                    )}
-                  </ul>
                 </>
               )}
             </div>
@@ -257,18 +235,12 @@ function QuickDraft() {
     setBusy(true);
     setMsg(null);
     try {
-      const res = await fetch('/api/posts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ title: title.trim() }),
-      });
-      if (!res.ok) {
-        setMsg(`Failed (${res.status})`);
+      const result = await createPostAction(title.trim());
+      if (!result.ok) {
+        setMsg(result.error || 'Failed');
         return;
       }
-      const post = (await res.json()) as { id: string };
-      window.location.href = `/content/posts/${post.id}`;
+      window.location.href = `/content/posts/${result.data.id}`;
     } catch {
       setMsg('Network error');
     } finally {
