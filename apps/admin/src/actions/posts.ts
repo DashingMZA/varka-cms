@@ -219,5 +219,68 @@ export async function searchContentAction(q: string): Promise<
   }
 }
 
+export async function listRevisionsAction(
+  postId: string,
+): Promise<ActionResult<{ items: unknown[] }>> {
+  try {
+    await requireServerAuth('posts.read');
+    const items = await prisma.revision.findMany({
+      where: { postId },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+      select: { id: true, title: true, note: true, createdAt: true },
+    });
+    return { ok: true, data: { items: JSON.parse(JSON.stringify(items)) } };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function restoreRevisionAction(
+  postId: string,
+  revisionId: string,
+): Promise<ActionResult<{ id: string }>> {
+  try {
+    const { userId } = await requireServerAuth('posts.write');
+    const rev = await prisma.revision.findFirst({ where: { id: revisionId, postId } });
+    if (!rev) return fail(new Error('Revision not found'));
+
+    await prisma.$transaction(async (tx) => {
+      const post = await tx.post.findUnique({
+        where: { id: postId },
+        include: { translations: true },
+      });
+      if (!post) throw new Error('Post not found');
+      const tr = post.translations[0];
+      if (tr) {
+        await tx.postTranslation.update({
+          where: { id: tr.id },
+          data: {
+            title: rev.title ?? tr.title,
+            contentHtml:
+              (rev as { contentHtml?: string | null }).contentHtml ?? tr.contentHtml,
+            excerpt: (rev as { excerpt?: string | null }).excerpt ?? tr.excerpt,
+          },
+        });
+      }
+      await tx.revision.create({
+        data: {
+          postId,
+          title: tr?.title ?? rev.title,
+          contentHtml: tr?.contentHtml ?? null,
+          note: `Restored from ${revisionId.slice(0, 8)}`,
+          authorId: userId && userId !== 'dev-user' ? userId : null,
+        } as never,
+      });
+    });
+
+    revalidatePath('/content/posts');
+    revalidatePath(`/content/posts/${postId}`);
+    return { ok: true, data: { id: postId } };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
 void getServerAuth;
 void getSiteId;
