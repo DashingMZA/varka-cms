@@ -7,6 +7,8 @@ import { TiptapEditor } from '@/components/tiptap-editor';
 import { ScreenMeta } from '@/components/screen-meta/screen-meta';
 import { slugify } from '@/lib/slugify';
 import { useAutosave } from '@/hooks/use-autosave';
+import { getPostAction, updatePostAction } from '@/actions/posts';
+import { listCategoriesAction, listTagsAction } from '@/actions/taxonomy';
 
 type Translation = {
   id: string;
@@ -30,19 +32,18 @@ type Post = {
   tags?: Array<{ tagId: string }>;
 };
 
-type CatItem = {
-  id: string;
-  translations?: Array<{ name?: string }>;
-};
+type CatItem = { id: string; translations?: Array<{ name?: string }> };
+type TagItem = { id: string; translations?: Array<{ name?: string }> };
 
-type TagItem = {
-  id: string;
-  translations?: Array<{ name?: string }>;
-};
+function escapeAttr(s: string) {
+  return s.replace(/&/g, '&').replace(/"/g, '"').replace(/</g, '<');
+}
+function escapeHtml(s: string) {
+  return s.replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>');
+}
 
 export function PostEditor({ postId }: { postId: string }) {
   const { t } = useMessages();
-
   const [post, setPost] = useState<Post | null>(null);
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
@@ -61,7 +62,6 @@ export function PostEditor({ postId }: { postId: string }) {
   const [tagIds, setTagIds] = useState<string[]>([]);
   const [allCategories, setAllCategories] = useState<CatItem[]>([]);
   const [allTags, setAllTags] = useState<TagItem[]>([]);
-  const [tagInput, setTagInput] = useState('');
   const [saving, setSaving] = useState(false);
   const [boxes, setBoxes] = useState({
     publish: true,
@@ -83,12 +83,12 @@ export function PostEditor({ postId }: { postId: string }) {
 
   useEffect(() => {
     void (async () => {
-      const res = await fetch(`/api/posts/${postId}`, { credentials: 'include' });
-      if (!res.ok) {
-        setError(`Load failed (${res.status})`);
+      const result = await getPostAction(postId);
+      if (!result.ok) {
+        setError(result.error || 'Load failed');
         return;
       }
-      const data = (await res.json()) as Post;
+      const data = result.data as Post;
       setPost(data);
       setStatus(data.status);
       const tr = data.translations[0];
@@ -108,22 +108,9 @@ export function PostEditor({ postId }: { postId: string }) {
 
   useEffect(() => {
     void (async () => {
-      try {
-        const [cRes, tRes] = await Promise.all([
-          fetch('/api/categories', { credentials: 'include' }),
-          fetch('/api/tags', { credentials: 'include' }),
-        ]);
-        if (cRes.ok) {
-          const d = (await cRes.json()) as { items?: CatItem[] };
-          setAllCategories(d.items ?? []);
-        }
-        if (tRes.ok) {
-          const d = (await tRes.json()) as { items?: TagItem[] };
-          setAllTags(d.items ?? []);
-        }
-      } catch {
-        /* ignore */
-      }
+      const [cRes, tRes] = await Promise.all([listCategoriesAction(), listTagsAction()]);
+      if (cRes.ok) setAllCategories((cRes.data.items as CatItem[]) ?? []);
+      if (tRes.ok) setAllTags((tRes.data.items as TagItem[]) ?? []);
     })();
   }, []);
 
@@ -162,31 +149,25 @@ export function PostEditor({ postId }: { postId: string }) {
         setSaving(false);
         return;
       }
-      const res = await fetch(`/api/posts/${postId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          title,
-          slug: slug || slugify(title),
-          contentHtml,
-          excerpt: excerpt || null,
-          seoTitle: seoTitle || null,
-          seoDescription: seoDescription || null,
-          version: post.version,
-          languageId: tr.languageId,
-          categoryIds,
-          tagIds,
-          ...(publish ? { status: 'PUBLISHED' } : { status }),
-        }),
+      const result = await updatePostAction(postId, {
+        title,
+        slug: slug || slugify(title),
+        contentHtml,
+        excerpt: excerpt || null,
+        seoTitle: seoTitle || null,
+        seoDescription: seoDescription || null,
+        version: post.version,
+        languageId: tr.languageId,
+        categoryIds,
+        tagIds,
+        ...(publish ? { status: 'PUBLISHED' } : { status }),
       });
       setSaving(false);
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { error?: string };
-        if (!silent) setError(body.error ?? `Save failed (${res.status})`);
+      if (!result.ok) {
+        if (!silent) setError(result.error || 'Save failed');
         return;
       }
-      const data = (await res.json()) as Post;
+      const data = result.data as Post;
       setPost(data);
       setStatus(data.status);
       if (!silent) {
@@ -228,90 +209,31 @@ export function PostEditor({ postId }: { postId: string }) {
         : '';
     const fig =
       payload.asset.caption || payload.alt
-        ? `<figure class="wp-block-image size-${payload.size}"><img src="${payload.src}" alt="${escapeAttr(payload.alt)}"${dim} loading="lazy" decoding="async" /><figcaption>${escapeHtml(payload.asset.caption || payload.alt)}</figcaption></figure>\n`
-        : `<p><img src="${payload.src}" alt="${escapeAttr(payload.alt)}"${dim} loading="lazy" decoding="async" /></p>\n`;
+        ? `<figure class="wp-block-image"><img src="${payload.src}" alt="${escapeAttr(payload.alt)}"${dim} loading="lazy" /><figcaption>${escapeHtml(payload.asset.caption || payload.alt)}</figcaption></figure>\n`
+        : `<p><img src="${payload.src}" alt="${escapeAttr(payload.alt)}"${dim} loading="lazy" /></p>\n`;
     setContentHtml((prev) => (prev ? `${prev}\n${fig}` : fig));
     setMediaOpen(false);
-    setMessage(t('blogs', 'imageInserted', 'Image inserted'));
   }
 
   function setFeatured(payload: MediaInsertPayload) {
     setFeaturedUrl(payload.src);
     setMediaOpen(false);
-    setMessage(`${t('blogs', 'featuredImage')} ${t('blogs', 'set', 'set')}`);
-  }
-
-  function toggleCategory(id: string) {
-    setCategoryIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-    );
-  }
-
-  function toggleTag(id: string) {
-    setTagIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-    );
   }
 
   if (!post && !error) return <p className="v-muted">{t('blogs', 'loading', 'Loading…')}</p>;
-
   const isPublished = status === 'PUBLISHED';
 
   return (
     <div>
       <ScreenMeta
-        help={[
-          {
-            id: 'title',
-            title: 'Title & editor',
-            body: 'Enter a title; the permalink slug updates automatically until you edit it. Use Add Media to insert images.',
-          },
-          {
-            id: 'publish',
-            title: t('blogs', 'publishBox'),
-            body: 'Save Draft keeps the post unpublished. Publish sets status to PUBLISHED.',
-          },
-        ]}
-        options={[
-          {
-            id: 'publish',
-            label: t('blogs', 'publishBox'),
-            checked: boxes.publish,
-            onChange: () => toggleBox('publish'),
-          },
-          {
-            id: 'featured',
-            label: t('blogs', 'featuredImage'),
-            checked: boxes.featured,
-            onChange: () => toggleBox('featured'),
-          },
-          {
-            id: 'categories',
-            label: t('blogs', 'categories'),
-            checked: boxes.categories,
-            onChange: () => toggleBox('categories'),
-          },
-          {
-            id: 'tags',
-            label: t('blogs', 'tags'),
-            checked: boxes.tags,
-            onChange: () => toggleBox('tags'),
-          },
-          {
-            id: 'excerpt',
-            label: t('blogs', 'excerpt'),
-            checked: boxes.excerpt,
-            onChange: () => toggleBox('excerpt'),
-          },
-          {
-            id: 'seo',
-            label: t('blogs', 'seo'),
-            checked: boxes.seo,
-            onChange: () => toggleBox('seo'),
-          },
-        ]}
+        help={[{ id: 'title', title: 'Editor', body: 'Title, content, publish box.' }]}
+        options={Object.entries(boxes).map(([id, checked]) => ({
+          id,
+          label: id,
+          checked,
+          onChange: () => toggleBox(id as keyof typeof boxes),
+        }))}
       />
-
       <div className="v-page-header">
         <h1 className="v-page-title">{t('blogs', 'editPost')}</h1>
       </div>
@@ -340,7 +262,6 @@ export function PostEditor({ postId }: { postId: string }) {
               }}
             />
           </p>
-
           <div className="v-btn-row">
             <button
               type="button"
@@ -353,7 +274,6 @@ export function PostEditor({ postId }: { postId: string }) {
               {t('blogs', 'addMedia', 'Add Media')}
             </button>
           </div>
-
           <TiptapEditor
             value={contentHtml}
             onChange={setContentHtml}
@@ -363,61 +283,26 @@ export function PostEditor({ postId }: { postId: string }) {
               setMediaOpen(true);
             }}
           />
-
           {boxes.excerpt ? (
             <div className="v-panel">
               <h3 className="v-panel__h">{t('blogs', 'excerpt')}</h3>
               <div className="v-panel__b">
-                <textarea
-                  value={excerpt}
-                  onChange={(e) => setExcerpt(e.target.value)}
-                  rows={3}
-                  placeholder={t('blogs', 'excerptHelp', 'Write an excerpt (optional)')}
-                />
+                <textarea value={excerpt} onChange={(e) => setExcerpt(e.target.value)} rows={3} />
               </div>
             </div>
           ) : null}
-
           {boxes.seo ? (
             <div className="v-panel">
               <h3 className="v-panel__h">{t('blogs', 'seo')}</h3>
               <div className="v-panel__b" style={{ display: 'grid', gap: 8 }}>
                 <label>
                   {t('blogs', 'seoTitle')}
-                  <input
-                    value={seoTitle}
-                    onChange={(e) => setSeoTitle(e.target.value)}
-                  />
+                  <input value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} />
                 </label>
                 <label>
                   {t('blogs', 'seoDescription')}
-                  <textarea
-                    value={seoDescription}
-                    onChange={(e) => setSeoDescription(e.target.value)}
-                    rows={2}
-                  />
+                  <textarea value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} rows={2} />
                 </label>
-                <div
-                  style={{
-                    border: '1px solid var(--wp-border)',
-                    borderRadius: 3,
-                    padding: 12,
-                    background: '#fff',
-                    maxWidth: 600,
-                  }}
-                >
-                  <div style={{ color: '#1a0dab', fontSize: 18, lineHeight: 1.3 }}>
-                    {seoTitle || title || t('blogs', 'addTitle', 'Add title')}
-                  </div>
-                  <div style={{ color: '#006621', fontSize: 13 }}>
-                    example.com/{slug || '…'}
-                  </div>
-                  <div style={{ color: '#545454', fontSize: 13, marginTop: 2 }}>
-                    {seoDescription ||
-                      excerpt ||
-                      t('blogs', 'noDescription', 'No description')}
-                  </div>
-                </div>
               </div>
             </div>
           ) : null}
@@ -436,10 +321,6 @@ export function PostEditor({ postId }: { postId: string }) {
                     <option value="PUBLISHED">{t('blogs', 'published')}</option>
                   </select>
                 </p>
-                <p className="v-muted" style={{ fontSize: 12, margin: '0 0 10px' }}>
-                  Version {post?.version}
-                  {saving ? ` · ${t('blogs', 'saving', 'Saving…')}` : null}
-                </p>
                 <div className="v-btn-row">
                   <button type="button" className="v-btn" onClick={() => void save(false)} disabled={saving}>
                     {t('blogs', 'saveDraft', 'Save Draft')}
@@ -453,19 +334,6 @@ export function PostEditor({ postId }: { postId: string }) {
                     {isPublished ? t('blogs', 'update') : t('blogs', 'publish')}
                   </button>
                 </div>
-                <p style={{ marginTop: 10 }}>
-                  <button
-                    type="button"
-                    className="v-btn"
-                    style={{ color: 'var(--wp-danger)' }}
-                    onClick={() => {
-                      setStatus('TRASHED');
-                      void save(false);
-                    }}
-                  >
-                    {t('blogs', 'moveToTrash')}
-                  </button>
-                </p>
               </div>
             </div>
           ) : null}
@@ -476,16 +344,8 @@ export function PostEditor({ postId }: { postId: string }) {
               <div className="v-panel__b">
                 {featuredUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={featuredUrl}
-                    alt=""
-                    style={{ maxWidth: '100%', marginBottom: 8, borderRadius: 3 }}
-                  />
-                ) : (
-                  <p className="v-muted" style={{ fontSize: 12 }}>
-                    {t('blogs', 'noFeatured', 'No featured image')}
-                  </p>
-                )}
+                  <img src={featuredUrl} alt="" style={{ maxWidth: '100%', marginBottom: 8 }} />
+                ) : null}
                 <button
                   type="button"
                   className="v-btn"
@@ -494,20 +354,8 @@ export function PostEditor({ postId }: { postId: string }) {
                     setMediaOpen(true);
                   }}
                 >
-                  {featuredUrl
-                    ? t('blogs', 'replaceFeatured', 'Replace image')
-                    : t('blogs', 'setFeatured')}
+                  {t('blogs', 'setFeatured')}
                 </button>
-                {featuredUrl ? (
-                  <button
-                    type="button"
-                    className="v-btn"
-                    style={{ marginLeft: 6 }}
-                    onClick={() => setFeaturedUrl(null)}
-                  >
-                    {t('blogs', 'removeFeatured')}
-                  </button>
-                ) : null}
               </div>
             </div>
           ) : null}
@@ -516,29 +364,29 @@ export function PostEditor({ postId }: { postId: string }) {
             <div className="v-panel">
               <h3 className="v-panel__h">{t('blogs', 'categories')}</h3>
               <div className="v-panel__b">
-                {allCategories.length === 0 ? (
-                  <p className="v-muted" style={{ fontSize: 12, margin: 0 }}>
-                    {t('blogs', 'noCategories', 'No categories yet.')}
-                  </p>
-                ) : (
-                  <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-                    {allCategories.map((c) => {
-                      const name = c.translations?.[0]?.name ?? c.id;
-                      return (
-                        <li key={c.id} style={{ marginBottom: 4 }}>
-                          <label style={{ fontWeight: 400, display: 'flex', gap: 6, alignItems: 'center' }}>
-                            <input
-                              type="checkbox"
-                              checked={categoryIds.includes(c.id)}
-                              onChange={() => toggleCategory(c.id)}
-                            />
-                            {name}
-                          </label>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
+                <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                  {allCategories.map((c) => {
+                    const name = c.translations?.[0]?.name ?? c.id;
+                    return (
+                      <li key={c.id}>
+                        <label style={{ fontWeight: 400, display: 'flex', gap: 6 }}>
+                          <input
+                            type="checkbox"
+                            checked={categoryIds.includes(c.id)}
+                            onChange={() =>
+                              setCategoryIds((prev) =>
+                                prev.includes(c.id)
+                                  ? prev.filter((x) => x !== c.id)
+                                  : [...prev, c.id],
+                              )
+                            }
+                          />
+                          {name}
+                        </label>
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
             </div>
           ) : null}
@@ -546,36 +394,28 @@ export function PostEditor({ postId }: { postId: string }) {
           {boxes.tags ? (
             <div className="v-panel">
               <h3 className="v-panel__h">{t('blogs', 'tags')}</h3>
-              <div className="v-panel__b">
-                {allTags.length === 0 ? (
-                  <p className="v-muted" style={{ fontSize: 12, margin: 0 }}>
-                    {t('blogs', 'noTags', 'No tags yet.')}
-                  </p>
-                ) : (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                    {allTags.map((tg) => {
-                      const name = tg.translations?.[0]?.name ?? tg.id;
-                      const on = tagIds.includes(tg.id);
-                      return (
-                        <button
-                          key={tg.id}
-                          type="button"
-                          className="v-btn"
-                          style={{
-                            fontWeight: on ? 700 : 400,
-                            background: on ? '#dbeafe' : undefined,
-                          }}
-                          onClick={() => toggleTag(tg.id)}
-                        >
-                          {name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-                <p className="v-muted" style={{ fontSize: 11, marginTop: 8 }}>
-                  {t('blogs', 'addTags', 'Separate tags with commas')}
-                </p>
+              <div className="v-panel__b" style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {allTags.map((tg) => {
+                  const name = tg.translations?.[0]?.name ?? tg.id;
+                  const on = tagIds.includes(tg.id);
+                  return (
+                    <button
+                      key={tg.id}
+                      type="button"
+                      className="v-btn"
+                      style={on ? { background: '#2271b1', color: '#fff' } : undefined}
+                      onClick={() =>
+                        setTagIds((prev) =>
+                          prev.includes(tg.id)
+                            ? prev.filter((x) => x !== tg.id)
+                            : [...prev, tg.id],
+                        )
+                      }
+                    >
+                      {name}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           ) : null}
@@ -583,35 +423,12 @@ export function PostEditor({ postId }: { postId: string }) {
       </div>
 
       {mediaOpen ? (
-        <div className="v-media-modal" role="dialog" aria-modal="true" aria-label="Media">
-          <div className="v-media-modal__frame">
-            <div className="v-media-modal__bar">
-              <strong>{t('blogs', 'mediaLibrary')}</strong>
-              <button type="button" className="v-btn" onClick={() => setMediaOpen(false)}>
-                {t('blogs', 'close', 'Close')}
-              </button>
-            </div>
-            <div className="v-media-modal__body">
-              <MediaLibrary
-                imagesOnly
-                onClose={() => setMediaOpen(false)}
-                onInsert={(p) => {
-                  if (mediaMode === 'featured') setFeatured(p);
-                  else insertMedia(p);
-                }}
-              />
-            </div>
-          </div>
-        </div>
+        <MediaLibrary
+          mode={mediaMode === 'featured' ? 'select' : 'insert'}
+          onClose={() => setMediaOpen(false)}
+          onInsert={mediaMode === 'featured' ? setFeatured : insertMedia}
+        />
       ) : null}
     </div>
   );
-}
-
-function escapeAttr(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-}
-
-function escapeHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
