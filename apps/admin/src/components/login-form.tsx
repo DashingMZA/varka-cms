@@ -10,10 +10,7 @@ import {
 } from '@/lib/i18n';
 import type { AppLocale } from '@varka/i18n';
 import { loginSchema, twoFactorCodeSchema, zodErrorKeys } from '@varka/validation';
-import {
-  signInEmailAction,
-  verifyTwoFactorAction,
-} from '@/actions/auth';
+import { signInEmailAction, verifyTwoFactorAction } from '@/actions/auth';
 
 type Step = 'credentials' | 'twoFactor';
 
@@ -36,7 +33,6 @@ export function LoginForm() {
     e.preventDefault();
     setError(null);
     setFieldErrors({});
-
     const parsed = loginSchema.safeParse({ email, password });
     if (!parsed.success) {
       const keys = zodErrorKeys(parsed.error);
@@ -45,27 +41,20 @@ export function LoginForm() {
       setFieldErrors(mapped);
       return;
     }
-
     setLoading(true);
     try {
       const res = await signInEmailAction(parsed.data.email, parsed.data.password);
-
       if (!res.ok) {
-        if (res.code === 'EMAIL_NOT_VERIFIED') {
-          setError(t('auth', 'emailNotVerified'));
-        } else {
-          setError(res.error || t('auth', 'invalidCredentials'));
-        }
+        if (res.code === 'EMAIL_NOT_VERIFIED') setError(t('auth', 'emailNotVerified'));
+        else setError(res.error || t('auth', 'invalidCredentials'));
         setLoading(false);
         return;
       }
-
       if (res.twoFactorRedirect) {
         setStep('twoFactor');
         setLoading(false);
         return;
       }
-
       window.location.assign('/dashboard');
     } catch {
       setError(t('auth', 'networkError'));
@@ -77,19 +66,17 @@ export function LoginForm() {
     e.preventDefault();
     setError(null);
     setFieldErrors({});
-
     const parsed = twoFactorCodeSchema.safeParse({ code: otp });
     if (!parsed.success) {
       const keys = zodErrorKeys(parsed.error);
       setFieldErrors({ code: mapKey(keys.code || 'otpLength') });
       return;
     }
-
     setLoading(true);
     try {
       const res = await verifyTwoFactorAction(parsed.data.code);
       if (!res.ok) {
-        setError(res.error || mapKey('otpInvalid'));
+        setError(res.error || t('auth', 'invalidOtp'));
         setLoading(false);
         return;
       }
@@ -107,93 +94,24 @@ export function LoginForm() {
 
   return (
     <form
+      className="v-login-form"
       onSubmit={step === 'credentials' ? onSubmitCredentials : onSubmitTwoFactor}
-      className="v-login"
-      style={{ maxWidth: 360, margin: '48px auto', display: 'grid', gap: 12 }}
     >
-      <h1 style={{ margin: 0, fontSize: 22 }}>{t('auth', 'loginTitle')}</h1>
-
-      {error ? (
-        <p role="alert" className="v-alert v-alert--error">
-          {error}
-        </p>
+      {step === 'twoFactor' ? (
+        <>
+          <h2 style={{ margin: 0, fontSize: 14, fontWeight: 600 }}>
+            {t('auth', 'twoFactorTitle')}
+          </h2>
+          <p style={{ margin: 0, fontSize: 13, color: '#646970' }}>{t('auth', 'twoFactorHint')}</p>
+        </>
       ) : null}
 
-      {step === 'credentials' ? (
-        <>
-          <label style={{ display: 'grid', gap: 4, fontSize: 13 }}>
-            {t('auth', 'email')}
-            <input
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            {fieldErrors.email ? (
-              <span className="v-field-error">{fieldErrors.email}</span>
-            ) : null}
-          </label>
-          <label style={{ display: 'grid', gap: 4, fontSize: 13 }}>
-            {t('auth', 'password')}
-            <input
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            {fieldErrors.password ? (
-              <span className="v-field-error">{fieldErrors.password}</span>
-            ) : null}
-          </label>
-          <button type="submit" className="v-btn v-btn--primary" disabled={loading}>
-            {loading ? t('common', 'loading') : t('auth', 'signIn')}
-          </button>
-          <p style={{ margin: 0, fontSize: 13 }}>
-            <Link href="/forgot-password">{t('auth', 'forgotPassword')}</Link>
-          </p>
-        </>
-      ) : (
-        <>
-          <p style={{ margin: 0, fontSize: 13, color: '#646970' }}>
-            {t('auth', 'twoFactorHint')}
-          </p>
-          <label style={{ display: 'grid', gap: 4, fontSize: 13 }}>
-            {t('auth', 'otpCode')}
-            <input
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              required
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-            />
-            {fieldErrors.code ? (
-              <span className="v-field-error">{fieldErrors.code}</span>
-            ) : null}
-          </label>
-          <button type="submit" className="v-btn v-btn--primary" disabled={loading}>
-            {loading ? t('common', 'loading') : t('auth', 'verify')}
-          </button>
-          <button
-            type="button"
-            className="v-btn"
-            onClick={() => {
-              setStep('credentials');
-              setOtp('');
-              setError(null);
-            }}
-          >
-            {t('common', 'back')}
-          </button>
-        </>
-      )}
-
-      <label style={{ display: 'grid', gap: 4, fontSize: 12, color: '#646970' }}>
+      <label className="v-login-label">
         {t('common', 'language')}
         <select
           value={locale}
           onChange={(e) => onLocale(e.target.value as AppLocale)}
+          aria-label={t('common', 'language')}
         >
           {SUPPORTED_LOCALES.map((l) => (
             <option key={l} value={l}>
@@ -202,6 +120,79 @@ export function LoginForm() {
           ))}
         </select>
       </label>
+
+      {step === 'credentials' ? (
+        <>
+          <label className="v-login-label">
+            {t('auth', 'email')}
+            <input
+              type="email"
+              autoComplete="username"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={t('auth', 'emailPlaceholder')}
+            />
+            {fieldErrors.email ? <span className="v-field-error">{fieldErrors.email}</span> : null}
+          </label>
+          <label className="v-login-label">
+            {t('auth', 'password')}
+            <input
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder={t('auth', 'passwordPlaceholder')}
+            />
+            {fieldErrors.password ? (
+              <span className="v-field-error">{fieldErrors.password}</span>
+            ) : null}
+          </label>
+          <p style={{ margin: 0, fontSize: 13 }}>
+            <Link href="/forgot-password">{t('auth', 'forgotPassword')}</Link>
+          </p>
+        </>
+      ) : (
+        <label className="v-login-label">
+          {t('auth', 'verifyCode')}
+          <input
+            type="text"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            pattern="[0-9]{6}"
+            maxLength={6}
+            required
+            value={otp}
+            onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+          />
+          {fieldErrors.code ? <span className="v-field-error">{fieldErrors.code}</span> : null}
+        </label>
+      )}
+
+      {error ? <p className="v-login-error">{error}</p> : null}
+
+      <button type="submit" className="v-btn v-btn--primary v-login-submit" disabled={loading}>
+        {loading
+          ? t('auth', 'signingIn')
+          : step === 'twoFactor'
+            ? t('auth', 'twoFactorSubmit')
+            : t('auth', 'login')}
+      </button>
+
+      {step === 'twoFactor' ? (
+        <button
+          type="button"
+          className="v-btn"
+          onClick={() => {
+            setStep('credentials');
+            setOtp('');
+            setError(null);
+          }}
+        >
+          {t('auth', 'signIn')}
+        </button>
+      ) : null}
     </form>
   );
 }
