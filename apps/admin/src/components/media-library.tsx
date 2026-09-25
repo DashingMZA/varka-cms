@@ -49,7 +49,6 @@ type Props = {
   onInsert?: (payload: MediaInsertPayload) => void;
   onClose?: () => void;
   imagesOnly?: boolean;
-  /** Compatibility alias used by post-editor */
   mode?: 'insert' | 'select' | 'browse';
 };
 
@@ -96,9 +95,7 @@ export function MediaLibrary({ onInsert, onClose, imagesOnly }: Props) {
       return;
     }
     let list = (result.data.items as MediaAsset[]) ?? [];
-    if (imagesOnly) {
-      list = list.filter((a) => a.mimeType.startsWith('image/'));
-    }
+    if (imagesOnly) list = list.filter((a) => a.mimeType.startsWith('image/'));
     setItems(list);
   }, [imagesOnly]);
 
@@ -186,9 +183,9 @@ export function MediaLibrary({ onInsert, onClose, imagesOnly }: Props) {
 
   const body = (
     <div className="v-media">
-      <div className="v-media__toolbar" style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+      <div className="v-media__toolbar">
         <label className="v-btn v-btn--primary" style={{ cursor: 'pointer' }}>
-          {uploading ? (t('common', 'loading') || 'Uploading…') : (t('media', 'upload') || 'Upload')}
+          {uploading ? (t('common', 'loading') || 'Uploading…') : (t('media', 'upload') || 'Upload files')}
           <input
             type="file"
             multiple
@@ -201,30 +198,19 @@ export function MediaLibrary({ onInsert, onClose, imagesOnly }: Props) {
         <button type="button" className="v-btn" onClick={() => void load()}>
           {t('common', 'refresh') || 'Refresh'}
         </button>
-        {onClose ? (
-          <button type="button" className="v-btn" onClick={onClose}>
-            {t('common', 'close') || 'Close'}
-          </button>
+        {error ? (
+          <span className="v-muted" style={{ color: 'var(--wp-danger)' }}>
+            {error}
+          </span>
         ) : null}
       </div>
 
-      {error ? (
-        <p role="alert" className="v-alert v-alert--error">
-          {error}
-        </p>
-      ) : null}
-
-      <div style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 280px' : '1fr', gap: 16 }}>
-        <div
-          className="v-media__grid"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
-            gap: 10,
-          }}
-        >
+      <div className="v-media__layout">
+        <div className="v-media__grid">
           {items.length === 0 ? (
-            <p className="v-muted">{t('media', 'empty') || 'No media yet. Upload files to get started.'}</p>
+            <p className="v-muted" style={{ gridColumn: '1 / -1' }}>
+              {t('media', 'empty') || 'No media yet. Upload files to get started.'}
+            </p>
           ) : (
             items.map((a) => {
               const isImg = a.mimeType.startsWith('image/');
@@ -233,27 +219,16 @@ export function MediaLibrary({ onInsert, onClose, imagesOnly }: Props) {
                 <button
                   key={a.id}
                   type="button"
+                  className={'v-media__item' + (active ? ' is-selected' : '')}
                   onClick={() => setSelectedId(a.id)}
-                  style={{
-                    border: active ? '2px solid #2271b1' : '1px solid #c3c4c7',
-                    borderRadius: 4,
-                    padding: 4,
-                    background: '#fff',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                  }}
                 >
                   {isImg ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={previewUrl(a, 'thumbnail')}
-                      alt={a.alt || a.filename}
-                      style={{ width: '100%', height: 90, objectFit: 'cover', display: 'block' }}
-                    />
+                    <img src={previewUrl(a, 'thumbnail')} alt={a.alt || a.filename} />
                   ) : (
                     <div
                       style={{
-                        height: 90,
+                        height: 120,
                         display: 'grid',
                         placeItems: 'center',
                         background: '#f0f0f1',
@@ -263,46 +238,44 @@ export function MediaLibrary({ onInsert, onClose, imagesOnly }: Props) {
                       {a.mimeType}
                     </div>
                   )}
-                  <div style={{ fontSize: 11, marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {a.title || a.filename}
-                  </div>
+                  <div className="v-media__item-meta">{a.title || a.filename}</div>
                 </button>
               );
             })
           )}
         </div>
 
-        {selected ? (
-          <aside className="v-panel" style={{ alignSelf: 'start' }}>
-            <h3 className="v-panel__h">{t('media', 'attachmentDetails') || 'Attachment details'}</h3>
-            <div className="v-panel__b" style={{ display: 'grid', gap: 8 }}>
+        <aside className="v-media__sidebar">
+          {selected ? (
+            <>
+              <h3>{t('media', 'attachmentDetails') || 'Attachment details'}</h3>
               {selected.mimeType.startsWith('image/') ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={previewUrl(selected, 'medium')}
                   alt={selected.alt || ''}
-                  style={{ maxWidth: '100%', borderRadius: 3 }}
+                  style={{ maxWidth: '100%', marginBottom: 8, border: '1px solid #c3c4c7' }}
                 />
               ) : null}
-              <p className="v-muted" style={{ margin: 0, fontSize: 12 }}>
+              <p className="v-muted" style={{ margin: '0 0 10px' }}>
                 {selected.filename} · {formatBytes(selected.sizeBytes)}
                 {selected.width && selected.height
                   ? ` · ${selected.width}×${selected.height}`
                   : ''}
               </p>
-              <label style={{ fontSize: 12 }}>
+              <label>
                 {t('media', 'title') || 'Title'}
                 <input value={title} onChange={(e) => setTitle(e.target.value)} />
               </label>
-              <label style={{ fontSize: 12 }}>
+              <label>
                 {t('media', 'alt') || 'Alt text'}
                 <input value={alt} onChange={(e) => setAlt(e.target.value)} />
               </label>
-              <label style={{ fontSize: 12 }}>
+              <label>
                 {t('media', 'caption') || 'Caption'}
                 <textarea value={caption} onChange={(e) => setCaption(e.target.value)} rows={2} />
               </label>
-              <label style={{ fontSize: 12 }}>
+              <label>
                 {t('media', 'keywords') || 'Keywords'}
                 <input value={keywords} onChange={(e) => setKeywords(e.target.value)} />
               </label>
@@ -310,14 +283,18 @@ export function MediaLibrary({ onInsert, onClose, imagesOnly }: Props) {
                 <button type="button" className="v-btn" disabled={saving} onClick={() => void saveMeta()}>
                   {saving ? (t('common', 'saving') || 'Saving…') : (t('common', 'save') || 'Save')}
                 </button>
-                <button type="button" className="v-btn" style={{ color: 'var(--wp-danger)' }} onClick={() => void removeSelected()}>
+                <button
+                  type="button"
+                  className="v-btn"
+                  style={{ color: 'var(--wp-danger)' }}
+                  onClick={() => void removeSelected()}
+                >
                   {t('common', 'delete') || 'Delete'}
                 </button>
               </div>
-
               {onInsert ? (
-                <div style={{ borderTop: '1px solid #dcdcde', paddingTop: 10, marginTop: 4 }}>
-                  <label style={{ fontSize: 12 }}>
+                <div style={{ borderTop: '1px solid #dcdcde', paddingTop: 12, marginTop: 12 }}>
+                  <label>
                     {t('media', 'size') || 'Size'}
                     <select
                       value={insertSize}
@@ -330,63 +307,64 @@ export function MediaLibrary({ onInsert, onClose, imagesOnly }: Props) {
                       ))}
                     </select>
                   </label>
-                  <button
-                    type="button"
-                    className="v-btn v-btn--primary"
-                    style={{ marginTop: 8 }}
-                    onClick={insertSelected}
-                  >
-                    {t('media', 'insertIntoPost') || 'Insert into post'}
-                  </button>
                 </div>
               ) : null}
-            </div>
-          </aside>
-        ) : null}
+            </>
+          ) : (
+            <p className="v-muted">{t('media', 'selectItem') || 'Select an item to view details.'}</p>
+          )}
+        </aside>
       </div>
+
+      {onInsert ? (
+        <div className="v-media-modal__footer">
+          {onClose ? (
+            <button type="button" className="v-btn" onClick={onClose}>
+              {t('common', 'cancel') || 'Cancel'}
+            </button>
+          ) : null}
+          <button
+            type="button"
+            className="v-btn v-btn--primary"
+            disabled={!selected}
+            onClick={insertSelected}
+          >
+            {t('media', 'insertIntoPost') || 'Insert into post'}
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 
   if (onClose || onInsert) {
     return (
-      <div
-        className="v-media-modal"
-        role="dialog"
-        aria-modal="true"
-        style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0,0,0,0.55)',
-          zIndex: 100000,
-          display: 'grid',
-          placeItems: 'center',
-          padding: 24,
-        }}
-      >
-        <div
-          style={{
-            background: '#fff',
-            borderRadius: 4,
-            maxWidth: 960,
-            width: '100%',
-            maxHeight: '90vh',
-            overflow: 'auto',
-            padding: 16,
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-            <strong>{t('media', 'library') || 'Media Library'}</strong>
+      <div className="v-media-modal" role="dialog" aria-modal="true">
+        <div className="v-media-modal__frame v-media-frame">
+          <div className="v-media-modal__bar">
+            <h2>{t('media', 'library') || 'Media Library'}</h2>
             {onClose ? (
-              <button type="button" className="v-btn" onClick={onClose}>
+              <button type="button" className="v-btn" onClick={onClose} aria-label="Close">
                 ×
               </button>
             ) : null}
           </div>
-          {body}
+          <div className="v-media-modal__body">{body}</div>
         </div>
       </div>
     );
   }
 
-  return body;
+  return (
+    <div className="v-wrap">
+      <div className="v-page-header">
+        <h1 className="v-page-title">{t('media', 'library') || 'Media Library'}</h1>
+      </div>
+      <div
+        className="v-media-frame"
+        style={{ border: '1px solid #c3c4c7', boxShadow: '0 1px 1px rgba(0,0,0,0.04)' }}
+      >
+        {body}
+      </div>
+    </div>
+  );
 }
