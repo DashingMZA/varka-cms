@@ -40,7 +40,7 @@ export function SettingsForm({ group, title, description, defaults, children }: 
         if (!res.ok) throw new Error(res.error || t('errors', 'loadFailed'));
         const data = res.data as { settings?: Record<string, unknown> };
         if (!cancelled) {
-          setValues({ ...defaults, ...(data.settings ?? {}) });
+          setValues({ ...defaults, ...data.settings });
         }
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : t('errors', 'loadFailed'));

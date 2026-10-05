@@ -84,19 +84,19 @@ export function ScreenMeta({ help = [], options = [] }: Props) {
       {panel === 'help' ? (
         <div className="v-screen-meta__panel">
           <div className="v-screen-meta__help-tabs">
-            {help.map((t) => (
+            {help.map((h) => (
               <button
-                key={t.id}
+                key={h.id}
                 type="button"
-                className={helpTab === t.id ? 'is-active' : ''}
-                onClick={() => setHelpTab(t.id)}
+                className={helpTab === h.id ? 'is-active' : ''}
+                onClick={() => setHelpTab(h.id)}
               >
-                {t.title}
+                {h.title}
               </button>
             ))}
           </div>
           <div className="v-screen-meta__help-body">
-            {help.find((t) => t.id === helpTab)?.body}
+            {help.find((h) => h.id === helpTab)?.body}
           </div>
         </div>
       ) : null}
