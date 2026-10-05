@@ -143,17 +143,17 @@ export function DashboardHome() {
   return (
     <div className="v-wrap">
       <ScreenMeta
-        title="Dashboard"
+        title={t('dashboard', 'title') || 'Dashboard'}
         help={[
           {
             id: 'overview',
-            title: 'Overview',
-            body: 'At a Glance shows live counts from the database. Activity lists recent posts, comments, and audit events.',
+            title: t('dashboard', 'overview') || 'Overview',
+            body: t('dashboard', 'overviewBody') || 'At a Glance shows live counts from the database. Activity lists recent posts, comments, and audit events.',
           },
           {
             id: 'navigation',
-            title: 'Navigation',
-            body: 'Use the left menu to manage content, media, users, and settings.',
+            title: t('dashboard', 'navigation') || 'Navigation',
+            body: t('dashboard', 'navigationBody') || 'Use the left menu to manage content, media, users, and settings.',
           },
         ]}
         options={[

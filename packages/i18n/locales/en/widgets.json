@@ -1,0 +1,14 @@
+{
+  "saveWidgets": "Save Widgets",
+  "saving": "Saving…",
+  "widgetsSaved": "Widgets saved.",
+  "loadFailed": "Load failed ({status})",
+  "saveFailed": "Save failed ({status})",
+  "remove": "Remove",
+  "emptyZone": "Empty zone",
+  "recentPosts": "Recent Posts",
+  "categories": "Categories",
+  "search": "Search",
+  "customHtml": "Custom HTML",
+  "tagCloud": "Tag Cloud"
+}

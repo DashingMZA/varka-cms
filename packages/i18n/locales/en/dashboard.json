@@ -11,5 +11,9 @@
   "users": "Users",
   "good": "Good",
   "improve": "Should be improved",
-  "critical": "Critical"
+  "critical": "Critical",
+  "overview": "Overview",
+  "overviewBody": "At a Glance shows live counts from the database. Activity lists recent posts, comments, and audit events.",
+  "navigation": "Navigation",
+  "navigationBody": "Use the left menu to manage content, media, users, and settings."
 }

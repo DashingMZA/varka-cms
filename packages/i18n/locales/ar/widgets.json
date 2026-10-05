@@ -1,0 +1,14 @@
+{
+  "saveWidgets": "حفظ الودجات",
+  "saving": "جارٍ الحفظ…",
+  "widgetsSaved": "تم حفظ الودجات.",
+  "loadFailed": "فشل التحميل ({status})",
+  "saveFailed": "فشل الحفظ ({status})",
+  "remove": "إزالة",
+  "emptyZone": "منطقة فارغة",
+  "recentPosts": "المشاركات الأخيرة",
+  "categories": "التصنيفات",
+  "search": "بحث",
+  "customHtml": "HTML مخصص",
+  "tagCloud": "سحابة الوسوم"
+}

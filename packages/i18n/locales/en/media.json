@@ -23,5 +23,9 @@
   "uploadImage": "Upload image",
   "uploadNew": "Upload new",
   "uploadReplace": "Upload & replace",
-  "uploading": "Uploading…"
+  "uploading": "Uploading…",
+  "thumbnail": "Thumbnail",
+  "medium": "Medium",
+  "large": "Large",
+  "fullSize": "Full size"
 }

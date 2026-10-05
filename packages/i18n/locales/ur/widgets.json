@@ -1,0 +1,14 @@
+{
+  "saveWidgets": "ویجٹس محفوظ کریں",
+  "saving": "محفوظ ہو رہا ہے…",
+  "widgetsSaved": "ویجٹس محفوظ ہو گئے.",
+  "loadFailed": "لوڈ ناکام ({status})",
+  "saveFailed": "محفوظ کرنا ناکام ({status})",
+  "remove": "ہٹائیں",
+  "emptyZone": "خالی زون",
+  "recentPosts": "حالیہ پوسٹس",
+  "categories": "زمرے",
+  "search": "تلاش",
+  "customHtml": "کسٹم HTML",
+  "tagCloud": "ٹیگ کلاؤڈ"
+}

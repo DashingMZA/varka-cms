@@ -23,5 +23,9 @@
   "uploadImage": "Subir imagen",
   "uploadNew": "Subir nueva",
   "uploadReplace": "Subir y reemplazar",
-  "uploading": "Subiendo…"
+  "uploading": "Subiendo…",
+  "thumbnail": "Miniatura",
+  "medium": "Mediano",
+  "large": "Grande",
+  "fullSize": "Tamaño completo"
 }

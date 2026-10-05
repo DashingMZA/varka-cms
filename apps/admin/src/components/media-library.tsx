@@ -63,11 +63,11 @@ function formatBytes(n: number): string {
   return `${(n / (1024 * 1024)).toFixed(2)} MB`;
 }
 
-const SIZE_LABELS: { key: MediaSizeKey; label: string }[] = [
-  { key: 'thumbnail', label: 'Thumbnail' },
-  { key: 'medium', label: 'Medium' },
-  { key: 'large', label: 'Large' },
-  { key: 'original', label: 'Full size' },
+const SIZE_KEYS: { key: MediaSizeKey; i18nKey: string; fallback: string }[] = [
+  { key: 'thumbnail', i18nKey: 'thumbnail', fallback: 'Thumbnail' },
+  { key: 'medium', i18nKey: 'medium', fallback: 'Medium' },
+  { key: 'large', i18nKey: 'large', fallback: 'Large' },
+  { key: 'original', i18nKey: 'fullSize', fallback: 'Full size' },
 ];
 
 export function MediaLibrary({ onInsert, onClose, imagesOnly }: Props) {
@@ -89,7 +89,7 @@ export function MediaLibrary({ onInsert, onClose, imagesOnly }: Props) {
   );
 
   const load = useCallback(async () => {
-    const result = await listMediaAction(100);
+    const result = await listMediaAction({ limit: 100 });
     if (!result.ok) {
       setError(`Load failed: ${result.error}`);
       return;
@@ -300,9 +300,9 @@ export function MediaLibrary({ onInsert, onClose, imagesOnly }: Props) {
                       value={insertSize}
                       onChange={(e) => setInsertSize(e.target.value as MediaSizeKey)}
                     >
-                      {SIZE_LABELS.map((s) => (
+                      {SIZE_KEYS.map((s) => (
                         <option key={s.key} value={s.key}>
-                          {s.label}
+                          {t('media', s.i18nKey) || s.fallback}
                         </option>
                       ))}
                     </select>

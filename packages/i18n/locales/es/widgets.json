@@ -1,0 +1,14 @@
+{
+  "saveWidgets": "Guardar widgets",
+  "saving": "Guardando…",
+  "widgetsSaved": "Widgets guardados.",
+  "loadFailed": "Error al cargar ({status})",
+  "saveFailed": "Error al guardar ({status})",
+  "remove": "Eliminar",
+  "emptyZone": "Zona vacía",
+  "recentPosts": "Entradas recientes",
+  "categories": "Categorías",
+  "search": "Buscar",
+  "customHtml": "HTML personalizado",
+  "tagCloud": "Nube de etiquetas"
+}

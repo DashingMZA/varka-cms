@@ -23,5 +23,9 @@
   "uploadImage": "ارفع صورة",
   "uploadNew": "ارفع جديداً",
   "uploadReplace": "ارفع واستبدل",
-  "uploading": "جارٍ الرفع…"
+  "uploading": "جارٍ الرفع…",
+  "thumbnail": "مصغرة",
+  "medium": "متوسطة",
+  "large": "كبيرة",
+  "fullSize": "الحجم الكامل"
 }
