@@ -58,6 +58,17 @@ const nextConfig: NextConfig = {
   ],
   experimental: {},
   compress: true,
+  // The plugin system loads plugin files from disk at request time
+  // (apps/admin/plugins/<slug>/). File tracing deliberately skips them
+  // (turbopackIgnore), so force-include them in the function bundles for
+  // every route that touches plugins — otherwise the deployed admin shows
+  // "Files missing" and plugin pages 404.
+  outputFileTracingIncludes: {
+    '/plugins': ['./plugins/**/*'],
+    '/plugins/[slug]': ['./plugins/**/*'],
+    '/api/plugins/[slug]/[...path]': ['./plugins/**/*'],
+    '/api/system/sync-plugins': ['./plugins/**/*'],
+  },
   async headers() {
     return [
       {
