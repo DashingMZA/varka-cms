@@ -59,7 +59,15 @@ function buildNav(t: (ns: 'nav' | 'common', key: string) => string): NavItem[] {
       ],
     },
     { href: '/comments', label: L(t, 'comments', 'Comments'), icon: '◫' },
-    { href: '/forms', label: L(t, 'forms', 'Forms'), icon: '✉' },
+    {
+      href: '/forms',
+      label: L(t, 'forms', 'Forms'),
+      icon: '✉',
+      children: [
+        { href: '/forms', label: L(t, 'allForms', 'All Forms') },
+        { href: '/forms/new', label: L(t, 'addNew', 'Add New') },
+      ],
+    },
     {
       href: '/appearance',
       label: L(t, 'appearance', 'Appearance'),
@@ -68,6 +76,15 @@ function buildNav(t: (ns: 'nav' | 'common', key: string) => string): NavItem[] {
         { href: '/appearance/themes', label: L(t, 'themes', 'Themes') },
         { href: '/appearance/menus', label: L(t, 'menus', 'Menus') },
         { href: '/appearance/widgets', label: L(t, 'widgets', 'Widgets') },
+      ],
+    },
+    {
+      href: '/plugins',
+      label: L(t, 'plugins', 'Plugins'),
+      icon: '⚡',
+      children: [
+        { href: '/plugins', label: L(t, 'installedPlugins', 'Installed Plugins') },
+        { href: '/plugins/new', label: L(t, 'addNew', 'Add New') },
       ],
     },
     {
@@ -88,6 +105,9 @@ function buildNav(t: (ns: 'nav' | 'common', key: string) => string): NavItem[] {
       icon: '◎',
       children: [
         { href: '/seo', label: L(t, 'seoSettings', 'SEO Settings') },
+        { href: '/seo/titles-meta', label: L(t, 'titlesMeta', 'Titles & Meta') },
+        { href: '/seo/sitemap', label: L(t, 'sitemap', 'Sitemap') },
+        { href: '/seo/redirections', label: L(t, 'redirections', 'Redirections') },
         { href: '/seo/404-monitor', label: L(t, 'notFoundMonitor', '404 Monitor') },
       ],
     },
@@ -103,7 +123,6 @@ function buildNav(t: (ns: 'nav' | 'common', key: string) => string): NavItem[] {
         { href: '/system', label: L(t, 'siteHealth', 'Site Health') },
       ],
     },
-    { href: '/plugins', label: L(t, 'plugins', 'Plugins'), icon: '⚡' },
     {
       href: '/settings',
       label: L(t, 'settings', 'Settings'),
