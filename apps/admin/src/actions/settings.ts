@@ -61,15 +61,23 @@ export async function saveSettingsAction(
   }
 }
 
-const SEO_KEY = 'seo.global';
+const SEO_DEFAULTS: Record<string, unknown> = {
+  'seo.titleTemplate': '%s · VARKA',
+  'seo.defaultDescription': 'Editorial publishing with VARKA',
+  'seo.robotsIndex': true,
+};
 
-export async function getSeoAction(): Promise<ActionResult<unknown>> {
+export async function getSeoAction(): Promise<
+  ActionResult<{ settings: Record<string, unknown>; defaults: Record<string, unknown> }>
+> {
   try {
     const { siteId } = await requireServerAuth('seo.read');
-    const row = await prisma.siteSetting.findUnique({
-      where: { siteId_key: { siteId, key: SEO_KEY } },
+    const rows = await prisma.siteSetting.findMany({
+      where: { siteId, key: { startsWith: 'seo.' } },
     });
-    return { ok: true, data: row?.value ?? {} };
+    const settings: Record<string, unknown> = {};
+    for (const r of rows) settings[r.key] = r.value;
+    return { ok: true, data: { settings, defaults: SEO_DEFAULTS } };
   } catch (e) {
     return fail(e);
   }
@@ -80,11 +88,14 @@ export async function saveSeoAction(
 ): Promise<ActionResult<{ ok: true }>> {
   try {
     const { siteId } = await requireServerAuth('seo.update');
-    await prisma.siteSetting.upsert({
-      where: { siteId_key: { siteId, key: SEO_KEY } },
-      create: { siteId, key: SEO_KEY, value: value as object },
-      update: { value: value as object },
-    });
+    for (const [key, val] of Object.entries(value)) {
+      if (!key.startsWith('seo.')) continue;
+      await prisma.siteSetting.upsert({
+        where: { siteId_key: { siteId, key } },
+        create: { siteId, key, value: val as object },
+        update: { value: val as object },
+      });
+    }
     revalidatePath('/seo');
     return { ok: true, data: { ok: true } };
   } catch (e) {
@@ -222,6 +233,57 @@ export async function listAuditAction(limit = 50): Promise<ActionResult<{ items:
       take: Math.min(limit, 200),
     });
     return { ok: true, data: { items: JSON.parse(JSON.stringify(items)) } };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+const AUTOSAVE_KEY = 'admin.autosaveIntervalMs';
+const AUTOSAVE_DEFAULT = 2500;
+const AUTOSAVE_MIN = 1000;
+const AUTOSAVE_MAX = 120_000;
+
+/** Server Action: get autosave interval (replaces /api/settings/autosave GET). */
+export async function getAutosaveAction(): Promise<
+  ActionResult<{ intervalMs: number; minMs: number; maxMs: number }>
+> {
+  try {
+    const { siteId } = await requireServerAuth('settings.read');
+    const row = await prisma.siteSetting.findUnique({
+      where: { siteId_key: { siteId, key: AUTOSAVE_KEY } },
+    });
+    const ms =
+      typeof row?.value === 'number'
+        ? row.value
+        : typeof row?.value === 'object' && row?.value && 'ms' in (row.value as object)
+          ? Number((row.value as { ms: number }).ms)
+          : AUTOSAVE_DEFAULT;
+    return {
+      ok: true,
+      data: {
+        intervalMs: Math.min(AUTOSAVE_MAX, Math.max(AUTOSAVE_MIN, ms || AUTOSAVE_DEFAULT)),
+        minMs: AUTOSAVE_MIN,
+        maxMs: AUTOSAVE_MAX,
+      },
+    };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+/** Server Action: save autosave interval (replaces /api/settings/autosave PUT). */
+export async function saveAutosaveAction(intervalMs: number): Promise<ActionResult<{ intervalMs: number }>> {
+  try {
+    const { siteId } = await requireServerAuth('settings.update');
+    let ms = Number(intervalMs ?? AUTOSAVE_DEFAULT);
+    if (!Number.isFinite(ms)) ms = AUTOSAVE_DEFAULT;
+    ms = Math.min(AUTOSAVE_MAX, Math.max(AUTOSAVE_MIN, Math.round(ms)));
+    await prisma.siteSetting.upsert({
+      where: { siteId_key: { siteId, key: AUTOSAVE_KEY } },
+      create: { siteId, key: AUTOSAVE_KEY, value: ms },
+      update: { value: ms },
+    });
+    return { ok: true, data: { intervalMs: ms } };
   } catch (e) {
     return fail(e);
   }

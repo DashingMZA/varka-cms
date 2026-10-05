@@ -150,14 +150,18 @@ export async function listFormsAction(): Promise<
     }
     return {
       ok: true,
-      data: forms.map((f) => ({
-        id: f.id,
-        name: f.name,
-        slug: f.slug,
-        active: f.active,
-        entries: f._count.entries,
-        updatedAt: f.updatedAt.toISOString(),
-      })),
+      data: forms.map((f) => {
+        // eslint-disable-next-line no-underscore-dangle -- Prisma generates `_count`
+        const count = f._count;
+        return {
+          id: f.id,
+          name: f.name,
+          slug: f.slug,
+          active: f.active,
+          entries: count.entries,
+          updatedAt: f.updatedAt.toISOString(),
+        };
+      }),
     };
   } catch (e) {
     return fail(e);

@@ -264,3 +264,17 @@ export async function exportContentAction(
     return fail(e);
   }
 }
+
+/** Server Action: list audit log (replaces /api/audit fetch in admin). */
+export async function listAuditAction(limit = 50): Promise<
+  ActionResult<{ items: Array<Record<string, unknown>> }>
+> {
+  try {
+    const { siteId } = await requireServerAuth('audit.read');
+    const { listAudit } = await import('@varka/security');
+    const result = await listAudit(prisma as never, { siteId, limit });
+    return { ok: true, data: { items: JSON.parse(JSON.stringify(result.items ?? result)) } };
+  } catch (e) {
+    return fail(e);
+  }
+}

@@ -68,7 +68,10 @@ export async function getPageAction(pageId: string): Promise<ActionResult<unknow
   }
 }
 
-export async function createPageAction(title = 'Untitled'): Promise<ActionResult<{ id: string }>> {
+export async function createPageAction(
+  title = 'Untitled',
+  opts?: { slug?: string; contentHtml?: string; template?: string; status?: string },
+): Promise<ActionResult<{ id: string }>> {
   try {
     const { ctx, siteId } = await requireServerAuth('pages.create');
     const lang = await prisma.language.findFirst({
@@ -76,30 +79,32 @@ export async function createPageAction(title = 'Untitled'): Promise<ActionResult
     });
     if (!lang) return { ok: false, error: 'No default language' };
 
-    let slug = slugifyName(title);
+    let slug = opts?.slug?.trim() ? slugifyName(opts.slug) : slugifyName(title);
     for (let i = 0; i < 30; i++) {
       const exists = await prisma.pageTranslation.findFirst({
         where: { languageId: lang.id, slug },
       });
       if (!exists) break;
-      slug = `${slugifyName(title)}-${i + 2}`;
+      slug = `${slugifyName(opts?.slug || title)}-${i + 2}`;
     }
 
     const authorId =
       ctx.userId && ctx.userId !== 'dev-user' ? ctx.userId : undefined;
+    const status = opts?.status === 'PUBLISHED' ? 'PUBLISHED' : 'DRAFT';
 
     const page = await prisma.page.create({
       data: {
         siteId,
         ...(authorId ? { authorId } : {}),
-        status: 'DRAFT',
+        status,
+        template: opts?.template || 'default',
         translations: {
           create: {
             languageId: lang.id,
             title,
             slug,
-            contentHtml: '',
-            status: 'DRAFT',
+            contentHtml: opts?.contentHtml || '',
+            status,
           },
         },
       },
