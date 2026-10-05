@@ -106,6 +106,7 @@ export function MediaSettings() {
               <option value="local">Local folder (public/uploads)</option>
               <option value="s3">Amazon S3</option>
               <option value="r2">Cloudflare R2</option>
+              <option value="github">GitHub repo (small sites only)</option>
             </select>
           </label>
           <p className="v-muted" style={{ margin: 0, fontSize: 12 }}>

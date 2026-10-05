@@ -1,27 +1,30 @@
 import { createRequire } from 'node:module';
 import { createLocalAdapter } from './local-adapter';
 import { createS3Adapter, type S3LikeClient } from './s3-adapter';
+import { createGithubAdapter } from './github-adapter';
 import type { StorageAdapter, StorageDriverName } from './types';
 
 const require = createRequire(import.meta.url);
 
+const VALID_DRIVERS: StorageDriverName[] = ['local', 's3', 'r2', 'github'];
+
 export function resolveStorageDriver(): StorageDriverName {
   const d = (process.env.STORAGE_DRIVER ?? 'local').toLowerCase();
-  if (d === 's3' || d === 'r2' || d === 'local') return d;
+  if ((VALID_DRIVERS as string[]).includes(d)) return d as StorageDriverName;
   return 'local';
 }
 
 /** Normalize a user-supplied driver value (e.g. from the admin dashboard DB setting). */
 export function normalizeDriverName(v: unknown): StorageDriverName | null {
   const d = String(v ?? '').toLowerCase();
-  if (d === 's3' || d === 'r2' || d === 'local') return d;
+  if ((VALID_DRIVERS as string[]).includes(d)) return d as StorageDriverName;
   return null;
 }
 
 /**
  * Build adapter from env, with fully separated variables per driver.
  *
- * Switch drivers by changing ONE value: STORAGE_DRIVER=local|s3|r2
+ * Switch drivers by changing ONE value: STORAGE_DRIVER=local|s3|r2|github
  * (or the `media.storage_driver` SiteSetting in the admin dashboard,
  * which overrides the env value).
  *
@@ -32,6 +35,9 @@ export function normalizeDriverName(v: unknown): StorageDriverName | null {
  * - r2 (Cloudflare R2): R2_BUCKET, R2_ENDPOINT
  *   (https://<account-id>.r2.cloudflarestorage.com), R2_ACCESS_KEY_ID,
  *   R2_SECRET_ACCESS_KEY, R2_PUBLIC_URL (https://<custom-domain> or r2.dev URL)
+ * - github (small sites only): GITHUB_TOKEN (PAT with Contents write),
+ *   GITHUB_REPO (owner/repo), GITHUB_BRANCH, GITHUB_PATH_PREFIX,
+ *   GITHUB_PUBLIC_URL (jsdelivr or raw.githubusercontent base)
  *
  * s3/r2 need the optional `@aws-sdk/client-s3` package (not bundled for local).
  */
@@ -45,6 +51,8 @@ export function createStorageAdapterFromEnv(driverOverride?: string): StorageAda
       publicBaseUrl: process.env.LOCAL_PUBLIC_URL ?? process.env.MEDIA_PUBLIC_URL ?? '/uploads',
     });
   }
+
+  if (driver === 'github') return createGithubAdapterFromEnv();
 
   return driver === 'r2' ? createR2AdapterFromEnv() : createS3AdapterFromEnv();
 }
@@ -152,4 +160,22 @@ function createR2AdapterFromEnv(): StorageAdapter {
   };
 
   return createS3Adapter({ name: 'r2', bucket, publicBaseUrl, client: s3Like });
+}
+
+/**
+ * GitHub driver — for SMALL sites (portfolio, single-page).
+ * Every upload becomes a git commit in the repo.
+ */
+function createGithubAdapterFromEnv(): StorageAdapter {
+  const token = process.env.GITHUB_TOKEN;
+  const repo = process.env.GITHUB_REPO;
+  const branch = process.env.GITHUB_BRANCH ?? 'main';
+  const pathPrefix = process.env.GITHUB_PATH_PREFIX ?? 'public/uploads';
+  const publicBaseUrl = process.env.GITHUB_PUBLIC_URL ?? process.env.MEDIA_PUBLIC_URL;
+  if (!token || !repo || !publicBaseUrl) {
+    throw new Error(
+      'STORAGE_DRIVER=github requires GITHUB_TOKEN, GITHUB_REPO (owner/repo) and GITHUB_PUBLIC_URL',
+    );
+  }
+  return createGithubAdapter({ token, repo, branch, pathPrefix, publicBaseUrl });
 }
