@@ -1,6 +1,8 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Field, SettingsForm, inputStyle } from '@/components/settings/settings-form';
+import { listPagesAction } from '@/actions/pages';
 import { useMessages } from '@/lib/i18n';
 
 function L(t: (ns: 'settings' | 'common', key: string) => string, key: string, fallback: string): string {
@@ -16,8 +18,26 @@ const DEFAULTS = {
   dataErasureEnabled: true,
 };
 
+type PageOption = { id: string; title: string };
+
 export default function PrivacySettingsPage() {
   const { t } = useMessages();
+  const [pages, setPages] = useState<PageOption[]>([]);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await listPagesAction({ limit: 100 });
+        if (res.ok) {
+          const data = res.data as { items?: Array<{ id: string; title: string }> };
+          setPages((data.items ?? []).map((p) => ({ id: p.id, title: p.title })));
+        }
+      } catch {
+        /* ignore */
+      }
+    })();
+  }, []);
+
   return (
     <SettingsForm
       group="privacy"
@@ -27,13 +47,19 @@ export default function PrivacySettingsPage() {
     >
       {(v, set) => (
         <>
-          <Field label={L(t, 'privacyPolicyPage', 'Privacy Policy page')} hint={L(t, 'privacyPolicyHint', 'Slug of the page used as the privacy policy.')}>
-            <input
+          <Field label={L(t, 'privacyPolicyPage', 'Privacy Policy page')} hint={L(t, 'privacyPolicyHint', 'Select the page used as the privacy policy.')}>
+            <select
               style={inputStyle}
               value={String(v.privacyPolicyPage ?? '')}
               onChange={(e) => set('privacyPolicyPage', e.target.value)}
-              placeholder="privacy-policy"
-            />
+            >
+              <option value="">{L(t, 'selectPage', '— Select —')}</option>
+              {pages.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.title}
+                </option>
+              ))}
+            </select>
           </Field>
           <Field label={L(t, 'footerLink', 'Footer link')}>
             <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 14 }}>
