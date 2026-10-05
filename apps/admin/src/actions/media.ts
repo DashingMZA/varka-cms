@@ -17,7 +17,7 @@ function fail(e: unknown): ActionResult<never> {
 }
 
 export async function listMediaAction(
-  opts?: { cursor?: string; limit?: number },
+  opts?: { cursor?: string; limit?: number; mimePrefix?: string; month?: string },
 ): Promise<ActionResult<{ items: unknown[]; nextCursor: string | null; hasMore: boolean }>> {
   try {
     const { ctx, siteId } = await requireServerAuth('media.read');
@@ -25,6 +25,8 @@ export async function listMediaAction(
       siteId,
       cursor: opts?.cursor,
       limit: opts?.limit ?? 40,
+      mimePrefix: opts?.mimePrefix,
+      month: opts?.month,
     })) as { items?: unknown[]; nextCursor?: string | null; hasMore?: boolean };
     return {
       ok: true,
@@ -97,6 +99,27 @@ export async function deleteMediaAction(id: string): Promise<ActionResult<{ id: 
     await deleteMedia(prisma as never, storage, ctx, id);
     revalidatePath('/media');
     return { ok: true, data: { id } };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function bulkDeleteMediaAction(ids: string[]): Promise<ActionResult<{ deleted: number }>> {
+  try {
+    const { ctx } = await requireServerAuth('media.delete');
+    if (!Array.isArray(ids) || ids.length === 0) return { ok: true, data: { deleted: 0 } };
+    const storage = await getStorageAdapter();
+    let deleted = 0;
+    for (const id of ids.slice(0, 100)) {
+      try {
+        await deleteMedia(prisma as never, storage, ctx, id);
+        deleted++;
+      } catch {
+        /* skip failures, continue with the rest */
+      }
+    }
+    revalidatePath('/media');
+    return { ok: true, data: { deleted } };
   } catch (e) {
     return fail(e);
   }
