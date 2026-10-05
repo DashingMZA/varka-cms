@@ -1,6 +1,18 @@
 'use client';
 
 import { ROLES, PERMISSIONS, type Role, type Permission } from '@varka/permissions';
+import { useMessages } from '@/lib/i18n';
+
+/** Label with hard fallback so missing i18n never shows raw keys */
+function L(
+  t: (ns: 'security' | 'common', key: string) => string,
+  key: string,
+  fallback: string,
+): string {
+  const v = t('security', key);
+  if (!v || v === key || v.startsWith('security.')) return fallback;
+  return v;
+}
 
 const ROLE_PERMS: Record<Role, Permission[]> = {
   owner: [...PERMISSIONS],
@@ -29,15 +41,16 @@ const ROLE_PERMS: Record<Role, Permission[]> = {
 };
 
 export function RolesMatrix() {
+  const { t } = useMessages();
   return (
     <div className="v-table-wrap" style={{ marginTop: 12 }}>
       <p className="v-muted" style={{ fontSize: 13 }}>
-        Capability matrix from <code>@varka/permissions</code>. Owner holds all capabilities.
+        {L(t, 'capabilityMatrix', 'Capability matrix from ')}<code>@varka/permissions</code>{L(t, 'capabilityMatrixSuffix', '. Owner holds all capabilities.')}
       </p>
       <table className="v-table" style={{ fontSize: 12 }}>
         <thead>
           <tr>
-            <th>Permission</th>
+            <th>{L(t, 'permission', 'Permission')}</th>
             {ROLES.map((r) => (
               <th key={r} style={{ textTransform: 'capitalize' }}>
                 {r.replace('_', ' ')}

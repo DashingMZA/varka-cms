@@ -2,6 +2,18 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { listRevisionsAction, restoreRevisionAction } from '@/actions/posts';
+import { useMessages } from '@/lib/i18n';
+
+/** Label with hard fallback so missing i18n never shows raw keys */
+function L(
+  t: (ns: 'posts' | 'common', key: string) => string,
+  key: string,
+  fallback: string,
+): string {
+  const v = t('posts', key);
+  if (!v || v === key || v.startsWith('posts.')) return fallback;
+  return v;
+}
 
 type Rev = {
   id: string;
@@ -17,6 +29,7 @@ export function RevisionHistory({
   postId: string;
   onRestored?: () => void;
 }) {
+  const { t } = useMessages();
   const [items, setItems] = useState<Rev[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -24,7 +37,7 @@ export function RevisionHistory({
   const load = useCallback(async () => {
     const result = await listRevisionsAction(postId);
     if (!result.ok) {
-      setError(result.error || 'Failed to load revisions');
+      setError(result.error || L(t, 'loadRevisionsFailed', 'Failed to load revisions'));
       return;
     }
     setItems((result.data.items as Rev[]) ?? []);
@@ -35,13 +48,13 @@ export function RevisionHistory({
   }, [load]);
 
   async function restore(revisionId: string) {
-    if (!confirm('Restore this revision? Current content will be replaced.')) return;
+    if (!confirm(L(t, 'restoreRevisionConfirm', 'Restore this revision? Current content will be replaced.'))) return;
     setBusy(true);
     setError(null);
     const result = await restoreRevisionAction(postId, revisionId);
     setBusy(false);
     if (!result.ok) {
-      setError(result.error ?? 'Restore failed');
+      setError(result.error ?? L(t, 'restoreFailed', 'Restore failed'));
       return;
     }
     await load();
@@ -51,12 +64,12 @@ export function RevisionHistory({
 
   return (
     <section className="v-panel">
-      <h2 className="v-panel__h">Revisions</h2>
+      <h2 className="v-panel__h">{L(t, 'revisions', 'Revisions')}</h2>
       <div className="v-panel__b">
         {error ? <div className="v-alert v-alert--error">{error}</div> : null}
         {items.length === 0 ? (
           <p className="v-muted" style={{ margin: 0 }}>
-            No revisions yet. They appear after saves.
+            {L(t, 'noRevisions', 'No revisions yet. They appear after saves.')}
           </p>
         ) : (
           <ul style={{ listStyle: 'none', margin: 0, padding: 0, maxHeight: 220, overflow: 'auto' }}>
@@ -73,7 +86,7 @@ export function RevisionHistory({
                 }}
               >
                 <span>
-                  <strong>{r.title || '(no title)'}</strong>
+                  <strong>{r.title || L(t, 'noTitle', '(no title)')}</strong>
                   <br />
                   <span className="v-muted">{new Date(r.createdAt).toLocaleString()}</span>
                   {r.note ? <span className="v-muted"> · {r.note}</span> : null}
@@ -84,7 +97,7 @@ export function RevisionHistory({
                   disabled={busy}
                   onClick={() => void restore(r.id)}
                 >
-                  Restore
+                  {L(t, 'restore', 'Restore')}
                 </button>
               </li>
             ))}
