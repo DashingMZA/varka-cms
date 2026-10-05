@@ -1,13 +1,20 @@
 {
-  "title": "SEO",
-  "titleTemplate": "Title template",
-  "metaDescription": "Meta Description",
-  "robots": "Robots",
   "canonical": "Canonical URL",
-  "ogTitle": "Open Graph title",
-  "ogDescription": "Open Graph description",
+  "defaultDescription": "Default description",
+  "loadFailed": "Load failed ({status})",
+  "metaDescription": "Meta Description",
   "metaTitle": "Meta Title",
+  "ogDescription": "Open Graph description",
   "ogImage": "Open Graph Image",
+  "ogTitle": "Open Graph title",
+  "publicSiteNote": "Public site: /sitemap.xml, /robots.txt. Set PUBLIC_SITE_URL on Astro.",
+  "robots": "Robots",
+  "robotsIndex": "Allow search engines to index",
+  "save": "Save SEO settings",
+  "saveDefaults": "Save SEO defaults",
+  "saveFailed": "Save failed ({status})",
+  "saved": "Saved",
   "sitemap": "Sitemap",
-  "save": "Save SEO settings"
+  "title": "SEO",
+  "titleTemplate": "Title template"
 }

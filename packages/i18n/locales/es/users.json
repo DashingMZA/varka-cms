@@ -1,0 +1,20 @@
+{
+  "addNewUser": "Añadir nuevo usuario",
+  "addUser": "Añadir usuario",
+  "allUsers": "Todos los usuarios",
+  "changeRole": "Cambiar rol…",
+  "creating": "Creando…",
+  "email": "Correo electrónico",
+  "firstName": "Nombre",
+  "generate": "Generar",
+  "lastName": "Apellido",
+  "name": "Nombre",
+  "noUsers": "No hay usuarios.",
+  "password": "Contraseña",
+  "posts": "Entradas",
+  "role": "Rol",
+  "searchUsers": "Buscar usuarios",
+  "title": "Usuarios",
+  "username": "Nombre de usuario",
+  "website": "Sitio web"
+}

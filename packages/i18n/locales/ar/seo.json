@@ -1,0 +1,20 @@
+{
+  "canonical": "الرابط الأساسي",
+  "defaultDescription": "الوصف الافتراضي",
+  "loadFailed": "فشل التحميل ({status})",
+  "metaDescription": "وصف ميتا",
+  "metaTitle": "عنوان ميتا",
+  "ogDescription": "وصف Open Graph",
+  "ogImage": "صورة Open Graph",
+  "ogTitle": "عنوان Open Graph",
+  "publicSiteNote": "الموقع العام: /sitemap.xml، /robots.txt. عيّن PUBLIC_SITE_URL على Astro.",
+  "robots": "روبوتات",
+  "robotsIndex": "السماح لمحركات البحث بالفهرسة",
+  "save": "حفظ إعدادات SEO",
+  "saveDefaults": "حفظ إعدادات SEO الافتراضية",
+  "saveFailed": "فشل الحفظ ({status})",
+  "saved": "تم الحفظ",
+  "sitemap": "خريطة الموقع",
+  "title": "تحسين محركات البحث",
+  "titleTemplate": "قالب العنوان"
+}

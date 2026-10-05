@@ -1,0 +1,20 @@
+{
+  "canonical": "کینونیکل URL",
+  "defaultDescription": "طے شدہ تفصیل",
+  "loadFailed": "لوڈ ناکام ({status})",
+  "metaDescription": "میٹا تفصیل",
+  "metaTitle": "میٹا عنوان",
+  "ogDescription": "اوپن گراف تفصیل",
+  "ogImage": "اوپن گراف تصویر",
+  "ogTitle": "اوپن گراف عنوان",
+  "publicSiteNote": "عوامی سائٹ: /sitemap.xml، /robots.txt۔ Astro پر PUBLIC_SITE_URL سیٹ کریں۔",
+  "robots": "روبوٹس",
+  "robotsIndex": "سرچ انجنوں کو انڈیکس کرنے کی اجازت دیں",
+  "save": "SEO ترتیبات محفوظ کریں",
+  "saveDefaults": "SEO طے شدہ محفوظ کریں",
+  "saveFailed": "محفوظ ناکام ({status})",
+  "saved": "محفوظ ہو گیا",
+  "sitemap": "سائٹ میپ",
+  "title": "SEO",
+  "titleTemplate": "عنوان سانچہ"
+}

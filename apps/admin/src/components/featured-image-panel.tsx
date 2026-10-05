@@ -1,6 +1,18 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import { useMessages } from '@/lib/i18n';
+
+/** Label with hard fallback so missing i18n never shows raw keys */
+function L(
+  t: (ns: 'media' | 'common', key: string) => string,
+  key: string,
+  fallback: string,
+): string {
+  const v = t('media', key);
+  if (!v || v === key || v.startsWith('media.')) return fallback;
+  return v;
+}
 
 export type FeaturedMedia = {
   id: string;
@@ -31,6 +43,7 @@ type Props = {
  * - Remove / replace
  */
 export function FeaturedImagePanel({ value, library, onChange, onLibraryAdd }: Props) {
+  const { t } = useMessages();
   const inputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -39,7 +52,7 @@ export function FeaturedImagePanel({ value, library, onChange, onLibraryAdd }: P
   async function uploadFile(file: File | null) {
     if (!file) return;
     if (!file.type.startsWith('image/')) {
-      setErr('Please choose an image file');
+      setErr(L(t, 'chooseImage', 'Please choose an image file'));
       return;
     }
     setUploading(true);
@@ -55,14 +68,17 @@ export function FeaturedImagePanel({ value, library, onChange, onLibraryAdd }: P
       });
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { error?: string };
-        setErr(body.error ?? `Upload failed (${res.status})`);
+        setErr(
+          body.error ??
+            L(t, 'uploadFailed', 'Upload failed ({status})').replace('{status}', String(res.status)),
+        );
         setUploading(false);
         return;
       }
       const data = (await res.json()) as FeaturedMedia & { asset?: FeaturedMedia };
       const asset = data.asset ?? data;
       if (!asset?.id) {
-        setErr('Upload succeeded but no asset id returned');
+        setErr(L(t, 'noAssetId', 'Upload succeeded but no asset id returned'));
         setUploading(false);
         return;
       }
@@ -70,14 +86,14 @@ export function FeaturedImagePanel({ value, library, onChange, onLibraryAdd }: P
       onChange(asset);
       setOpen(false);
     } catch {
-      setErr('Network error');
+      setErr(L(t, 'networkError', 'Network error'));
     }
     setUploading(false);
   }
 
   return (
     <section className="v-panel">
-      <h2 className="v-panel__h">Featured image</h2>
+      <h2 className="v-panel__h">{L(t, 'featuredImage', 'Featured image')}</h2>
       <div className="v-panel__b">
         {value ? (
           <div style={{ marginBottom: 8 }}>
@@ -99,7 +115,7 @@ export function FeaturedImagePanel({ value, library, onChange, onLibraryAdd }: P
           </div>
         ) : (
           <p className="v-muted" style={{ marginTop: 0 }}>
-            No featured image set.
+            {L(t, 'noFeaturedImage', 'No featured image set.')}
           </p>
         )}
 
@@ -116,14 +132,18 @@ export function FeaturedImagePanel({ value, library, onChange, onLibraryAdd }: P
             disabled={uploading}
             onClick={() => inputRef.current?.click()}
           >
-            {uploading ? 'Uploading…' : value ? 'Upload & replace' : 'Upload image'}
+            {uploading
+              ? L(t, 'uploading', 'Uploading…')
+              : value
+                ? L(t, 'uploadReplace', 'Upload & replace')
+                : L(t, 'uploadImage', 'Upload image')}
           </button>
           <button type="button" className="v-btn" onClick={() => setOpen(true)}>
-            Media library
+            {L(t, 'mediaLibrary', 'Media library')}
           </button>
           {value ? (
             <button type="button" className="v-btn v-btn--danger" onClick={() => onChange(null)}>
-              Remove
+              {L(t, 'remove', 'Remove')}
             </button>
           ) : null}
         </div>
@@ -143,7 +163,7 @@ export function FeaturedImagePanel({ value, library, onChange, onLibraryAdd }: P
           <div
             role="dialog"
             aria-modal="true"
-            aria-label="Media library"
+            aria-label={L(t, 'mediaLibrary', 'Media library')}
             style={{
               position: 'fixed',
               inset: 0,
@@ -161,9 +181,9 @@ export function FeaturedImagePanel({ value, library, onChange, onLibraryAdd }: P
               onClick={(e) => e.stopPropagation()}
             >
               <div className="v-panel__h" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>Select featured image</span>
+                <span>{L(t, 'selectFeatured', 'Select featured image')}</span>
                 <button type="button" className="v-btn" onClick={() => setOpen(false)}>
-                  Close
+                  {L(t, 'close', 'Close')}
                 </button>
               </div>
               <div className="v-panel__b" style={{ overflow: 'auto' }}>
@@ -174,11 +194,11 @@ export function FeaturedImagePanel({ value, library, onChange, onLibraryAdd }: P
                     disabled={uploading}
                     onClick={() => inputRef.current?.click()}
                   >
-                    {uploading ? 'Uploading…' : 'Upload new'}
+                    {uploading ? L(t, 'uploading', 'Uploading…') : L(t, 'uploadNew', 'Upload new')}
                   </button>
                 </div>
                 {library.length === 0 ? (
-                  <p className="v-muted">No images in library yet. Upload one.</p>
+                  <p className="v-muted">{L(t, 'noImages', 'No images in library yet. Upload one.')}</p>
                 ) : (
                   <div
                     style={{

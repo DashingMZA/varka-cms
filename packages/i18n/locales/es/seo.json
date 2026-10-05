@@ -1,0 +1,20 @@
+{
+  "canonical": "URL canónica",
+  "defaultDescription": "Descripción predeterminada",
+  "loadFailed": "Error al cargar ({status})",
+  "metaDescription": "Meta descripción",
+  "metaTitle": "Meta título",
+  "ogDescription": "Descripción Open Graph",
+  "ogImage": "Imagen Open Graph",
+  "ogTitle": "Título Open Graph",
+  "publicSiteNote": "Sitio público: /sitemap.xml, /robots.txt. Configura PUBLIC_SITE_URL en Astro.",
+  "robots": "Robots",
+  "robotsIndex": "Permitir que los motores de búsqueda indexen",
+  "save": "Guardar ajustes SEO",
+  "saveDefaults": "Guardar valores SEO predeterminados",
+  "saveFailed": "Error al guardar ({status})",
+  "saved": "Guardado",
+  "sitemap": "Mapa del sitio",
+  "title": "SEO",
+  "titleTemplate": "Plantilla de título"
+}

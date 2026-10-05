@@ -1,6 +1,18 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { useMessages } from '@/lib/i18n';
+
+/** Label with hard fallback so missing i18n never shows raw keys */
+function L(
+  t: (ns: 'language' | 'common', key: string) => string,
+  key: string,
+  fallback: string,
+): string {
+  const v = t('language', key);
+  if (!v || v === key || v.startsWith('language.')) return fallback;
+  return v;
+}
 
 type Lang = {
   id: string;
@@ -16,6 +28,7 @@ type Lang = {
 };
 
 export function LanguagesAdmin() {
+  const { t } = useMessages();
   const [items, setItems] = useState<Lang[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -23,12 +36,12 @@ export function LanguagesAdmin() {
   const load = useCallback(async () => {
     const res = await fetch('/api/languages', { credentials: 'include' });
     if (!res.ok) {
-      setError(`Load failed (${res.status})`);
+      setError(L(t, 'loadFailed', 'Load failed ({status})').replace('{status}', String(res.status)));
       return;
     }
     const data = (await res.json()) as { items: Lang[] };
     setItems(data.items ?? []);
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     void load();
@@ -43,10 +56,15 @@ export function LanguagesAdmin() {
       body: JSON.stringify({ enabled: !lang.enabled }),
     });
     if (!res.ok) {
-      setError(`Update failed (${res.status})`);
+      setError(L(t, 'updateFailed', 'Update failed ({status})').replace('{status}', String(res.status)));
       return;
     }
-    setMessage(`${lang.locale} ${!lang.enabled ? 'enabled' : 'disabled'}`);
+    setMessage(
+      (!lang.enabled
+        ? L(t, 'langEnabled', '{locale} enabled')
+        : L(t, 'langDisabled', '{locale} disabled')
+      ).replace('{locale}', lang.locale),
+    );
     await load();
   }
 
@@ -71,10 +89,13 @@ export function LanguagesAdmin() {
     });
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(body.error ?? `Create failed (${res.status})`);
+      setError(
+        body.error ??
+          L(t, 'createFailed', 'Create failed ({status})').replace('{status}', String(res.status)),
+      );
       return;
     }
-    setMessage('Punjabi (pa) added — one language row + script field');
+    setMessage(L(t, 'punjabiAdded', 'Punjabi (pa) added — one language row + script field'));
     await load();
   }
 
@@ -83,8 +104,11 @@ export function LanguagesAdmin() {
   return (
     <div style={{ display: 'grid', gap: 16, marginTop: 16 }}>
       <p style={{ margin: 0, color: 'var(--muted)', fontSize: 14, maxWidth: 560 }}>
-        Default language is prefixless. Other languages use <code>urlPrefix</code> (e.g.{' '}
-        <code>/pa/post/slug</code>). Punjabi is one language; script is a field, not a second row.
+        {L(
+          t,
+          'description',
+          'Default language is prefixless. Other languages use urlPrefix (e.g. /pa/post/slug). Punjabi is one language; script is a field, not a second row.',
+        )}
       </p>
       {error ? (
         <p role="alert" style={{ color: 'var(--danger)', margin: 0 }}>
@@ -94,18 +118,18 @@ export function LanguagesAdmin() {
       {message ? <p style={{ color: '#15803d', margin: 0 }}>{message}</p> : null}
       {!hasPa ? (
         <button type="button" onClick={() => void addPunjabi()} style={btn}>
-          Add Punjabi (pa · Arab script)
+          {L(t, 'addPunjabi', 'Add Punjabi (pa · Arab script)')}
         </button>
       ) : null}
       <table style={{ width: '100%', borderCollapse: 'collapse', background: 'var(--card)' }}>
         <thead>
           <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--border)' }}>
-            <th style={{ padding: 10 }}>Name</th>
-            <th style={{ padding: 10 }}>Locale</th>
-            <th style={{ padding: 10 }}>Script</th>
-            <th style={{ padding: 10 }}>Prefix</th>
-            <th style={{ padding: 10 }}>Default</th>
-            <th style={{ padding: 10 }}>Enabled</th>
+            <th style={{ padding: 10 }}>{L(t, 'name', 'Name')}</th>
+            <th style={{ padding: 10 }}>{L(t, 'locale', 'Locale')}</th>
+            <th style={{ padding: 10 }}>{L(t, 'script', 'Script')}</th>
+            <th style={{ padding: 10 }}>{L(t, 'prefix', 'Prefix')}</th>
+            <th style={{ padding: 10 }}>{L(t, 'default', 'Default')}</th>
+            <th style={{ padding: 10 }}>{L(t, 'enabled', 'Enabled')}</th>
             <th style={{ padding: 10 }} />
           </tr>
         </thead>
@@ -113,7 +137,7 @@ export function LanguagesAdmin() {
           {items.length === 0 ? (
             <tr>
               <td colSpan={7} style={{ padding: 16, color: 'var(--muted)' }}>
-                No languages — run seed.
+                {L(t, 'noLanguages', 'No languages — run seed.')}
               </td>
             </tr>
           ) : (
@@ -127,11 +151,13 @@ export function LanguagesAdmin() {
                 <td style={{ padding: 10, fontFamily: 'monospace', fontSize: 13 }}>
                   {l.urlPrefix || '—'}
                 </td>
-                <td style={{ padding: 10 }}>{l.defaultLanguage ? 'yes' : ''}</td>
-                <td style={{ padding: 10 }}>{l.enabled ? 'yes' : 'no'}</td>
+                <td style={{ padding: 10 }}>{l.defaultLanguage ? L(t, 'yes', 'yes') : ''}</td>
+                <td style={{ padding: 10 }}>
+                  {l.enabled ? L(t, 'yes', 'yes') : L(t, 'no', 'no')}
+                </td>
                 <td style={{ padding: 10 }}>
                   <button type="button" style={btnMuted} onClick={() => void toggleEnabled(l)}>
-                    {l.enabled ? 'Disable' : 'Enable'}
+                    {l.enabled ? L(t, 'disable', 'Disable') : L(t, 'enable', 'Enable')}
                   </button>
                 </td>
               </tr>

@@ -1,8 +1,21 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useMessages } from '@/lib/i18n';
+
+/** Label with hard fallback so missing i18n never shows raw keys */
+function L(
+  t: (ns: 'seo' | 'common', key: string) => string,
+  key: string,
+  fallback: string,
+): string {
+  const v = t('seo', key);
+  if (!v || v === key || v.startsWith('seo.')) return fallback;
+  return v;
+}
 
 export function SeoSettings() {
+  const { t } = useMessages();
   const [description, setDescription] = useState('');
   const [titleTemplate, setTitleTemplate] = useState('%s · VARKA');
   const [robotsIndex, setRobotsIndex] = useState(true);
@@ -13,7 +26,7 @@ export function SeoSettings() {
     void (async () => {
       const res = await fetch('/api/seo', { credentials: 'include' });
       if (!res.ok) {
-        setError(`Load failed (${res.status})`);
+        setError(L(t, 'loadFailed', 'Load failed ({status})').replace('{status}', String(res.status)));
         return;
       }
       const data = (await res.json()) as {
@@ -22,14 +35,14 @@ export function SeoSettings() {
       };
       const d =
         data.settings['seo.defaultDescription'] ?? data.defaults['seo.defaultDescription'] ?? '';
-      const t =
+      const tt =
         data.settings['seo.titleTemplate'] ?? data.defaults['seo.titleTemplate'] ?? '%s · VARKA';
       const r = data.settings['seo.robotsIndex'] ?? data.defaults['seo.robotsIndex'] ?? true;
       setDescription(typeof d === 'string' ? d : String(d ?? ''));
-      setTitleTemplate(typeof t === 'string' ? t : '%s · VARKA');
+      setTitleTemplate(typeof tt === 'string' ? tt : '%s · VARKA');
       setRobotsIndex(r === true || r === 'true');
     })();
-  }, []);
+  }, [t]);
 
   async function save() {
     setMessage(null);
@@ -45,16 +58,16 @@ export function SeoSettings() {
       }),
     });
     if (!res.ok) {
-      setError(`Save failed (${res.status})`);
+      setError(L(t, 'saveFailed', 'Save failed ({status})').replace('{status}', String(res.status)));
       return;
     }
-    setMessage('Saved');
+    setMessage(L(t, 'saved', 'Saved'));
   }
 
   return (
     <div style={{ display: 'grid', gap: 12, maxWidth: 520, marginTop: 16 }}>
       <label style={{ display: 'grid', gap: 4, fontSize: 13 }}>
-        Title template
+        {L(t, 'titleTemplate', 'Title template')}
         <input
           value={titleTemplate}
           onChange={(e) => setTitleTemplate(e.target.value)}
@@ -63,7 +76,7 @@ export function SeoSettings() {
         />
       </label>
       <label style={{ display: 'grid', gap: 4, fontSize: 13 }}>
-        Default description
+        {L(t, 'defaultDescription', 'Default description')}
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
@@ -77,10 +90,10 @@ export function SeoSettings() {
           checked={robotsIndex}
           onChange={(e) => setRobotsIndex(e.target.checked)}
         />
-        Allow search engines to index (seo.robotsIndex)
+        {L(t, 'robotsIndex', 'Allow search engines to index')}
       </label>
       <button type="button" onClick={() => void save()} style={btn}>
-        Save SEO defaults
+        {L(t, 'saveDefaults', 'Save SEO defaults')}
       </button>
       {message ? <p style={{ color: '#15803d', margin: 0 }}>{message}</p> : null}
       {error ? (
@@ -89,8 +102,7 @@ export function SeoSettings() {
         </p>
       ) : null}
       <p style={{ fontSize: 12, color: 'var(--muted)' }}>
-        Public site: <code>/sitemap.xml</code>, <code>/robots.txt</code>. Set{" "}
-        <code>PUBLIC_SITE_URL</code> on Astro.
+        {L(t, 'publicSiteNote', 'Public site: /sitemap.xml, /robots.txt. Set PUBLIC_SITE_URL on Astro.')}
       </p>
     </div>
   );
