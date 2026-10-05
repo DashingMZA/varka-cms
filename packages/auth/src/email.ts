@@ -93,7 +93,7 @@ export async function sendAuthEmail(input: SendAuthEmailInput): Promise<void> {
       if (!res.ok) {
         const body = await res.text().catch(() => '');
         console.error('[varka/auth-email] webhook failed', res.status, body);
-        throw new Error('Failed to send email', { cause: err });
+        throw new Error(`Failed to send email: ${res.status} ${body}`);
       }
       return;
     } catch (err) {

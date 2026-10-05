@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useMessages } from '@/lib/i18n';
+import { getWidgetsAction, saveWidgetsAction } from '@/actions/settings';
 
 /** Label with hard fallback so missing i18n never shows raw keys */
 function L(
@@ -55,13 +56,12 @@ export function WidgetsAdmin() {
   const [drag, setDrag] = useState<{ zoneId: string; widgetId: string } | null>(null);
 
   const load = useCallback(async () => {
-    const res = await fetch('/api/widgets', { credentials: 'include' });
-    if (!res.ok) {
-      setError(L(t, 'loadFailed', 'Load failed').replace('{status}', String(res.status)));
+    const result = await getWidgetsAction();
+    if (!result.ok) {
+      setError(L(t, 'loadFailed', 'Load failed: {error}').replace('{error}', result.error));
       return;
     }
-    const data = (await res.json()) as { zones: WidgetZone[] };
-    setZones(data.zones ?? []);
+    setZones((result.data as { zones: WidgetZone[] }).zones ?? []);
   }, [t]);
 
   useEffect(() => {
@@ -118,13 +118,8 @@ export function WidgetsAdmin() {
     setMessage(null);
     setError(null);
     try {
-      const res = await fetch('/api/widgets', {
-        method: 'PUT',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ zones }),
-      });
-      if (!res.ok) throw new Error(L(t, 'saveFailed', 'Save failed').replace('{status}', String(res.status)));
+      const result = await saveWidgetsAction(zones as unknown);
+      if (!result.ok) throw new Error(L(t, 'saveFailed', 'Save failed: {error}').replace('{error}', result.error));
       setMessage(L(t, 'widgetsSaved', 'Widgets saved.'));
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error');

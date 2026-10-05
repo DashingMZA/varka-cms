@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { getAutosaveAction } from '@/actions/settings';
 
 /** Debounced autosave — WordPress-style. Never runs when enabled is false. */
 export function useAutosave(
@@ -21,10 +22,9 @@ export function useAutosave(
     }
     void (async () => {
       try {
-        const res = await fetch('/api/settings/autosave', { credentials: 'include' });
-        if (!res.ok) return;
-        const data = (await res.json()) as { intervalMs?: number };
-        if (data.intervalMs && data.intervalMs >= 1000) setDelayMs(data.intervalMs);
+        const result = await getAutosaveAction();
+        if (!result.ok) return;
+        if (result.data.intervalMs && result.data.intervalMs >= 1000) setDelayMs(result.data.intervalMs);
       } catch {
         /* keep default */
       }
