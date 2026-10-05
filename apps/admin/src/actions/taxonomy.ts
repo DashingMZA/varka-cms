@@ -30,6 +30,7 @@ export async function createCategoryAction(input: {
   name: string;
   slug?: string;
   description?: string;
+  parentId?: string;
 }): Promise<ActionResult<unknown>> {
   try {
     const { siteId } = await requireServerAuth('posts.update');
@@ -43,6 +44,7 @@ export async function createCategoryAction(input: {
     const cat = await prisma.category.create({
       data: {
         siteId,
+        parentId: input.parentId || null,
         translations: {
           create: {
             languageId: lang.id,
@@ -56,6 +58,62 @@ export async function createCategoryAction(input: {
     });
     revalidatePath('/content/categories');
     return { ok: true, data: JSON.parse(JSON.stringify(cat)) };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function updateCategoryAction(
+  id: string,
+  input: { name?: string; slug?: string; description?: string; parentId?: string | null }
+): Promise<ActionResult<unknown>> {
+  try {
+    const { siteId } = await requireServerAuth('posts.update');
+    const lang = await prisma.language.findFirst({
+      where: { siteId, defaultLanguage: true },
+    });
+    if (!lang) return { ok: false, error: 'No default language' };
+
+    const data: Record<string, unknown> = {};
+    if (input.parentId !== undefined) data.parentId = input.parentId;
+
+    const trData: Record<string, unknown> = {};
+    if (input.name !== undefined) trData.name = input.name.trim();
+    if (input.slug !== undefined) trData.slug = slugifyName(input.slug);
+    if (input.description !== undefined) trData.description = input.description;
+
+    await prisma.$transaction(async (tx: typeof prisma) => {
+      if (Object.keys(data).length > 0) {
+        await tx.category.update({ where: { id }, data: data as never });
+      }
+      if (Object.keys(trData).length > 0) {
+        const tr = await tx.categoryTranslation.findFirst({
+          where: { categoryId: id, languageId: lang.id },
+        });
+        if (tr) {
+          await tx.categoryTranslation.update({ where: { id: tr.id }, data: trData as never });
+        }
+      }
+    });
+
+    revalidatePath('/content/categories');
+    return { ok: true, data: { id } };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function deleteCategoryAction(id: string): Promise<ActionResult<{ id: string }>> {
+  try {
+    const { siteId } = await requireServerAuth('posts.update');
+    // Move children to no parent
+    await prisma.category.updateMany({
+      where: { parentId: id, siteId },
+      data: { parentId: null },
+    });
+    await prisma.category.deleteMany({ where: { id, siteId } });
+    revalidatePath('/content/categories');
+    return { ok: true, data: { id } };
   } catch (e) {
     return fail(e);
   }
