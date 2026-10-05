@@ -2,7 +2,7 @@
   "name": "varka",
   "private": true,
   "version": "0.1.0",
-  "description": "VARKA — production WordPress-style Blog CMS",
+  "description": "VARKA \u2014 production WordPress-style Blog CMS",
   "packageManager": "pnpm@12.4.2",
   "engines": {
     "node": ">=24"
@@ -23,7 +23,6 @@
     "db:migrate:dev": "pnpm --filter @varka/database migrate:dev",
     "db:seed": "pnpm --filter @varka/database seed",
     "db:studio": "pnpm --filter @varka/database studio",
-    "db:import:celebrtiy": "pnpm --filter @varka/database import:celebrtiy",
     "format": "prettier --write \"**/*.{ts,tsx,js,mjs,cjs,json,md,yml,yaml}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,mjs,cjs,json,md,yml,yaml}\"",
     "gates": "pnpm lint && pnpm typecheck && pnpm test"

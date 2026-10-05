@@ -204,10 +204,10 @@ export function TiptapEditor(props: {
 
   useEffect(() => {
     if (!linkOpen) return;
-    const t = window.setTimeout(() => {
+    const timer = window.setTimeout(() => {
       void loadExistingContent(linkSearch);
     }, 250);
-    return () => window.clearTimeout(t);
+    return () => window.clearTimeout(timer);
   }, [linkOpen, linkSearch, loadExistingContent]);
 
   function openLinkModal() {

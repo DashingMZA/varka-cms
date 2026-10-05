@@ -98,7 +98,7 @@ export function ThemePicker({
   });
 
   // Active theme first
-  const sorted = [...filtered].sort((a, b) => (a.active ? -1 : b.active ? 1 : 0));
+  const sorted = [...filtered].toSorted((a, b) => (a.active ? -1 : b.active ? 1 : 0));
 
   return (
     <div>

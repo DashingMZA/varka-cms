@@ -44,8 +44,8 @@ export function SystemHealth() {
 
   useEffect(() => {
     void load();
-    const t = setInterval(() => void load(), 15_000);
-    return () => clearInterval(t);
+    const interval = setInterval(() => void load(), 15_000);
+    return () => clearInterval(interval);
   }, [load]);
 
   if (!data && !error)
