@@ -1,6 +1,18 @@
 'use client';
 
 import { useState } from 'react';
+import { useMessages } from '@/lib/i18n';
+
+/** Label with hard fallback so missing i18n never shows raw keys */
+function L(
+  t: (ns: 'tables' | 'common', key: string) => string,
+  key: string,
+  fallback: string,
+): string {
+  const v = t('tables', key);
+  if (!v || v === key || v.startsWith('tables.')) return fallback;
+  return v;
+}
 
 export type ScreenHelpTab = { id: string; title: string; body: string };
 export type ScreenOption = {
@@ -20,6 +32,7 @@ type Props = {
  * WordPress-style Screen Options + Help tabs (top-right of content area).
  */
 export function ScreenMeta({ help = [], options = [] }: Props) {
+  const { t } = useMessages();
   const [panel, setPanel] = useState<'none' | 'options' | 'help'>('none');
   const [helpTab, setHelpTab] = useState(help[0]?.id ?? '');
 
@@ -34,7 +47,7 @@ export function ScreenMeta({ help = [], options = [] }: Props) {
             className={panel === 'options' ? 'is-open' : ''}
             onClick={() => setPanel((p) => (p === 'options' ? 'none' : 'options'))}
           >
-            Screen Options
+            {L(t, 'screenOptions', 'Screen Options')}
           </button>
         ) : null}
         {help.length ? (
@@ -43,7 +56,7 @@ export function ScreenMeta({ help = [], options = [] }: Props) {
             className={panel === 'help' ? 'is-open' : ''}
             onClick={() => setPanel((p) => (p === 'help' ? 'none' : 'help'))}
           >
-            Help
+            {t('common', 'help') || 'Help'}
           </button>
         ) : null}
       </div>
@@ -51,7 +64,7 @@ export function ScreenMeta({ help = [], options = [] }: Props) {
       {panel === 'options' ? (
         <div className="v-screen-meta__panel">
           <fieldset>
-            <legend>Show on screen</legend>
+            <legend>{L(t, 'showOnScreen', 'Show on screen')}</legend>
             <div className="v-screen-meta__opts">
               {options.map((o) => (
                 <label key={o.id}>

@@ -1,0 +1,16 @@
+{
+  "title": "القوالب",
+  "activate": "تفعيل",
+  "active": "نشط",
+  "customize": "تخصيص",
+  "noThemes": "لا توجد قوالب متاحة.",
+  "preview": "معاينة حية",
+  "details": "تفاصيل القالب",
+  "themesRegistered": "تم تسجيل {count} قوالب (المتوقع 10).",
+  "activatedTheme": "تم تفعيل {themeId}",
+  "activateFailed": "فشل التفعيل ({status})",
+  "loadFailed": "فشل التحميل ({status})",
+  "activeLabel": "النشط:",
+  "publicSiteLabel": "الموقع العام:",
+  "optionalEnvLabel": "متغير البيئة الاختياري"
+}

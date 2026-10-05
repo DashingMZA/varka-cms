@@ -1,0 +1,14 @@
+{
+  "selectAll": "تحديد الكل",
+  "selectRow": "تحديد الصف",
+  "noItems": "لا توجد عناصر.",
+  "items": "عناصر",
+  "item": "عنصر",
+  "showing": "عرض",
+  "of": "من",
+  "bulkActions": "إجراءات جماعية",
+  "searchPlaceholder": "بحث…",
+  "noItemsFound": "لم يتم العثور على عناصر.",
+  "screenOptions": "خيارات الشاشة",
+  "showOnScreen": "إظهار على الشاشة"
+}

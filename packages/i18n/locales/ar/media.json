@@ -27,5 +27,10 @@
   "thumbnail": "مصغرة",
   "medium": "متوسطة",
   "large": "كبيرة",
-  "fullSize": "الحجم الكامل"
+  "fullSize": "الحجم الكامل",
+  "insertImage": "إدراج صورة",
+  "insertMedia": "إدراج وسائط",
+  "size": "الحجم",
+  "selectImageHint": "اختر صورة، ثم اختر الحجم (مصغرة / متوسطة / كبيرة / أصلية).",
+  "insertIntoPost": "إدراج في المقال"
 }

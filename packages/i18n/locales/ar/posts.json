@@ -1,1 +1,27 @@
-{"allowComments":"السماح بالتعليقات","allowTrackbacks":"السماح بالتتبعات والتنبيهات","author":"الكاتب","categories":"التصنيفات","discussion":"النقاش","excerpt":"المقتطف","featuredImage":"الصورة البارزة","preview":"معاينة","publish":"نشر","publishDate":"تاريخ النشر","saveDraft":"حفظ المسودة","slug":"الاسم المختصر","status":"الحالة","tags":"الوسوم","titlePlaceholder":"أضف العنوان","update":"تحديث","visibility":"الظهور"}
+{
+  "allowComments": "السماح بالتعليقات",
+  "allowTrackbacks": "السماح بالتتبعات والتنبيهات",
+  "author": "الكاتب",
+  "categories": "التصنيفات",
+  "discussion": "النقاش",
+  "excerpt": "المقتطف",
+  "featuredImage": "الصورة البارزة",
+  "preview": "معاينة",
+  "publish": "نشر",
+  "publishDate": "تاريخ النشر",
+  "saveDraft": "حفظ المسودة",
+  "slug": "الاسم المختصر",
+  "status": "الحالة",
+  "tags": "الوسوم",
+  "titlePlaceholder": "أضف العنوان",
+  "update": "تحديث",
+  "visibility": "الظهور",
+  "creatingDraft": "جارٍ إنشاء المسودة…",
+  "revisions": "المراجعات",
+  "noRevisions": "لا توجد مراجعات بعد. تظهر بعد الحفظ.",
+  "noTitle": "(بدون عنوان)",
+  "restore": "استعادة",
+  "restoreRevisionConfirm": "استعادة هذه المراجعة؟ سيتم استبدال المحتوى الحالي.",
+  "restoreFailed": "فشلت الاستعادة",
+  "loadRevisionsFailed": "فشل تحميل المراجعات"
+}

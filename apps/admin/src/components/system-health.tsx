@@ -1,6 +1,18 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { useMessages } from '@/lib/i18n';
+
+/** Label with hard fallback so missing i18n never shows raw keys */
+function L(
+  t: (ns: 'dashboard' | 'common', key: string) => string,
+  key: string,
+  fallback: string,
+): string {
+  const v = t('dashboard', key);
+  if (!v || v === key || v.startsWith('dashboard.')) return fallback;
+  return v;
+}
 
 type Health = {
   ok?: boolean;
@@ -14,6 +26,7 @@ type Health = {
 };
 
 export function SystemHealth() {
+  const { t } = useMessages();
   const [data, setData] = useState<Health | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,10 +35,10 @@ export function SystemHealth() {
       const res = await fetch('/api/health');
       const body = (await res.json()) as Health;
       setData(body);
-      if (!res.ok) setError(`Health ${res.status}`);
+      if (!res.ok) setError(L(t, 'healthStatus', `Health ${res.status}`).replace('{status}', String(res.status)));
       else setError(null);
     } catch {
-      setError('Network error');
+      setError(L(t, 'networkError', 'Network error'));
     }
   }, []);
 
@@ -35,7 +48,8 @@ export function SystemHealth() {
     return () => clearInterval(t);
   }, [load]);
 
-  if (!data && !error) return <p style={{ color: 'var(--muted)' }}>Loading health…</p>;
+  if (!data && !error)
+    return <p style={{ color: 'var(--muted)' }}>{L(t, 'loadingHealth', 'Loading health…')}</p>;
 
   return (
     <div style={{ display: 'grid', gap: 12, marginBottom: 24 }}>
@@ -46,11 +60,19 @@ export function SystemHealth() {
           gap: 12,
         }}
       >
-        <Card label="Status" value={data?.ok ? 'OK' : 'DEGRADED'} warn={!data?.ok} />
-        <Card label="Cache" value={String(data?.cache ?? '—')} />
-        <Card label="Database" value={String(data?.database ?? '—')} warn={data?.database === 'down'} />
         <Card
-          label="Queue depth"
+          label={L(t, 'status', 'Status')}
+          value={data?.ok ? L(t, 'healthOk', 'OK') : L(t, 'healthDegraded', 'DEGRADED')}
+          warn={!data?.ok}
+        />
+        <Card label={L(t, 'cache', 'Cache')} value={String(data?.cache ?? '—')} />
+        <Card
+          label={L(t, 'database', 'Database')}
+          value={String(data?.database ?? '—')}
+          warn={data?.database === 'down'}
+        />
+        <Card
+          label={L(t, 'queueDepth', 'Queue depth')}
           value={data?.queueDepth !== undefined ? String(data.queueDepth) : '—'}
         />
       </div>
@@ -60,9 +82,9 @@ export function SystemHealth() {
         </p>
       ) : null}
       <p style={{ fontSize: 12, color: 'var(--muted)', margin: 0 }}>
-        Last check: {data?.time ? new Date(data.time).toLocaleString() : '—'} ·{' '}
+        {L(t, 'lastCheck', 'Last check:')} {data?.time ? new Date(data.time).toLocaleString() : '—'} ·{' '}
         <button type="button" onClick={() => void load()} style={{ fontSize: 12 }}>
-          Refresh
+          {t('common', 'refresh') || 'Refresh'}
         </button>
       </p>
     </div>

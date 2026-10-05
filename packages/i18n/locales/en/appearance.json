@@ -23,5 +23,11 @@
   "itemUrl": "URL",
   "indent": "Indent",
   "outdent": "Outdent",
-  "menusSaved": "Menus saved."
+  "menusSaved": "Menus saved.",
+  "appearance": "Appearance",
+  "appearanceDesc": "Manage themes, menus, and widget areas for the public site.",
+  "menusDesc": "Build navigation menus and assign them to theme locations. Changes persist to site settings.",
+  "themesDescPrefix": "Activate a public-site theme. Themes follow the shared contract in ",
+  "themesDescSuffix": ".",
+  "widgetsDesc": "Drag widgets into theme zones. Changes save to site settings."
 }

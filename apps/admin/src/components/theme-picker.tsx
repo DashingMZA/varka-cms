@@ -1,6 +1,18 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { useMessages } from '@/lib/i18n';
+
+/** Label with hard fallback so missing i18n never shows raw keys */
+function L(
+  t: (ns: 'themes' | 'common', key: string) => string,
+  key: string,
+  fallback: string,
+): string {
+  const v = t('themes', key);
+  if (!v || v === key || v.startsWith('themes.')) return fallback;
+  return v;
+}
 
 type ThemeRow = {
   id: string;
@@ -18,6 +30,7 @@ type ThemeRow = {
 };
 
 export function ThemePicker() {
+  const { t } = useMessages();
   const [themes, setThemes] = useState<ThemeRow[]>([]);
   const [active, setActive] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +39,7 @@ export function ThemePicker() {
   const load = useCallback(async () => {
     const res = await fetch('/api/themes', { credentials: 'include' });
     if (!res.ok) {
-      setError(`Load failed (${res.status})`);
+      setError(L(t, 'loadFailed', `Load failed (${res.status})`).replace('{status}', String(res.status)));
       return;
     }
     const data = (await res.json()) as { themes: ThemeRow[]; active: string };
@@ -49,10 +62,12 @@ export function ThemePicker() {
     });
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(body.error ?? `Activate failed (${res.status})`);
+      setError(
+        body.error ?? L(t, 'activateFailed', `Activate failed (${res.status})`).replace('{status}', String(res.status)),
+      );
       return;
     }
-    setMessage(`Activated ${themeId}`);
+    setMessage(L(t, 'activatedTheme', `Activated ${themeId}`).replace('{themeId}', themeId));
     await load();
   }
 
@@ -65,7 +80,10 @@ export function ThemePicker() {
       ) : null}
       {message ? <p style={{ color: '#15803d', margin: 0 }}>{message}</p> : null}
       <p style={{ fontSize: 13, color: 'var(--muted)', margin: 0 }}>
-        {themes.length} themes registered (expect 10).
+        {L(t, 'themesRegistered', `${themes.length} themes registered (expect 10).`).replace(
+          '{count}',
+          String(themes.length),
+        )}
       </p>
       <div
         style={{
@@ -74,19 +92,19 @@ export function ThemePicker() {
           gap: 12,
         }}
       >
-        {themes.map((t) => (
+        {themes.map((th) => (
           <div
-            key={t.id}
+            key={th.id}
             style={{
               background: 'var(--card)',
-              border: t.active ? '2px solid var(--accent)' : '1px solid var(--border)',
+              border: th.active ? '2px solid var(--accent)' : '1px solid var(--border)',
               borderRadius: 12,
               padding: 16,
             }}
           >
-            {t.tokens ? (
+            {th.tokens ? (
               <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
-                {[t.tokens.bg, t.tokens.card, t.tokens.accent, t.tokens.ink].map((c, i) => (
+                {[th.tokens.bg, th.tokens.card, th.tokens.accent, th.tokens.ink].map((c, i) => (
                   <span
                     key={i}
                     title={c}
@@ -101,15 +119,17 @@ export function ThemePicker() {
                 ))}
               </div>
             ) : null}
-            <div style={{ fontWeight: 700 }}>{t.name}</div>
-            <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>{t.id}</div>
-            <p style={{ fontSize: 13, margin: '8px 0' }}>{t.description}</p>
-            {t.active ? (
-              <span style={{ fontSize: 12, color: 'var(--accent)', fontWeight: 600 }}>Active</span>
+            <div style={{ fontWeight: 700 }}>{th.name}</div>
+            <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>{th.id}</div>
+            <p style={{ fontSize: 13, margin: '8px 0' }}>{th.description}</p>
+            {th.active ? (
+              <span style={{ fontSize: 12, color: 'var(--accent)', fontWeight: 600 }}>
+                {L(t, 'active', 'Active')}
+              </span>
             ) : (
               <button
                 type="button"
-                onClick={() => void activate(t.id)}
+                onClick={() => void activate(th.id)}
                 style={{
                   padding: '8px 12px',
                   borderRadius: 8,
@@ -120,15 +140,16 @@ export function ThemePicker() {
                   fontSize: 13,
                 }}
               >
-                Activate
+                {L(t, 'activate', 'Activate')}
               </button>
             )}
           </div>
         ))}
       </div>
       <p style={{ fontSize: 12, color: 'var(--muted)' }}>
-        Active: <code>{active}</code>. Public site:{' '}
-        <code>GET /api/public/theme</code> · optional env <code>PUBLIC_THEME_ID</code>.
+        {L(t, 'activeLabel', 'Active:')} <code>{active}</code>. {L(t, 'publicSiteLabel', 'Public site:')}{' '}
+        <code>GET /api/public/theme</code> · {L(t, 'optionalEnvLabel', 'optional env')}{' '}
+        <code>PUBLIC_THEME_ID</code>.
       </p>
     </div>
   );
