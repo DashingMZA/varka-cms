@@ -16,6 +16,62 @@ function fail(e: unknown): PluginActionResult<never> {
   return { ok: false, error: e instanceof Error ? e.message : 'Error' };
 }
 
+const PLUGIN_TABLE_STATEMENTS = [
+  `CREATE TABLE IF NOT EXISTS "Plugin" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "slug" TEXT NOT NULL UNIQUE,
+  "name" TEXT NOT NULL,
+  "version" TEXT NOT NULL,
+  "description" TEXT,
+  "author" TEXT,
+  "active" BOOLEAN NOT NULL DEFAULT false,
+  "manifest" JSONB,
+  "installedAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT NOW()
+)`,
+  `CREATE INDEX IF NOT EXISTS "Plugin_active_idx" ON "Plugin"("active")`,
+];
+
+const PLUGIN_PERMISSION_KEYS = [
+  'plugins.read',
+  'plugins.install',
+  'plugins.activate',
+  'plugins.delete',
+] as const;
+
+/**
+ * WordPress-style: the plugin system sets itself up on first use.
+ * Creates the Plugin table, ensures permissions exist, grants them to
+ * owner/admin. Idempotent — safe to call on every plugin page load.
+ */
+async function ensurePluginSystem(): Promise<void> {
+  for (const sql of PLUGIN_TABLE_STATEMENTS) {
+    await prisma.$executeRawUnsafe(sql);
+  }
+  for (const key of PLUGIN_PERMISSION_KEYS) {
+    await prisma.permission.upsert({
+      where: { key },
+      create: { key, description: `Plugin system: ${key}` },
+      update: {},
+    });
+  }
+  const roles = await prisma.role.findMany({
+    where: { slug: { in: ['owner', 'admin'] } },
+  });
+  const perms = await prisma.permission.findMany({
+    where: { key: { in: [...PLUGIN_PERMISSION_KEYS] } },
+  });
+  for (const role of roles) {
+    for (const perm of perms) {
+      await prisma.rolePermission.upsert({
+        where: { roleId_permissionId: { roleId: role.id, permissionId: perm.id } },
+        create: { roleId: role.id, permissionId: perm.id },
+        update: {},
+      });
+    }
+  }
+}
+
 export type PluginListItem = {
   slug: string;
   name: string;
@@ -45,9 +101,9 @@ export async function listPluginsAction(): Promise<
 > {
   try {
     await requireServerAuth('plugins.read');
+    // WordPress-style: first visit sets up the table + permissions automatically.
+    await ensurePluginSystem().catch(() => {});
     const discovered = await discoverInstalledPlugins();
-    // Plugin table may not exist yet (migration not run) — still show
-    // discovered plugins so the user can initialize from the UI.
     let rows: PluginRow[] = [];
     try {
       rows = (await prisma.plugin.findMany({
