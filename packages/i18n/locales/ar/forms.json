@@ -1,0 +1,11 @@
+{
+  "required": "مطلوب",
+  "optional": "اختياري",
+  "placeholder": "أدخل القيمة",
+  "selectOption": "اختر خياراً",
+  "invalidEmail": "بريد إلكتروني غير صالح",
+  "minLength": "قصير جداً",
+  "maxLength": "طويل جداً",
+  "loading": "جارٍ التحميل…",
+  "noOptions": "لا توجد خيارات"
+}

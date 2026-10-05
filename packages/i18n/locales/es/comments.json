@@ -1,0 +1,20 @@
+{
+  "title": "Comentarios",
+  "all": "Todos",
+  "pending": "Pendientes",
+  "approved": "Aprobados",
+  "spam": "Spam",
+  "trash": "Papelera",
+  "approve": "Aprobar",
+  "unapprove": "Desaprobar",
+  "markSpam": "Marcar como spam",
+  "moveToTrash": "Mover a la papelera",
+  "reply": "Responder",
+  "author": "Autor",
+  "comment": "Comentario",
+  "inResponseTo": "En respuesta a",
+  "submittedOn": "Enviado el",
+  "bulkActions": "Acciones en lote",
+  "searchComments": "Buscar comentarios",
+  "noComments": "Aún no hay comentarios."
+}

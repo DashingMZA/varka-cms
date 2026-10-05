@@ -1,0 +1,11 @@
+{
+  "required": "ضروری",
+  "optional": "اختیاری",
+  "placeholder": "قدر درج کریں",
+  "selectOption": "ایک آپشن منتخب کریں",
+  "invalidEmail": "غلط ای میل ایڈریس",
+  "minLength": "بہت چھوٹا",
+  "maxLength": "بہت لمبا",
+  "loading": "لوڈ ہو رہا ہے…",
+  "noOptions": "کوئی آپشن نہیں"
+}

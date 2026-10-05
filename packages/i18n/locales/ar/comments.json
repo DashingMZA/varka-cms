@@ -1,0 +1,20 @@
+{
+  "title": "التعليقات",
+  "all": "الكل",
+  "pending": "قيد الانتظار",
+  "approved": "معتمد",
+  "spam": "رسائل مزعجة",
+  "trash": "المهملات",
+  "approve": "اعتماد",
+  "unapprove": "إلغاء الاعتماد",
+  "markSpam": "وضع علامة كرسائل مزعجة",
+  "moveToTrash": "نقل إلى المهملات",
+  "reply": "رد",
+  "author": "الكاتب",
+  "comment": "التعليق",
+  "inResponseTo": "رداً على",
+  "submittedOn": "أُرسل في",
+  "bulkActions": "إجراءات جماعية",
+  "searchComments": "بحث في التعليقات",
+  "noComments": "لا توجد تعليقات بعد."
+}

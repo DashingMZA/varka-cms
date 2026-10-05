@@ -1,0 +1,20 @@
+{
+  "title": "تبصرے",
+  "all": "تمام",
+  "pending": "زیرِ التوا",
+  "approved": "منظور شدہ",
+  "spam": "اسپام",
+  "trash": "ردی",
+  "approve": "منظور کریں",
+  "unapprove": "نامنظور کریں",
+  "markSpam": "اسپام قرار دیں",
+  "moveToTrash": "ردی میں منتقل کریں",
+  "reply": "جواب دیں",
+  "author": "مصنف",
+  "comment": "تبصرہ",
+  "inResponseTo": "کے جواب میں",
+  "submittedOn": "جمع کرایا گیا",
+  "bulkActions": "بڑی کارروائیاں",
+  "searchComments": "تبصرے تلاش کریں",
+  "noComments": "ابھی کوئی تبصرہ نہیں۔"
+}

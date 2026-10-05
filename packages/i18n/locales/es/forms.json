@@ -1,0 +1,11 @@
+{
+  "required": "Obligatorio",
+  "optional": "Opcional",
+  "placeholder": "Introduce un valor",
+  "selectOption": "Selecciona una opción",
+  "invalidEmail": "Correo electrónico no válido",
+  "minLength": "Demasiado corto",
+  "maxLength": "Demasiado largo",
+  "loading": "Cargando…",
+  "noOptions": "Sin opciones"
+}
