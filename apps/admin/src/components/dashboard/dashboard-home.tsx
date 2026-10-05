@@ -51,6 +51,27 @@ export function DashboardHome() {
     activity: true,
     quick: true,
   });
+  // WP-style dismissible Welcome panel
+  const [showWelcome, setShowWelcome] = useState(true);
+
+  useEffect(() => {
+    try {
+      if (localStorage.getItem('varka.dashboard.welcomeDismissed') === '1') {
+        setShowWelcome(false);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  function dismissWelcome() {
+    setShowWelcome(false);
+    try {
+      localStorage.setItem('varka.dashboard.welcomeDismissed', '1');
+    } catch {
+      /* ignore */
+    }
+  }
 
   useEffect(() => {
     try {
@@ -165,6 +186,73 @@ export function DashboardHome() {
         <div className="v-notice v-notice--error">
           <p>{error}</p>
         </div>
+      ) : null}
+
+      {showWelcome ? (
+        <section className="v-postbox" aria-label={t('dashboard', 'welcome') || 'Welcome'}>
+          <div className="v-postbox__b">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+              <div>
+                <h2 style={{ margin: '0 0 4px', fontSize: 21, fontWeight: 400 }}>
+                  {t('dashboard', 'welcomeTitle') || 'Welcome to VARKA'}
+                </h2>
+                <p className="v-muted" style={{ margin: '0 0 12px' }}>
+                  {t('dashboard', 'welcomeBody') ||
+                    'Get started with the essentials — write content, shape your site, and tune how it looks.'}
+                </p>
+                <ul
+                  style={{
+                    listStyle: 'none',
+                    margin: 0,
+                    padding: 0,
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                    gap: 8,
+                  }}
+                >
+                  <li>
+                    <Link href="/content/posts/new">
+                      {t('dashboard', 'welcomeWritePost') || 'Write your first blog post'}
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/content/pages/new">
+                      {t('dashboard', 'welcomeAddPage') || 'Add an About page'}
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/settings/reading">
+                      {t('dashboard', 'welcomeHomepage') || 'Set up your homepage'}
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/appearance/menus">
+                      {t('dashboard', 'welcomeMenus') || 'Manage menus'}
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/appearance/widgets">
+                      {t('dashboard', 'welcomeWidgets') || 'Manage widgets'}
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/settings/discussion">
+                      {t('dashboard', 'welcomeComments') || 'Turn comments on or off'}
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+              <button
+                type="button"
+                className="v-btn v-btn--small"
+                onClick={dismissWelcome}
+                aria-label={t('common', 'dismiss') || 'Dismiss'}
+              >
+                {t('common', 'dismiss') || 'Dismiss'}
+              </button>
+            </div>
+          </div>
+        </section>
       ) : null}
 
       <div className="v-dash-grid">
