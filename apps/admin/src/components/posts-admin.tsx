@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { ScreenMeta } from '@/components/screen-meta/screen-meta';
 import { Subsubsub } from '@/components/list-table/list-table';
 import { useMessages } from '@/lib/i18n';
@@ -10,6 +10,8 @@ import {
   createPostAction,
   trashPostAction,
   bulkPostsAction,
+  getPostAction,
+  updatePostAction,
 } from '@/actions/posts';
 
 type PostRow = {
@@ -37,6 +39,85 @@ export function PostsAdmin() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const perPage = 20;
+
+  // Quick Edit (WP-style inline row editing: title, slug, status)
+  const [quickEditId, setQuickEditId] = useState<string | null>(null);
+  const [qe, setQe] = useState<{
+    title: string;
+    slug: string;
+    status: string;
+    version: number;
+    languageId: string;
+  } | null>(null);
+  const [qeLoading, setQeLoading] = useState(false);
+  const [qeError, setQeError] = useState<string | null>(null);
+
+  async function openQuickEdit(post: PostRow) {
+    setQuickEditId(post.id);
+    setQe(null);
+    setQeError(null);
+    setQeLoading(true);
+    try {
+      const result = await getPostAction(post.id);
+      if (!result.ok) {
+        setQeError(t('errors', 'loadFailed') + `: ${result.error}`);
+        setQeLoading(false);
+        return;
+      }
+      const full = result.data as {
+        version: number;
+        status: string;
+        translations: Array<{ languageId: string; title: string; slug: string }>;
+      };
+      const tr = full.translations[0];
+      if (!tr) {
+        setQeError(t('errors', 'loadFailed'));
+        setQeLoading(false);
+        return;
+      }
+      setQe({
+        title: tr.title || '',
+        slug: tr.slug || '',
+        status: full.status,
+        version: full.version,
+        languageId: tr.languageId,
+      });
+    } catch {
+      setQeError(t('errors', 'networkError'));
+    }
+    setQeLoading(false);
+  }
+
+  function closeQuickEdit() {
+    setQuickEditId(null);
+    setQe(null);
+    setQeError(null);
+  }
+
+  async function saveQuickEdit() {
+    if (!quickEditId || !qe) return;
+    setQeLoading(true);
+    setQeError(null);
+    try {
+      const result = await updatePostAction(quickEditId, {
+        title: qe.title.trim() || '(no title)',
+        slug: qe.slug.trim(),
+        status: qe.status,
+        version: qe.version,
+        languageId: qe.languageId,
+      });
+      if (!result.ok) {
+        setQeError(t('errors', 'saveFailed') + `: ${result.error}`);
+        setQeLoading(false);
+        return;
+      }
+      closeQuickEdit();
+      await load();
+    } catch {
+      setQeError(t('errors', 'networkError'));
+    }
+    setQeLoading(false);
+  }
 
   useEffect(() => {
     try {
@@ -256,8 +337,15 @@ export function PostsAdmin() {
           ) : (
             filtered.map((p) => {
               const title = p.translations?.[0]?.title || '(no title)';
+              const colSpan =
+                3 +
+                (cols.author ? 1 : 0) +
+                (cols.categories ? 1 : 0) +
+                (cols.tags ? 1 : 0) +
+                (cols.date ? 1 : 0);
               return (
-                <tr key={p.id}>
+                <Fragment key={p.id}>
+                  <tr>
                   <th className="check-column">
                     <input
                       type="checkbox"
@@ -283,6 +371,19 @@ export function PostsAdmin() {
                         <Link href={`/content/posts/${p.id}`}>{t('common', 'edit') || 'Edit'}</Link>
                       </span>
                       {' | '}
+                      <span>
+                        <a
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (quickEditId === p.id) closeQuickEdit();
+                            else void openQuickEdit(p);
+                          }}
+                        >
+                          {t('blogs', 'quickEdit') || 'Quick Edit'}
+                        </a>
+                      </span>
+                      {' | '}
                       <a
                         href="#"
                         className="trash"
@@ -306,6 +407,89 @@ export function PostsAdmin() {
                     <td>{p.publishedAt || p.updatedAt || '—'}</td>
                   ) : null}
                 </tr>
+                {quickEditId === p.id ? (
+                  <tr className="v-quick-edit-row">
+                    <td colSpan={colSpan} style={{ background: '#f6f7f7' }}>
+                      <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
+                        <legend style={{ fontWeight: 600, marginBottom: 8 }}>
+                          {t('blogs', 'quickEdit') || 'Quick Edit'}
+                        </legend>
+                        {qeLoading && !qe ? (
+                          <p className="v-muted">{t('common', 'loading') || 'Loading\u2026'}</p>
+                        ) : qe ? (
+                          <div
+                            style={{
+                              display: 'grid',
+                              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                              gap: 12,
+                              alignItems: 'end',
+                            }}
+                          >
+                            <label style={{ display: 'block' }}>
+                              <span style={{ display: 'block', fontSize: 12, marginBottom: 4 }}>
+                                {t('blogs', 'titleCol') || 'Title'}
+                              </span>
+                              <input
+                                value={qe.title}
+                                onChange={(e) => setQe({ ...qe, title: e.target.value })}
+                                style={{ width: '100%' }}
+                              />
+                            </label>
+                            <label style={{ display: 'block' }}>
+                              <span style={{ display: 'block', fontSize: 12, marginBottom: 4 }}>
+                                {t('blogs', 'slug') || 'Slug'}
+                              </span>
+                              <input
+                                value={qe.slug}
+                                onChange={(e) => setQe({ ...qe, slug: e.target.value })}
+                                style={{ width: '100%' }}
+                              />
+                            </label>
+                            <label style={{ display: 'block' }}>
+                              <span style={{ display: 'block', fontSize: 12, marginBottom: 4 }}>
+                                {t('blogs', 'status') || 'Status'}
+                              </span>
+                              <select
+                                value={qe.status}
+                                onChange={(e) => setQe({ ...qe, status: e.target.value })}
+                                style={{ width: '100%' }}
+                              >
+                                <option value="PUBLISHED">{t('blogs', 'published') || 'Published'}</option>
+                                <option value="DRAFT">{t('blogs', 'draft') || 'Draft'}</option>
+                                <option value="PENDING_REVIEW">{t('blogs', 'pending') || 'Pending'}</option>
+                                <option value="TRASHED">{t('blogs', 'trash') || 'Trash'}</option>
+                              </select>
+                            </label>
+                            <div style={{ display: 'flex', gap: 8 }}>
+                              <button
+                                type="button"
+                                className="v-btn v-btn--primary v-btn--small"
+                                disabled={qeLoading}
+                                onClick={() => void saveQuickEdit()}
+                              >
+                                {t('common', 'update') || 'Update'}
+                              </button>
+                              <button
+                                type="button"
+                                className="v-btn v-btn--small"
+                                disabled={qeLoading}
+                                onClick={closeQuickEdit}
+                              >
+                                {t('common', 'cancel') || 'Cancel'}
+                              </button>
+                            </div>
+                          </div>
+                        ) : null}
+                        {qeError ? (
+                          <p role="alert" className="v-alert v-alert--error" style={{ marginTop: 8 }}>
+                            {qeError}
+                          </p>
+                        ) : null}
+                      </fieldset>
+                    </td>
+                  </tr>
+                ) : null}
+                </Fragment>
               );
             })
           )}
