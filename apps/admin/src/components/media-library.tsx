@@ -127,7 +127,7 @@ export function MediaLibrary({ onInsert, onClose, imagesOnly }: Props) {
         );
       }
     }
-    return Array.from(set.entries()).sort((a, b) => (a[0] < b[0] ? 1 : -1));
+    return Array.from(set.entries()).toSorted((a, b) => (a[0] < b[0] ? 1 : -1));
   }, [items]);
 
   // Client-side search across loaded items (filename / title)

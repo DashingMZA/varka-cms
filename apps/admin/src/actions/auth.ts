@@ -35,13 +35,13 @@ function requestFromHeaders(h: Headers): Request {
  * the Next.js cookie store. Without this, login "succeeds" but the session is
  * missing and /dashboard bounces straight back to /login.
  */
-async function forwardSetCookies(headers: Headers): Promise<void> {
+async function forwardSetCookies(respHeaders: Headers): Promise<void> {
   const raw: string[] =
-    typeof (headers as unknown as { getSetCookie?: () => string[] }).getSetCookie ===
+    typeof (respHeaders as unknown as { getSetCookie?: () => string[] }).getSetCookie ===
     'function'
-      ? (headers as unknown as { getSetCookie: () => string[] }).getSetCookie()
+      ? (respHeaders as unknown as { getSetCookie: () => string[] }).getSetCookie()
       : (() => {
-          const v = headers.get('set-cookie');
+          const v = respHeaders.get('set-cookie');
           return v ? [v] : [];
         })();
   if (raw.length === 0) return;
