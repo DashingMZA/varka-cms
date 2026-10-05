@@ -29,6 +29,7 @@ model Site {
   mediaAssets MediaAsset[]
   auditLogs   AuditLog[]
   notFoundLogs NotFoundLog[]
+  redirections Redirection[]
 }
 
 model SiteSetting {
@@ -592,4 +593,21 @@ model NotFoundLog {
 
   @@unique([siteId, path])
   @@index([siteId, lastSeen])
+}
+
+/// URL redirections (Rank Math-style).
+model Redirection {
+  id        String   @id @default(cuid())
+  siteId    String
+  site      Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  source    String
+  target    String
+  code      Int      @default(301)
+  hits      Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([siteId, source])
+  @@index([siteId, active])
 }
