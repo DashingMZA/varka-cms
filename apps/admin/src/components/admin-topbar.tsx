@@ -53,6 +53,13 @@ export function AdminTopbar(props: { locale?: AppLocale | string } = {}) {
 
   return (
     <header className="v-topbar">
+      <button
+        className="v-topbar__menu-toggle"
+        aria-label="Toggle menu"
+        onClick={() => document.querySelector('.v-admin')?.classList.toggle('v-sidebar-open')}
+      >
+        ☰
+      </button>
       <Link href="/dashboard" className="v-topbar__brand">
         {t('common', 'brand')}
       </Link>

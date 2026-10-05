@@ -241,9 +241,34 @@ html[data-admin-scheme="light"] .v-topbar a { color: #333; }
 
 @media (max-width: 782px) {
   .v-admin { grid-template-columns: 1fr; }
-  .v-sidebar { display: none; }
+  .v-sidebar {
+    display: none;
+    position: fixed;
+    top: var(--wp-topbar-h);
+    bottom: 0;
+    left: 0;
+    width: 200px;
+    z-index: 100;
+    overflow-y: auto;
+  }
+  .v-admin.v-sidebar-open .v-sidebar { display: block; }
+  .v-topbar__menu-toggle {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: var(--wp-sidebar-text);
+    font-size: 20px;
+    padding: 4px 8px;
+    cursor: pointer;
+  }
   .v-editor { grid-template-columns: 1fr !important; }
+  /* Responsive tables: horizontal scroll */
+  .v-table-wrapper, .v-card { overflow-x: auto; }
+  .v-table { min-width: 600px; }
 }
+.v-topbar__menu-toggle { display: none; }
 
 /* WP-style status filters (subsubsub) */
 .v-subsub, .v-subsubsub {
