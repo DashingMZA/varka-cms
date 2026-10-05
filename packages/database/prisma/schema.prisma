@@ -28,6 +28,7 @@ model Site {
   comments    Comment[]
   mediaAssets MediaAsset[]
   auditLogs   AuditLog[]
+  notFoundLogs NotFoundLog[]
 }
 
 model SiteSetting {
