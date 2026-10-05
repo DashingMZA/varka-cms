@@ -11,29 +11,40 @@ import TextStyle from '@tiptap/extension-text-style';
 import Color from '@tiptap/extension-color';
 import Highlight from '@tiptap/extension-highlight';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { getStoredLocale, isRtlLocale } from '@/lib/i18n';
+import { getStoredLocale, isRtlLocale, useMessages } from '@/lib/i18n';
 import { searchContentAction } from '@/actions/posts';
 
+/** Label with hard fallback so missing i18n never shows raw keys */
+function L(
+  t: (ns: 'editor' | 'common', key: string) => string,
+  key: string,
+  fallback: string,
+): string {
+  const v = t('editor', key);
+  if (!v || v === key || v.startsWith('editor.')) return fallback;
+  return v;
+}
+
 const TEXT_COLORS = [
-  { label: 'Default', value: '' },
-  { label: 'Black', value: '#1d2327' },
-  { label: 'Gray', value: '#646970' },
-  { label: 'Red', value: '#d63638' },
-  { label: 'Orange', value: '#dba617' },
-  { label: 'Green', value: '#00a32a' },
-  { label: 'Blue', value: '#2271b1' },
-  { label: 'Purple', value: '#7e3af2' },
-  { label: 'White', value: '#ffffff' },
+  { key: 'colorDefault', fallback: 'Default', value: '' },
+  { key: 'colorBlack', fallback: 'Black', value: '#1d2327' },
+  { key: 'colorGray', fallback: 'Gray', value: '#646970' },
+  { key: 'colorRed', fallback: 'Red', value: '#d63638' },
+  { key: 'colorOrange', fallback: 'Orange', value: '#dba617' },
+  { key: 'colorGreen', fallback: 'Green', value: '#00a32a' },
+  { key: 'colorBlue', fallback: 'Blue', value: '#2271b1' },
+  { key: 'colorPurple', fallback: 'Purple', value: '#7e3af2' },
+  { key: 'colorWhite', fallback: 'White', value: '#ffffff' },
 ];
 
 const BG_COLORS = [
-  { label: 'None', value: '' },
-  { label: 'Yellow', value: '#fff3cd' },
-  { label: 'Green', value: '#d1e7dd' },
-  { label: 'Blue', value: '#cfe2ff' },
-  { label: 'Pink', value: '#f8d7da' },
-  { label: 'Gray', value: '#e9ecef' },
-  { label: 'Orange', value: '#ffe5d0' },
+  { key: 'colorNone', fallback: 'None', value: '' },
+  { key: 'colorYellow', fallback: 'Yellow', value: '#fff3cd' },
+  { key: 'colorGreen', fallback: 'Green', value: '#d1e7dd' },
+  { key: 'colorBlue', fallback: 'Blue', value: '#cfe2ff' },
+  { key: 'colorPink', fallback: 'Pink', value: '#f8d7da' },
+  { key: 'colorGray', fallback: 'Gray', value: '#e9ecef' },
+  { key: 'colorOrange', fallback: 'Orange', value: '#ffe5d0' },
 ];
 
 type ContentHit = {
@@ -78,6 +89,7 @@ export function TiptapEditor(props: {
   placeholder?: string;
   onInsertImage?: () => void;
 }) {
+  const { t } = useMessages();
   const [rtl, setRtl] = useState(false);
   const [mode, setMode] = useState<'visual' | 'code'>('visual');
   const [code, setCode] = useState(props.value || '');
@@ -116,7 +128,7 @@ export function TiptapEditor(props: {
         HTMLAttributes: { loading: 'lazy', decoding: 'async' },
       }),
       Placeholder.configure({
-        placeholder: props.placeholder ?? 'Write content…',
+        placeholder: props.placeholder ?? L(t, 'writeContent', 'Write content…'),
       }),
     ],
     content: props.value || '',
@@ -309,8 +321,8 @@ export function TiptapEditor(props: {
 
       {mode === 'visual' ? (
         <>
-          <div className="v-tiptap-toolbar" role="toolbar" aria-label="Formatting">
-            <select className="v-tiptap-format" value={currentBlock()} onChange={(e) => setBlock(e.target.value)} title="Paragraph format" aria-label="Paragraph format">
+          <div className="v-tiptap-toolbar" role="toolbar" aria-label={L(t, 'formatting', 'Formatting')}>
+            <select className="v-tiptap-format" value={currentBlock()} onChange={(e) => setBlock(e.target.value)} title={L(t, 'paragraphFormat', 'Paragraph format')} aria-label={L(t, 'paragraphFormat', 'Paragraph format')}>
               <option value="paragraph">Paragraph</option>
               <option value="h1">Heading 1</option>
               <option value="h2">Heading 2</option>
@@ -320,19 +332,19 @@ export function TiptapEditor(props: {
               <option value="h6">Heading 6</option>
               <option value="pre">Preformatted</option>
             </select>
-            <ToolBtn label={<strong>B</strong>} active={editor.isActive('bold')} title="Bold" onClick={() => editor.chain().focus().toggleBold().run()} />
-            <ToolBtn label={<em>I</em>} active={editor.isActive('italic')} title="Italic" onClick={() => editor.chain().focus().toggleItalic().run()} />
-            <ToolBtn label="☰" active={editor.isActive('bulletList')} title="Bulleted list" onClick={() => editor.chain().focus().toggleBulletList().run()} />
-            <ToolBtn label="1." active={editor.isActive('orderedList')} title="Numbered list" onClick={() => editor.chain().focus().toggleOrderedList().run()} />
-            <ToolBtn label="❝" active={editor.isActive('blockquote')} title="Blockquote" onClick={() => editor.chain().focus().toggleBlockquote().run()} />
-            <ToolBtn label="⬅" active={editor.isActive({ textAlign: 'left' })} title="Align left" onClick={() => editor.chain().focus().setTextAlign('left').run()} />
-            <ToolBtn label="≡" active={editor.isActive({ textAlign: 'center' })} title="Align center" onClick={() => editor.chain().focus().setTextAlign('center').run()} />
-            <ToolBtn label="➡" active={editor.isActive({ textAlign: 'right' })} title="Align right" onClick={() => editor.chain().focus().setTextAlign('right').run()} />
-            <ToolBtn label="🔗" active={editor.isActive('link')} title="Insert/edit link" onClick={openLinkModal} />
+            <ToolBtn label={<strong>B</strong>} active={editor.isActive('bold')} title={L(t, 'bold', 'Bold')} onClick={() => editor.chain().focus().toggleBold().run()} />
+            <ToolBtn label={<em>I</em>} active={editor.isActive('italic')} title={L(t, 'italic', 'Italic')} onClick={() => editor.chain().focus().toggleItalic().run()} />
+            <ToolBtn label="☰" active={editor.isActive('bulletList')} title={L(t, 'bulletedList', 'Bulleted list')} onClick={() => editor.chain().focus().toggleBulletList().run()} />
+            <ToolBtn label="1." active={editor.isActive('orderedList')} title={L(t, 'numberedList', 'Numbered list')} onClick={() => editor.chain().focus().toggleOrderedList().run()} />
+            <ToolBtn label="❝" active={editor.isActive('blockquote')} title={L(t, 'blockquote', 'Blockquote')} onClick={() => editor.chain().focus().toggleBlockquote().run()} />
+            <ToolBtn label="⬅" active={editor.isActive({ textAlign: 'left' })} title={L(t, 'alignLeft', 'Align left')} onClick={() => editor.chain().focus().setTextAlign('left').run()} />
+            <ToolBtn label="≡" active={editor.isActive({ textAlign: 'center' })} title={L(t, 'alignCenter', 'Align center')} onClick={() => editor.chain().focus().setTextAlign('center').run()} />
+            <ToolBtn label="➡" active={editor.isActive({ textAlign: 'right' })} title={L(t, 'alignRight', 'Align right')} onClick={() => editor.chain().focus().setTextAlign('right').run()} />
+            <ToolBtn label="🔗" active={editor.isActive('link')} title={L(t, 'insertLink', 'Insert/edit link')} onClick={openLinkModal} />
             <ToolBtn
               label="🖼"
               active={false}
-              title="Add media"
+              title={L(t, 'addMedia', 'Add media')}
               onClick={() => {
                 if (props.onInsertImage) props.onInsertImage();
                 else {
@@ -341,30 +353,30 @@ export function TiptapEditor(props: {
                 }
               }}
             />
-            <ToolBtn label="▾" active={kitchenSink} title="Toolbar Toggle" onClick={() => setKitchenSink((v) => !v)} />
+            <ToolBtn label="▾" active={kitchenSink} title={L(t, 'toolbarToggle', 'Toolbar Toggle')} onClick={() => setKitchenSink((v) => !v)} />
           </div>
 
           {kitchenSink ? (
-            <div className="v-tiptap-toolbar v-tiptap-toolbar--row2" role="toolbar" aria-label="More formatting">
-              <ToolBtn label={<s>S</s>} active={editor.isActive('strike')} title="Strikethrough" onClick={() => editor.chain().focus().toggleStrike().run()} />
-              <ToolBtn label={<u>U</u>} active={editor.isActive('underline')} title="Underline" onClick={() => editor.chain().focus().toggleUnderline().run()} />
-              <ToolBtn label={<code style={{ fontSize: 12 }}>{'</>'}</code>} active={editor.isActive('code')} title="Inline code" onClick={() => editor.chain().focus().toggleCode().run()} />
+            <div className="v-tiptap-toolbar v-tiptap-toolbar--row2" role="toolbar" aria-label={L(t, 'moreFormatting', 'More formatting')}>
+              <ToolBtn label={<s>S</s>} active={editor.isActive('strike')} title={L(t, 'strikethrough', 'Strikethrough')} onClick={() => editor.chain().focus().toggleStrike().run()} />
+              <ToolBtn label={<u>U</u>} active={editor.isActive('underline')} title={L(t, 'underline', 'Underline')} onClick={() => editor.chain().focus().toggleUnderline().run()} />
+              <ToolBtn label={<code style={{ fontSize: 12 }}>{'</>'}</code>} active={editor.isActive('code')} title={L(t, 'inlineCode', 'Inline code')} onClick={() => editor.chain().focus().toggleCode().run()} />
 
               <div className="v-tiptap-color-wrap">
                 <ToolBtn
                   label={<span style={{ borderBottom: `3px solid ${activeTextColor || '#1d2327'}` }}>A</span>}
                   active={Boolean(activeTextColor)}
-                  title="Text color"
+                  title={L(t, 'textColor', 'Text color')}
                   onClick={() => setColorMenu((m) => (m === 'text' ? null : 'text'))}
                 />
                 {colorMenu === 'text' ? (
-                  <div className="v-tiptap-swatches" role="listbox" aria-label="Text color">
+                  <div className="v-tiptap-swatches" role="listbox" aria-label={L(t, 'textColor', 'Text color')}>
                     {TEXT_COLORS.map((c) => (
                       <button
-                        key={c.label}
+                        key={c.key}
                         type="button"
                         className="v-tiptap-swatch"
-                        title={c.label}
+                        title={L(t, c.key, c.fallback)}
                         style={{ background: c.value || '#fff', border: c.value ? undefined : '1px dashed #8c8f94' }}
                         onClick={() => {
                           if (!c.value) editor.chain().focus().unsetColor().run();
@@ -381,17 +393,17 @@ export function TiptapEditor(props: {
                 <ToolBtn
                   label={<span style={{ background: activeBg || '#fff3cd', padding: '0 3px', borderRadius: 2 }}>▮</span>}
                   active={Boolean(activeBg)}
-                  title="Background color"
+                  title={L(t, 'bgColor', 'Background color')}
                   onClick={() => setColorMenu((m) => (m === 'bg' ? null : 'bg'))}
                 />
                 {colorMenu === 'bg' ? (
-                  <div className="v-tiptap-swatches" role="listbox" aria-label="Background color">
+                  <div className="v-tiptap-swatches" role="listbox" aria-label={L(t, 'bgColor', 'Background color')}>
                     {BG_COLORS.map((c) => (
                       <button
-                        key={c.label}
+                        key={c.key}
                         type="button"
                         className="v-tiptap-swatch"
-                        title={c.label}
+                        title={L(t, c.key, c.fallback)}
                         style={{ background: c.value || '#fff', border: c.value ? undefined : '1px dashed #8c8f94' }}
                         onClick={() => {
                           if (!c.value) editor.chain().focus().unsetHighlight().run();
@@ -404,12 +416,12 @@ export function TiptapEditor(props: {
                 ) : null}
               </div>
 
-              <ToolBtn label="✕" active={false} title="Clear formatting" onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()} />
-              <ToolBtn label="⟨" active={false} title="Decrease indent" onClick={() => editor.chain().focus().liftListItem('listItem').run()} />
-              <ToolBtn label="⟩" active={false} title="Increase indent" onClick={() => editor.chain().focus().sinkListItem('listItem').run()} />
-              <ToolBtn label="↺" active={false} title="Undo" onClick={() => editor.chain().focus().undo().run()} />
-              <ToolBtn label="↻" active={false} title="Redo" onClick={() => editor.chain().focus().redo().run()} />
-              <ToolBtn label="—" active={false} title="Horizontal line" onClick={() => editor.chain().focus().setHorizontalRule().run()} />
+              <ToolBtn label="✕" active={false} title={L(t, 'clearFormatting', 'Clear formatting')} onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()} />
+              <ToolBtn label="⟨" active={false} title={L(t, 'decreaseIndent', 'Decrease indent')} onClick={() => editor.chain().focus().liftListItem('listItem').run()} />
+              <ToolBtn label="⟩" active={false} title={L(t, 'increaseIndent', 'Increase indent')} onClick={() => editor.chain().focus().sinkListItem('listItem').run()} />
+              <ToolBtn label="↺" active={false} title={L(t, 'undo', 'Undo')} onClick={() => editor.chain().focus().undo().run()} />
+              <ToolBtn label="↻" active={false} title={L(t, 'redo', 'Redo')} onClick={() => editor.chain().focus().redo().run()} />
+              <ToolBtn label="—" active={false} title={L(t, 'horizontalLine', 'Horizontal line')} onClick={() => editor.chain().focus().setHorizontalRule().run()} />
             </div>
           ) : null}
 
@@ -432,7 +444,7 @@ export function TiptapEditor(props: {
       </div>
 
       {linkOpen ? (
-        <div className="v-link-modal" role="dialog" aria-modal="true" aria-label="Insert/edit link">
+        <div className="v-link-modal" role="dialog" aria-modal="true" aria-label={L(t, 'insertLink', 'Insert/edit link')}>
           <div className="v-link-modal__frame">
             <div className="v-link-modal__bar">
               <strong>Insert/edit link</strong>
@@ -442,11 +454,11 @@ export function TiptapEditor(props: {
               <p className="v-muted" style={{ marginTop: 0 }}>Enter the destination URL</p>
               <label>
                 URL
-                <input value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} placeholder="https:// or /slug" autoFocus />
+                <input value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} placeholder={L(t, 'linkUrl', 'https:// or /slug')} autoFocus />
               </label>
               <label>
                 Link Text
-                <input value={linkText} onChange={(e) => setLinkText(e.target.value)} placeholder="Optional if text is selected" />
+                <input value={linkText} onChange={(e) => setLinkText(e.target.value)} placeholder={L(t, 'linkText', 'Optional if text is selected')} />
               </label>
               <label className="v-link-modal__check">
                 <input type="checkbox" checked={linkNewTab} onChange={(e) => setLinkNewTab(e.target.checked)} />
@@ -458,8 +470,8 @@ export function TiptapEditor(props: {
                 <input
                   value={linkSearch}
                   onChange={(e) => setLinkSearch(e.target.value)}
-                  placeholder="Search posts & pages…"
-                  aria-label="Search existing content"
+                  placeholder={L(t, 'searchContent', 'Search posts & pages…')}
+                  aria-label={L(t, 'searchContentLabel', 'Search existing content')}
                 />
                 <div className="v-link-modal__hits">
                   {contentLoading ? (
