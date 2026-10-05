@@ -130,3 +130,50 @@ export async function getAppVersionAction(): Promise<
     return fail(e);
   }
 }
+
+/** Server Action: system health check (replaces /api/health fetch in admin). */
+export async function getHealthAction(): Promise<{
+  ok: boolean;
+  database: string;
+  databaseError?: string;
+  cache: string;
+  cachePing: boolean;
+  time: string;
+}> {
+  const result: {
+    ok: boolean;
+    database: string;
+    databaseError?: string;
+    cache: string;
+    cachePing: boolean;
+    time: string;
+  } = {
+    ok: true,
+    database: 'up',
+    cache: 'unknown',
+    cachePing: false,
+    time: new Date().toISOString(),
+  };
+
+  try {
+    const { getCache, getCacheDriver } = await import('@varka/cache');
+    const cache = await getCache();
+    result.cachePing = cache.ping ? await cache.ping() : true;
+    result.cache = getCacheDriver();
+  } catch {
+    result.cache = 'error';
+    result.ok = false;
+  }
+
+  try {
+    const { prisma } = await import('@varka/database');
+    await prisma.$queryRaw`SELECT 1`;
+    result.database = 'up';
+  } catch (e) {
+    result.database = 'down';
+    result.databaseError = e instanceof Error ? e.message : 'db error';
+    result.ok = false;
+  }
+
+  return result;
+}

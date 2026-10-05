@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { useMessages } from '@/lib/i18n';
 import { prefetchRouteData } from '@/lib/prefetch';
+import { signOutAction } from '@/actions/auth';
 import type { AppLocale } from '@varka/i18n';
 
 type NavChild = { href: string; label: string };
@@ -219,7 +220,7 @@ export function AdminNav(
 
   async function signOut() {
     try {
-      await fetch('/api/auth/sign-out', { method: 'POST', credentials: 'include' });
+      await signOutAction();
     } catch {
       /* ignore */
     }

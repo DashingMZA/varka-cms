@@ -1,25 +1,25 @@
-'use client';
-
-import { useMessages } from '@/lib/i18n';
-
-/** Label with hard fallback so missing i18n never shows raw keys */
-function L(
-  t: (ns: 'tags' | 'common', key: string) => string,
-  key: string,
-  fallback: string,
-): string {
-  const v = t('tags', key);
-  if (!v || v === key || v.startsWith('tags.')) return fallback;
-  return v;
-}
 import { TagsAdmin } from '@/components/tags-admin';
+import { listTagsAction } from '@/actions/taxonomy';
 
-export default function TagsPage() {
-  const { t } = useMessages();
+/** Server Component: fetch tags on the server for instant render (no /api/ fetch). */
+export default async function TagsPage() {
+  const result = await listTagsAction().catch(() => ({ ok: false as const, error: 'failed' }));
+  const initialItems =
+    result && 'ok' in result && result.ok
+      ? ((result.data.items as Array<Record<string, unknown>>) ?? [])
+      : [];
+
   return (
     <main>
-      <h1 className="v-page-title">{L(t, 'tags', 'Tags')}</h1>
-      <TagsAdmin />
+      <TagsAdmin
+        initialItems={
+          initialItems as Array<{
+            id: string;
+            translations: { name: string; slug: string }[];
+            _count?: { posts: number };
+          }>
+        }
+      />
     </main>
   );
 }
