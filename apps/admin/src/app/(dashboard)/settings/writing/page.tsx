@@ -1,6 +1,18 @@
 'use client';
 
 import { Field, SettingsForm, inputStyle, selectStyle } from '@/components/settings/settings-form';
+import { useMessages } from '@/lib/i18n';
+
+/** Label with hard fallback so missing i18n never shows raw keys */
+function L(
+  t: (ns: 'settings' | 'common', key: string) => string,
+  key: string,
+  fallback: string,
+): string {
+  const v = t('settings', key);
+  if (!v || v === key || v.startsWith('settings.')) return fallback;
+  return v;
+}
 
 const DEFAULTS = {
   defaultCategory: 'uncategorized',
@@ -16,47 +28,48 @@ const DEFAULTS = {
 };
 
 export default function WritingSettingsPage() {
+  const { t } = useMessages();
   return (
     <SettingsForm
       group="writing"
-      title="Writing Settings"
-      description="Default category, editor, and optional post-via-email."
+      title={L(t, 'writingTitle', 'Writing Settings')}
+      description={L(t, 'writingDesc', 'Default category, editor, and optional post-via-email.')}
       defaults={DEFAULTS}
     >
       {(v, set) => (
         <>
-          <Field label="Default Post Category">
+          <Field label={L(t, 'defaultPostCategory', 'Default Post Category')}>
             <input
               style={inputStyle}
               value={String(v.defaultCategory ?? '')}
               onChange={(e) => set('defaultCategory', e.target.value)}
             />
           </Field>
-          <Field label="Default Post Format">
+          <Field label={L(t, 'defaultPostFormat', 'Default Post Format')}>
             <select
               style={selectStyle}
               value={String(v.defaultPostFormat ?? 'standard')}
               onChange={(e) => set('defaultPostFormat', e.target.value)}
             >
-              <option value="standard">Standard</option>
-              <option value="aside">Aside</option>
-              <option value="gallery">Gallery</option>
-              <option value="link">Link</option>
-              <option value="image">Image</option>
-              <option value="quote">Quote</option>
-              <option value="status">Status</option>
-              <option value="video">Video</option>
-              <option value="audio">Audio</option>
+              <option value="standard">{L(t, 'formatStandard', 'Standard')}</option>
+              <option value="aside">{L(t, 'formatAside', 'Aside')}</option>
+              <option value="gallery">{L(t, 'formatGallery', 'Gallery')}</option>
+              <option value="link">{L(t, 'formatLink', 'Link')}</option>
+              <option value="image">{L(t, 'formatImage', 'Image')}</option>
+              <option value="quote">{L(t, 'formatQuote', 'Quote')}</option>
+              <option value="status">{L(t, 'formatStatus', 'Status')}</option>
+              <option value="video">{L(t, 'formatVideo', 'Video')}</option>
+              <option value="audio">{L(t, 'formatAudio', 'Audio')}</option>
             </select>
           </Field>
-          <Field label="Default editor for all users">
+          <Field label={L(t, 'defaultEditor', 'Default editor for all users')}>
             <label style={{ display: 'flex', gap: 8, fontSize: 14 }}>
               <input
                 type="radio"
                 checked={v.defaultEditor === 'tiptap'}
                 onChange={() => set('defaultEditor', 'tiptap')}
               />
-              Block / rich editor (Tiptap)
+              {L(t, 'editorTiptap', 'Block / rich editor (Tiptap)')}
             </label>
             <label style={{ display: 'flex', gap: 8, fontSize: 14, marginTop: 6 }}>
               <input
@@ -64,17 +77,17 @@ export default function WritingSettingsPage() {
                 checked={v.defaultEditor === 'markdown'}
                 onChange={() => set('defaultEditor', 'markdown')}
               />
-              Markdown
+              {L(t, 'editorMarkdown', 'Markdown editor')}
             </label>
           </Field>
-          <Field label="Allow users to switch editors">
+          <Field label={L(t, 'allowEditorSwitch', 'Allow users to switch editors')}>
             <label style={{ display: 'flex', gap: 8, fontSize: 14 }}>
               <input
                 type="radio"
                 checked={v.allowEditorSwitch === true}
                 onChange={() => set('allowEditorSwitch', true)}
               />
-              Yes
+              {L(t, 'yes', 'Yes')}
             </label>
             <label style={{ display: 'flex', gap: 8, fontSize: 14, marginTop: 6 }}>
               <input
@@ -82,11 +95,11 @@ export default function WritingSettingsPage() {
                 checked={!v.allowEditorSwitch}
                 onChange={() => set('allowEditorSwitch', false)}
               />
-              No
+              {L(t, 'no', 'No')}
             </label>
           </Field>
-          <h2 style={{ fontSize: 16, margin: '12px 0 0' }}>Post via email</h2>
-          <Field label="Mail Server">
+          <h2 style={{ fontSize: 16, margin: '12px 0 0' }}>{L(t, 'postViaEmail', 'Post via email')}</h2>
+          <Field label={L(t, 'mailServer', 'Mail Server')}>
             <input
               style={inputStyle}
               value={String(v.mailServer ?? '')}
@@ -94,7 +107,7 @@ export default function WritingSettingsPage() {
               placeholder="mail.example.com"
             />
           </Field>
-          <Field label="Port">
+          <Field label={L(t, 'mailPort', 'Port')}>
             <input
               type="number"
               style={{ ...inputStyle, maxWidth: 100 }}
@@ -102,14 +115,14 @@ export default function WritingSettingsPage() {
               onChange={(e) => set('mailPort', Number(e.target.value))}
             />
           </Field>
-          <Field label="Login Name">
+          <Field label={L(t, 'mailLogin', 'Login Name')}>
             <input
               style={inputStyle}
               value={String(v.mailLogin ?? '')}
               onChange={(e) => set('mailLogin', e.target.value)}
             />
           </Field>
-          <Field label="Password">
+          <Field label={L(t, 'mailPassword', 'Password')}>
             <input
               type="password"
               style={inputStyle}
@@ -118,7 +131,7 @@ export default function WritingSettingsPage() {
               autoComplete="new-password"
             />
           </Field>
-          <Field label="Update Services" hint="One URL per line — notified on publish.">
+          <Field label={L(t, 'updateServices', 'Update Services')}>
             <textarea
               style={{ ...inputStyle, maxWidth: 480, minHeight: 80 }}
               value={String(v.updateServices ?? '')}
