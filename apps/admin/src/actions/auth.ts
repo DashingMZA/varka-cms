@@ -28,6 +28,63 @@ function requestFromHeaders(h: Headers): Request {
   return new Request('http://localhost/login', { headers: h });
 }
 
+/**
+ * Better Auth sets the session via `set-cookie` response headers. When calling
+ * `auth.api.*` directly from a Server Action (instead of the HTTP route
+ * handler), those headers never reach the browser unless we copy them into
+ * the Next.js cookie store. Without this, login "succeeds" but the session is
+ * missing and /dashboard bounces straight back to /login.
+ */
+async function forwardSetCookies(headers: Headers): Promise<void> {
+  const raw: string[] =
+    typeof (headers as unknown as { getSetCookie?: () => string[] }).getSetCookie ===
+    'function'
+      ? (headers as unknown as { getSetCookie: () => string[] }).getSetCookie()
+      : (() => {
+          const v = headers.get('set-cookie');
+          return v ? [v] : [];
+        })();
+  if (raw.length === 0) return;
+  const jar = await cookies();
+  for (const sc of raw) {
+    const [pair, ...attrs] = sc.split(';');
+    if (!pair) continue;
+    const eq = pair.indexOf('=');
+    if (eq < 0) continue;
+    const name = pair.slice(0, eq).trim();
+    const value = pair.slice(eq + 1).trim();
+    if (!name) continue;
+    const opts: {
+      path?: string;
+      maxAge?: number;
+      expires?: Date;
+      httpOnly?: boolean;
+      secure?: boolean;
+      sameSite?: 'lax' | 'strict' | 'none';
+    } = { path: '/' };
+    for (const a of attrs) {
+      const [k, ...rest] = a.trim().split('=');
+      if (!k) continue;
+      const key = k.trim().toLowerCase();
+      const val = rest.join('=').trim();
+      if (key === 'path' && val) opts.path = val;
+      else if (key === 'max-age') {
+        const n = Number(val);
+        if (Number.isFinite(n)) opts.maxAge = n;
+      } else if (key === 'expires' && val) {
+        const d = new Date(val);
+        if (!Number.isNaN(d.getTime())) opts.expires = d;
+      } else if (key === 'httponly') opts.httpOnly = true;
+      else if (key === 'secure') opts.secure = true;
+      else if (key === 'samesite') {
+        const s = val.toLowerCase();
+        if (s === 'lax' || s === 'strict' || s === 'none') opts.sameSite = s;
+      }
+    }
+    jar.set(name, value, opts);
+  }
+}
+
 export async function signInEmailAction(
   email: string,
   password: string,
@@ -51,12 +108,15 @@ export async function signInEmailAction(
     }
 
     const auth = getAuth();
-    const result = await auth.api.signInEmail({
+    const { headers: resHeaders, response } = await auth.api.signInEmail({
       body: { email: normalized, password },
       headers: h,
+      returnHeaders: true,
     });
+    // Propagate the session cookie to the browser (see forwardSetCookies).
+    await forwardSetCookies(resHeaders);
 
-    const r = result as {
+    const r = response as {
       twoFactorRedirect?: boolean;
       user?: { id?: string };
     };
@@ -119,13 +179,17 @@ export async function verifyTwoFactorTotpAction(
     const api = auth.api as Record<string, (args: unknown) => Promise<unknown>>;
     const body = { code: code.trim() };
     const h = await hdrs();
-    const args = { body, headers: h };
+    const base = { body, headers: h, returnHeaders: true };
+    let res: { headers: Headers } | unknown;
     if (typeof api.verifyTOTP === 'function') {
-      await api.verifyTOTP(args);
+      res = await api.verifyTOTP(base);
     } else if (typeof api.verifyTwoFactorTOTP === 'function') {
-      await api.verifyTwoFactorTOTP(args);
+      res = await api.verifyTwoFactorTOTP(base);
     } else {
       throw new Error('TOTP verify not available');
+    }
+    if (res && typeof res === 'object' && 'headers' in res) {
+      await forwardSetCookies((res as { headers: Headers }).headers);
     }
     return { ok: true };
   } catch (e) {
@@ -138,18 +202,29 @@ export async function verifyTwoFactorOtpAction(
 ): Promise<AuthActionResult> {
   try {
     const auth = getAuth();
-    await auth.api.verifyTwoFactorOTP({
+    const h = await hdrs();
+    const res = (await auth.api.verifyTwoFactorOTP({
       body: { code: code.trim() },
-      headers: await hdrs(),
-    });
+      headers: h,
+      returnHeaders: true,
+    })) as unknown as { headers: Headers };
+    if (res && typeof res === 'object' && 'headers' in res) {
+      await forwardSetCookies(res.headers);
+    }
     return { ok: true };
   } catch {
     try {
       const auth = getAuth();
-      await (auth.api as { verifyOTP?: (a: unknown) => Promise<unknown> }).verifyOTP?.({
+      const res = (await (
+        auth.api as { verifyOTP?: (a: unknown) => Promise<unknown> }
+      ).verifyOTP?.({
         body: { code: code.trim() },
         headers: await hdrs(),
-      });
+        returnHeaders: true,
+      })) as unknown as { headers: Headers } | undefined;
+      if (res && typeof res === 'object' && 'headers' in res) {
+        await forwardSetCookies(res.headers);
+      }
       return { ok: true };
     } catch (e2) {
       return fail(e2 instanceof Error ? e2.message : 'Invalid code');
