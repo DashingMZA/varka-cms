@@ -11,6 +11,7 @@ const DEFAULTS = {
   largeWidth: 1024,
   largeHeight: 1024,
   organizeByYearMonth: true,
+  storage_driver: '',
 };
 
 export default function MediaSettingsPage() {
@@ -111,6 +112,24 @@ export default function MediaSettingsPage() {
             />
             Organize my uploads into month- and year-based folders
           </label>
+          <h2 style={{ fontSize: 15, margin: '8px 0 0' }}>Storage Driver</h2>
+          <p style={{ margin: 0, fontSize: 13, color: 'var(--muted)' }}>
+            Where uploaded media is stored. Credentials stay in .env (S3_* / R2_* /
+            GITHUB_*) — this only picks which driver is active.
+          </p>
+          <Field label="Active storage">
+            <select
+              style={{ ...inputStyle, width: '100%', maxWidth: 320 }}
+              value={String(v.storage_driver ?? '')}
+              onChange={(e) => set('storage_driver', e.target.value)}
+            >
+              <option value="">Use STORAGE_DRIVER from .env</option>
+              <option value="local">Local folder (public/uploads)</option>
+              <option value="s3">Amazon S3</option>
+              <option value="r2">Cloudflare R2</option>
+              <option value="github">GitHub repo (small sites only)</option>
+            </select>
+          </Field>
         </>
       )}
     </SettingsForm>
