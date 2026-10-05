@@ -337,3 +337,118 @@ html[data-admin-scheme="light"] .v-topbar a { color: #333; }
   border-radius: 3px;
   font-size: 14px;
 }
+
+/* ============================================================
+   Responsive polish - WordPress-style mobile behavior
+   ============================================================ */
+
+/* Tablet and below */
+@media (max-width: 960px) {
+  .v-page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .v-list-table-top {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .v-list-table-top > div {
+    width: 100%;
+  }
+  .v-search {
+    width: 100%;
+  }
+  .v-search input {
+    flex: 1;
+  }
+}
+
+/* Mobile - WordPress 782px breakpoint */
+@media (max-width: 782px) {
+  /* Page header stacks */
+  .v-page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .v-page-title {
+    font-size: 20px;
+  }
+
+  /* Cards get proper padding */
+  .v-card {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  /* Tables become horizontally scrollable with sticky first col */
+  .v-list-table {
+    font-size: 13px;
+  }
+  .v-list-table th,
+  .v-list-table td {
+    padding: 8px 10px;
+    white-space: nowrap;
+  }
+  .v-list-table td:first-child {
+    white-space: normal;
+    min-width: 150px;
+  }
+
+  /* Forms stack properly */
+  .v-form .v-field input,
+  .v-form .v-field select,
+  .v-form .v-field textarea {
+    max-width: 100%;
+  }
+
+  /* Filter bars wrap */
+  .v-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .v-filters > * {
+    width: 100%;
+  }
+
+  /* Bulk actions stack */
+  .v-list-table-top > div:first-child {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .v-list-table-top select,
+  .v-list-table-top .v-btn {
+    width: 100%;
+  }
+
+  /* Subsubsub wraps */
+  .v-subsub, .v-subsubsub {
+    flex-wrap: wrap;
+    gap: 4px 8px;
+  }
+
+  /* Editor sidebar stacks below content */
+  .v-editor__sidebar {
+    border-left: none;
+    border-top: 1px solid var(--wp-border);
+    padding-left: 0;
+    padding-top: 16px;
+  }
+}
+
+/* Small mobile */
+@media (max-width: 480px) {
+  .v-page-title {
+    font-size: 18px;
+  }
+  .v-btn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  /* Hide less important table columns on very small screens */
+  .v-list-table .hide-mobile {
+    display: none;
+  }
+}

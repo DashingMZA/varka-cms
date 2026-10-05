@@ -1,6 +1,8 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Field, SettingsForm, inputStyle } from '@/components/settings/settings-form';
+import { listPagesAction } from '@/actions/pages';
 import { useMessages } from '@/lib/i18n';
 
 function L(t: (ns: 'settings' | 'common', key: string) => string, key: string, fallback: string): string {
@@ -19,8 +21,25 @@ const DEFAULTS = {
   discourageSearchEngines: false,
 };
 
+type PageOption = { id: string; title: string };
+
 export default function ReadingSettingsPage() {
   const { t } = useMessages();
+  const [pages, setPages] = useState<PageOption[]>([]);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await listPagesAction({ limit: 100 });
+        if (res.ok) {
+          const data = res.data as { items?: Array<{ id: string; title: string }> };
+          setPages((data.items ?? []).map((p) => ({ id: p.id, title: p.title })));
+        }
+      } catch {
+        /* ignore */
+      }
+    })();
+  }, []);
   return (
     <SettingsForm
       group="reading"
@@ -50,19 +69,33 @@ export default function ReadingSettingsPage() {
           </Field>
           {v.homepageDisplays === 'page' ? (
             <>
-              <Field label={L(t, 'homepagePage', 'Homepage (page id or slug)')}>
-                <input
+              <Field label={L(t, 'homepagePage', 'Homepage')}>
+                <select
                   style={inputStyle}
                   value={String(v.homepagePageId ?? '')}
                   onChange={(e) => set('homepagePageId', e.target.value)}
-                />
+                >
+                  <option value="">{L(t, 'selectPage', '— Select —')}</option>
+                  {pages.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.title}
+                    </option>
+                  ))}
+                </select>
               </Field>
-              <Field label={L(t, 'postsPage', 'Posts page (page id or slug)')}>
-                <input
+              <Field label={L(t, 'postsPage', 'Posts page')}>
+                <select
                   style={inputStyle}
                   value={String(v.postsPageId ?? '')}
                   onChange={(e) => set('postsPageId', e.target.value)}
-                />
+                >
+                  <option value="">{L(t, 'selectPage', '— Select —')}</option>
+                  {pages.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.title}
+                    </option>
+                  ))}
+                </select>
               </Field>
             </>
           ) : null}
