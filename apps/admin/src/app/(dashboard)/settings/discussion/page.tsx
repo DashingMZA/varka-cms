@@ -1,6 +1,18 @@
 'use client';
 
 import { Field, SettingsForm, inputStyle, selectStyle } from '@/components/settings/settings-form';
+import { useMessages } from '@/lib/i18n';
+
+/** Label with hard fallback so missing i18n never shows raw keys */
+function L(
+  t: (ns: 'settings' | 'common', key: string) => string,
+  key: string,
+  fallback: string,
+): string {
+  const v = t('settings', key);
+  if (!v || v === key || v.startsWith('settings.')) return fallback;
+  return v;
+}
 
 const DEFAULTS = {
   defaultNotifyLinked: true,
@@ -25,23 +37,24 @@ const DEFAULTS = {
 };
 
 export default function DiscussionSettingsPage() {
+  const { t } = useMessages();
   return (
     <SettingsForm
       group="discussion"
-      title="Discussion Settings"
-      description="Default post comment behavior, threading, moderation, and notifications."
+      title={L(t, 'discussionTitle', 'Discussion Settings')}
+      description={L(t, 'discussionDesc', 'Default post comment behavior, threading, moderation, and notifications.')}
       defaults={DEFAULTS}
     >
       {(v, set) => (
         <>
-          <h2 style={{ fontSize: 15, margin: 0 }}>Default post settings</h2>
+          <h2 style={{ fontSize: 15, margin: 0 }}>{L(t, 'defaultPostSettings', 'Default post settings')}</h2>
           <label style={check}>
             <input
               type="checkbox"
               checked={Boolean(v.defaultNotifyLinked)}
               onChange={(e) => set('defaultNotifyLinked', e.target.checked)}
             />
-            Attempt to notify any blogs linked to from the post
+            {L(t, 'notifyLinked', 'Attempt to notify any blogs linked to from the post')}
           </label>
           <label style={check}>
             <input
@@ -49,7 +62,7 @@ export default function DiscussionSettingsPage() {
               checked={Boolean(v.allowPingbacks)}
               onChange={(e) => set('allowPingbacks', e.target.checked)}
             />
-            Allow link notifications from other blogs (pingbacks and trackbacks) on new posts
+            {L(t, 'allowPingbacks', 'Allow link notifications from other blogs (pingbacks and trackbacks) on new posts')}
           </label>
           <label style={check}>
             <input
@@ -57,17 +70,17 @@ export default function DiscussionSettingsPage() {
               checked={Boolean(v.allowCommentsNewPosts)}
               onChange={(e) => set('allowCommentsNewPosts', e.target.checked)}
             />
-            Allow people to submit comments on new posts
+            {L(t, 'allowCommentsNew', 'Allow people to submit comments on new posts')}
           </label>
 
-          <h2 style={{ fontSize: 15, margin: '8px 0 0' }}>Other comment settings</h2>
+          <h2 style={{ fontSize: 15, margin: '8px 0 0' }}>{L(t, 'otherCommentSettings', 'Other comment settings')}</h2>
           <label style={check}>
             <input
               type="checkbox"
               checked={Boolean(v.requireNameEmail)}
               onChange={(e) => set('requireNameEmail', e.target.checked)}
             />
-            Comment author must fill out name and email
+            {L(t, 'requireNameEmail', 'Comment author must fill out name and email')}
           </label>
           <label style={check}>
             <input
@@ -75,7 +88,7 @@ export default function DiscussionSettingsPage() {
               checked={Boolean(v.requireRegistration)}
               onChange={(e) => set('requireRegistration', e.target.checked)}
             />
-            Users must be registered and logged in to comment
+            {L(t, 'requireRegistration', 'Users must be registered and logged in to comment')}
           </label>
           <label style={check}>
             <input
@@ -83,7 +96,7 @@ export default function DiscussionSettingsPage() {
               checked={Boolean(v.closeCommentsOld)}
               onChange={(e) => set('closeCommentsOld', e.target.checked)}
             />
-            Automatically close comments on posts older than{' '}
+            {L(t, 'closeCommentsOld', 'Automatically close comments on posts older than')}{' '}
             <input
               type="number"
               min={1}
@@ -99,7 +112,7 @@ export default function DiscussionSettingsPage() {
               checked={Boolean(v.showCookiesOptIn)}
               onChange={(e) => set('showCookiesOptIn', e.target.checked)}
             />
-            Show comments cookies opt-in checkbox
+            {L(t, 'showCookiesOptIn', 'Show comments cookies opt-in checkbox')}
           </label>
           <label style={check}>
             <input
@@ -107,9 +120,9 @@ export default function DiscussionSettingsPage() {
               checked={Boolean(v.threadComments)}
               onChange={(e) => set('threadComments', e.target.checked)}
             />
-            Enable threaded (nested) comments
+            {L(t, 'threadComments', 'Enable threaded (nested) comments')}
           </label>
-          <Field label="Number of levels for threaded comments">
+          <Field label={L(t, 'threadDepth', 'Number of levels for threaded comments')}>
             <select
               style={selectStyle}
               value={Number(v.threadDepth ?? 5)}
@@ -123,16 +136,16 @@ export default function DiscussionSettingsPage() {
             </select>
           </Field>
 
-          <h2 style={{ fontSize: 15, margin: '8px 0 0' }}>Comment Pagination</h2>
+          <h2 style={{ fontSize: 15, margin: '8px 0 0' }}>{L(t, 'commentPagination', 'Comment Pagination')}</h2>
           <label style={check}>
             <input
               type="checkbox"
               checked={Boolean(v.pageComments)}
               onChange={(e) => set('pageComments', e.target.checked)}
             />
-            Break comments into pages
+            {L(t, 'breakCommentsPages', 'Break comments into pages')}
           </label>
-          <Field label="Top level comments per page">
+          <Field label={L(t, 'topLevelPerPage', 'Top level comments per page')}>
             <input
               type="number"
               style={{ ...inputStyle, maxWidth: 100 }}
@@ -141,14 +154,14 @@ export default function DiscussionSettingsPage() {
             />
           </Field>
 
-          <h2 style={{ fontSize: 15, margin: '8px 0 0' }}>Email me whenever</h2>
+          <h2 style={{ fontSize: 15, margin: '8px 0 0' }}>{L(t, 'emailMeWhenever', 'Email me whenever')}</h2>
           <label style={check}>
             <input
               type="checkbox"
               checked={Boolean(v.emailOnComment)}
               onChange={(e) => set('emailOnComment', e.target.checked)}
             />
-            Anyone posts a comment
+            {L(t, 'anyonePostsComment', 'Anyone posts a comment')}
           </label>
           <label style={check}>
             <input
@@ -156,7 +169,7 @@ export default function DiscussionSettingsPage() {
               checked={Boolean(v.emailOnModeration)}
               onChange={(e) => set('emailOnModeration', e.target.checked)}
             />
-            A comment is held for moderation
+            {L(t, 'commentHeldModeration', 'A comment is held for moderation')}
           </label>
         </>
       )}
