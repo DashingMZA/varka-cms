@@ -18,13 +18,13 @@ async function loadPluginModule(slug: string): Promise<PluginModule | null> {
   const dir = pluginPath(slug);
   let manifest: { slug: string; admin: { entry: string } };
   try {
-    manifest = JSON.parse(await readFile(path.join(dir, 'plugin.json'), 'utf8'));
+    manifest = JSON.parse(await readFile(path.join(/*turbopackIgnore: true*/ dir, 'plugin.json'), 'utf8'));
   } catch {
     return null;
   }
   if (manifest.slug !== slug) return null;
   try {
-    const entryAbs = path.join(dir, manifest.admin.entry);
+    const entryAbs = path.join(/*turbopackIgnore: true*/ dir, manifest.admin.entry);
     // webpackIgnore: runtime plugin path — must not be bundled at build time.
     return (await import(/* webpackIgnore: true */ entryAbs)) as PluginModule;
   } catch {

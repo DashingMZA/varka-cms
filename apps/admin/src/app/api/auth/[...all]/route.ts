@@ -13,8 +13,19 @@ import {
   clientIpFromRequest,
 } from '@varka/auth/login-guard';
 
-const auth = getAuth();
-const handler = toNextJsHandler(auth);
+/** Auth must be dynamic — never statically collected at build time (needs AUTH_SECRET at runtime). */
+export const dynamic = 'force-dynamic';
+
+/** Lazy auth handler — getAuth() throws without AUTH_SECRET, so it must not
+ * run at module import time (Next.js imports routes during build to collect
+ * config). Initialized on first request instead. */
+let cachedHandler: ReturnType<typeof toNextJsHandler> | null = null;
+function getHandler(): ReturnType<typeof toNextJsHandler> {
+  if (!cachedHandler) {
+    cachedHandler = toNextJsHandler(getAuth());
+  }
+  return cachedHandler;
+}
 
 async function parseEmail(req: Request): Promise<string | null> {
   try {
@@ -34,7 +45,7 @@ export async function GET(
   req: Request,
   _ctx: { params: Promise<{ all: string[] }> },
 ) {
-  return handler.GET(req);
+  return getHandler().GET(req);
 }
 
 export async function POST(
@@ -76,7 +87,7 @@ export async function POST(
       }
     }
 
-    const res = await handler.POST(req);
+    const res = await getHandler().POST(req);
 
     if (email && pathname.includes('sign-in/email')) {
       if (res.ok) {
@@ -116,5 +127,5 @@ export async function POST(
     return res;
   }
 
-  return handler.POST(req);
+  return getHandler().POST(req);
 }

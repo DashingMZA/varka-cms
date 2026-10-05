@@ -122,14 +122,16 @@ export async function installPluginFromZip(
   }
 
   // Extract to temp, then atomic rename.
+  // turbopackIgnore: runtime install paths — not static asset dependencies
   const tmpDir = path.join(
-    resolvePluginDir(),
+    /*turbopackIgnore: true*/ resolvePluginDir(),
     `.tmp-install-${manifest.slug}-${Date.now()}`,
   );
   try {
     await mkdir(tmpDir, { recursive: true });
     for (const f of files) {
-      const full = path.join(tmpDir, f.rel);
+      // turbopackIgnore: runtime install path — not a static asset dependency
+      const full = path.join(/*turbopackIgnore: true*/ tmpDir, f.rel);
       await mkdir(path.dirname(full), { recursive: true });
       await writeFile(full, f.data);
     }

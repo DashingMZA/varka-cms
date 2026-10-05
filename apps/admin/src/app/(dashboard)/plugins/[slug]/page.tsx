@@ -22,13 +22,13 @@ async function loadPluginAdmin(slug: string): Promise<{
   const dir = pluginPath(slug);
   let manifest: PluginManifest;
   try {
-    manifest = JSON.parse(await readFile(path.join(dir, 'plugin.json'), 'utf8'));
+    manifest = JSON.parse(await readFile(path.join(/*turbopackIgnore: true*/ dir, 'plugin.json'), 'utf8'));
   } catch {
     return null;
   }
   if (manifest.slug !== slug) return null;
 
-  const entryAbs = path.join(dir, manifest.admin.entry);
+  const entryAbs = path.join(/*turbopackIgnore: true*/ dir, manifest.admin.entry);
   let mod: { default?: React.ComponentType<Record<string, unknown>> };
   try {
     // webpackIgnore: runtime plugin path — must not be bundled at build time.
