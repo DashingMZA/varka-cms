@@ -1,6 +1,13 @@
 'use client';
 
 import { Field, SettingsForm, inputStyle } from '@/components/settings/settings-form';
+import { useMessages } from '@/lib/i18n';
+
+function L(t: (ns: 'settings' | 'common', key: string) => string, key: string, fallback: string): string {
+  const v = t('settings', key);
+  if (!v || v === key || v.startsWith('settings.')) return fallback;
+  return v;
+}
 
 const DEFAULTS = {
   homepageDisplays: 'posts',
@@ -13,23 +20,24 @@ const DEFAULTS = {
 };
 
 export default function ReadingSettingsPage() {
+  const { t } = useMessages();
   return (
     <SettingsForm
       group="reading"
-      title="Reading Settings"
-      description="Homepage, blog pages, feeds, and search engine visibility."
+      title={L(t, 'readingTitle', 'Reading Settings')}
+      description={L(t, 'readingDesc', 'Homepage, blog pages, feeds, and search engine visibility.')}
       defaults={DEFAULTS}
     >
       {(v, set) => (
         <>
-          <Field label="Your homepage displays">
+          <Field label={L(t, 'homepageDisplays', 'Your homepage displays')}>
             <label style={{ display: 'flex', gap: 8, fontSize: 14 }}>
               <input
                 type="radio"
                 checked={v.homepageDisplays === 'posts'}
                 onChange={() => set('homepageDisplays', 'posts')}
               />
-              Your latest posts
+              {L(t, 'latestPosts', 'Your latest posts')}
             </label>
             <label style={{ display: 'flex', gap: 8, fontSize: 14, marginTop: 6 }}>
               <input
@@ -37,19 +45,19 @@ export default function ReadingSettingsPage() {
                 checked={v.homepageDisplays === 'page'}
                 onChange={() => set('homepageDisplays', 'page')}
               />
-              A static page
+              {L(t, 'staticPage', 'A static page')}
             </label>
           </Field>
           {v.homepageDisplays === 'page' ? (
             <>
-              <Field label="Homepage (page id or slug)">
+              <Field label={L(t, 'homepagePage', 'Homepage (page id or slug)')}>
                 <input
                   style={inputStyle}
                   value={String(v.homepagePageId ?? '')}
                   onChange={(e) => set('homepagePageId', e.target.value)}
                 />
               </Field>
-              <Field label="Posts page (page id or slug)">
+              <Field label={L(t, 'postsPage', 'Posts page (page id or slug)')}>
                 <input
                   style={inputStyle}
                   value={String(v.postsPageId ?? '')}
@@ -58,7 +66,7 @@ export default function ReadingSettingsPage() {
               </Field>
             </>
           ) : null}
-          <Field label="Number of recent posts shown on archive pages">
+          <Field label={L(t, 'postsPerPage', 'Number of recent posts shown on archive pages')}>
             <input
               type="number"
               min={1}
@@ -68,7 +76,7 @@ export default function ReadingSettingsPage() {
               onChange={(e) => set('postsPerPage', Number(e.target.value))}
             />
           </Field>
-          <Field label="Number of recent items shown in syndication feeds">
+          <Field label={L(t, 'feedItems', 'Number of recent items shown in syndication feeds')}>
             <input
               type="number"
               min={1}
@@ -78,14 +86,14 @@ export default function ReadingSettingsPage() {
               onChange={(e) => set('feedItems', Number(e.target.value))}
             />
           </Field>
-          <Field label="For each post in a feed, include">
+          <Field label={L(t, 'feedInclude', 'For each post in a feed, include')}>
             <label style={{ display: 'flex', gap: 8, fontSize: 14 }}>
               <input
                 type="radio"
                 checked={v.feedFullText === true}
                 onChange={() => set('feedFullText', true)}
               />
-              Full text
+              {L(t, 'fullText', 'Full text')}
             </label>
             <label style={{ display: 'flex', gap: 8, fontSize: 14, marginTop: 6 }}>
               <input
@@ -93,10 +101,10 @@ export default function ReadingSettingsPage() {
                 checked={v.feedFullText === false}
                 onChange={() => set('feedFullText', false)}
               />
-              Excerpt
+              {L(t, 'excerpt', 'Excerpt')}
             </label>
           </Field>
-          <Field label="Search engine visibility">
+          <Field label={L(t, 'searchVisibility', 'Search engine visibility')}>
             <label style={{ display: 'flex', gap: 8, fontSize: 14, alignItems: 'flex-start' }}>
               <input
                 type="checkbox"
@@ -104,10 +112,10 @@ export default function ReadingSettingsPage() {
                 onChange={(e) => set('discourageSearchEngines', e.target.checked)}
               />
               <span>
-                Discourage search engines from indexing this site
+                {L(t, 'discourageSearch', 'Discourage search engines from indexing this site')}
                 <br />
                 <span style={{ color: 'var(--muted)', fontSize: 12 }}>
-                  It is up to search engines to honor this request.
+                  {L(t, 'discourageHint', 'It is up to search engines to honor this request.')}
                 </span>
               </span>
             </label>

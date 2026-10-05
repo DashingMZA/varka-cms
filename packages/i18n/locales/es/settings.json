@@ -22,7 +22,7 @@
   "writingTitle": "Ajustes de escritura",
   "writingDesc": "Categoría predeterminada, editor y publicación opcional por correo.",
   "readingTitle": "Ajustes de lectura",
-  "readingDesc": "Páginas del blog y feeds.",
+  "readingDesc": "Portada, páginas del blog, feeds y visibilidad en buscadores.",
   "discussionTitle": "Ajustes de comentarios",
   "discussionDesc": "Comportamiento predeterminado de comentarios, hilos, moderación y notificaciones.",
   "mediaTitle": "Ajustes de medios",
@@ -106,5 +106,18 @@
   "topLevelPerPage": "Comentarios principales por página",
   "emailMeWhenever": "Enviarme correo cuando",
   "anyonePostsComment": "Alguien publique un comentario",
-  "commentHeldModeration": "Un comentario quede en moderación"
+  "commentHeldModeration": "Un comentario quede en moderación",
+  "homepageDisplays": "Tu portada muestra",
+  "latestPosts": "Tus últimas entradas",
+  "staticPage": "Una página estática",
+  "homepagePage": "Portada (id o slug de página)",
+  "postsPage": "Página de entradas (id o slug)",
+  "postsPerPage": "Número de entradas recientes en archivos",
+  "feedItems": "Número de elementos recientes en feeds",
+  "feedInclude": "Para cada entrada en el feed, incluir",
+  "fullText": "Texto completo",
+  "excerpt": "Extracto",
+  "searchVisibility": "Visibilidad en buscadores",
+  "discourageSearch": "Disuadir a los buscadores de indexar este sitio",
+  "discourageHint": "Depende de los buscadores respetar esta solicitud."
 }

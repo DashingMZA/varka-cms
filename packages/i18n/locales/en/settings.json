@@ -22,7 +22,7 @@
   "writingTitle": "Writing Settings",
   "writingDesc": "Default category, editor, and optional post-via-email.",
   "readingTitle": "Reading Settings",
-  "readingDesc": "Blog pages show at most and syndication feeds.",
+  "readingDesc": "Homepage, blog pages, feeds, and search engine visibility.",
   "discussionTitle": "Discussion Settings",
   "discussionDesc": "Default post comment behavior, threading, moderation, and notifications.",
   "mediaTitle": "Media Settings",
@@ -106,5 +106,18 @@
   "topLevelPerPage": "Top level comments per page",
   "emailMeWhenever": "Email me whenever",
   "anyonePostsComment": "Anyone posts a comment",
-  "commentHeldModeration": "A comment is held for moderation"
+  "commentHeldModeration": "A comment is held for moderation",
+  "homepageDisplays": "Your homepage displays",
+  "latestPosts": "Your latest posts",
+  "staticPage": "A static page",
+  "homepagePage": "Homepage (page id or slug)",
+  "postsPage": "Posts page (page id or slug)",
+  "postsPerPage": "Number of recent posts shown on archive pages",
+  "feedItems": "Number of recent items shown in syndication feeds",
+  "feedInclude": "For each post in a feed, include",
+  "fullText": "Full text",
+  "excerpt": "Excerpt",
+  "searchVisibility": "Search engine visibility",
+  "discourageSearch": "Discourage search engines from indexing this site",
+  "discourageHint": "It is up to search engines to honor this request."
 }
