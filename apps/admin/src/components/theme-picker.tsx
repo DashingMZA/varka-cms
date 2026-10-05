@@ -34,14 +34,19 @@ type ThemeRow = {
 };
 
 /** WordPress-style theme grid: screenshot cards with hover actions. */
-export function ThemePicker() {
+export function ThemePicker({
+  initialThemes = [],
+}: {
+  initialThemes?: ThemeRow[];
+}) {
   const { t } = useMessages();
-  const [themes, setThemes] = useState<ThemeRow[]>([]);
-  const [active, setActive] = useState<string>('');
+  const [themes, setThemes] = useState<ThemeRow[]>(initialThemes);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [q, setQ] = useState('');
   const [busy, setBusy] = useState<string | null>(null);
+  // Skip initial fetch when server provided data
+  const [hydrated, setHydrated] = useState(false);
 
   const load = useCallback(async () => {
     const res = await fetch('/api/themes', { credentials: 'include' });
@@ -51,12 +56,16 @@ export function ThemePicker() {
     }
     const data = (await res.json()) as { themes: ThemeRow[]; active: string };
     setThemes(data.themes ?? []);
-    setActive(data.active);
   }, []);
 
   useEffect(() => {
+    // Skip when server already provided themes (instant render)
+    if (!hydrated && initialThemes.length > 0) {
+      setHydrated(true);
+      return;
+    }
     void load();
-  }, [load]);
+  }, [load, hydrated, initialThemes.length]);
 
   async function activate(themeId: string) {
     setError(null);

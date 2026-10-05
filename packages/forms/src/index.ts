@@ -32,7 +32,10 @@ export function parseFormShortcodes(content: string): Array<{
   const out: Array<{ slug: string; fullMatch: string; index: number }> = [];
   let m: RegExpExecArray | null;
   while ((m = regex.exec(content)) !== null) {
-    out.push({ slug: m[1], fullMatch: m[0], index: m.index });
+    const slug = m[1];
+    if (slug) {
+      out.push({ slug, fullMatch: m[0], index: m.index });
+    }
   }
   return out;
 }
@@ -85,6 +88,7 @@ export function renderShortcodes(
   let out = content;
   for (let i = shortcodes.length - 1; i >= 0; i--) {
     const sc = shortcodes[i];
+    if (!sc) continue;
     const form = forms.get(sc.slug);
     if (form) {
       const html = renderFormHtml(form, actionUrl);

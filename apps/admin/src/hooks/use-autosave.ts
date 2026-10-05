@@ -15,7 +15,7 @@ export function useAutosave(
   const [delayMs, setDelayMs] = useState(delayMsOverride ?? 2500);
 
   useEffect(() => {
-    if (delayMsOverride != null) {
+    if (delayMsOverride !== undefined) {
       setDelayMs(delayMsOverride);
       return;
     }

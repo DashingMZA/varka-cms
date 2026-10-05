@@ -42,10 +42,6 @@ export type WordPressImportOptions = {
   onProgress?: (msg: string) => void;
 };
 
-const REQUEST_DELAY_MS = 250;
-const REQUEST_TIMEOUT_MS = 30_000;
-const MAX_RETRIES = 3;
-
 export function buildImportConfig(opts: WordPressImportOptions): WordPressImportConfig {
   const wpBase = opts.wpBaseUrl.replace(/\/$/, '');
   const wpUsername = opts.wpUsername ?? '';

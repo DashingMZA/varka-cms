@@ -91,7 +91,7 @@ export function t(tree: MessageTree, path: string, fallback?: string): string {
   const parts = path.split('.');
   let cur: string | MessageTree | undefined = tree;
   for (const p of parts) {
-    if (cur == null || typeof cur === 'string') return fallback ?? path;
+    if (cur === null || cur === undefined || typeof cur === 'string') return fallback ?? path;
     cur = (cur as MessageTree)[p];
   }
   return typeof cur === 'string' ? cur : (fallback ?? path);
