@@ -146,5 +146,6 @@
   "allowedRange": "النطاق المسموح: {min} ث – {max} ث",
   "intervalSet": "تم ضبط فاصل الحفظ التلقائي على {s} ث",
   "saveSettings": "حفظ الإعدادات",
-  "saveFailed": "فشل الحفظ"
+  "saveFailed": "فشل الحفظ",
+  "selectPage": "— اختر —"
 }

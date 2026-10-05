@@ -146,5 +146,6 @@
   "allowedRange": "Rango permitido: {min}s – {max}s",
   "intervalSet": "Intervalo de autoguardado establecido en {s}s",
   "saveSettings": "Guardar ajustes",
-  "saveFailed": "Error al guardar"
+  "saveFailed": "Error al guardar",
+  "selectPage": "— Seleccionar —"
 }

@@ -146,5 +146,6 @@
   "allowedRange": "اجازت شدہ حد: {min}s – {max}s",
   "intervalSet": "خودکار محفوظ کا وقفہ {s}s پر سیٹ ہو گیا",
   "saveSettings": "ترتیبات محفوظ کریں",
-  "saveFailed": "محفوظ ناکام"
+  "saveFailed": "محفوظ ناکام",
+  "selectPage": "— منتخب کریں —"
 }
