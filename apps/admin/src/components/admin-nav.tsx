@@ -44,13 +44,13 @@ function buildNav(t: (ns: 'nav' | 'common', key: string) => string): NavItem[] {
     {
       href: '/content/pages',
       label: L(t, 'pages', 'Pages'),
-      icon: '📄',
+      icon: '▤',
       children: [
         { href: '/content/pages', label: L(t, 'allPages', 'All Pages') },
         { href: '/content/pages/new', label: L(t, 'addNew', 'Add New') },
       ],
     },
-    { href: '/comments', label: L(t, 'comments', 'Comments'), icon: '💬' },
+    { href: '/comments', label: L(t, 'comments', 'Comments'), icon: '◫' },
     { href: '/forms', label: L(t, 'forms', 'Forms'), icon: '✉' },
     {
       href: '/appearance',
@@ -65,7 +65,7 @@ function buildNav(t: (ns: 'nav' | 'common', key: string) => string): NavItem[] {
     {
       href: '/users',
       label: L(t, 'users', 'Users'),
-      icon: '👤',
+      icon: '⛉',
       children: [
         { href: '/users', label: L(t, 'allUsers', 'All Users') },
         { href: '/users/new', label: L(t, 'addUser', 'Add User') },
@@ -76,7 +76,7 @@ function buildNav(t: (ns: 'nav' | 'common', key: string) => string): NavItem[] {
     { href: '/languages', label: L(t, 'languages', 'Languages'), icon: '文' },
     { href: '/seo', label: L(t, 'seo', 'SEO'), icon: '◎' },
     { href: '/system', label: L(t, 'tools', 'Tools'), icon: '⚒' },
-    { href: '/plugins', label: L(t, 'plugins', 'Plugins'), icon: '🔌' },
+    { href: '/plugins', label: L(t, 'plugins', 'Plugins'), icon: '⚡' },
     {
       href: '/settings',
       label: L(t, 'settings', 'Settings'),
@@ -120,7 +120,7 @@ export function AdminNav(
       base.push({
         href: `/plugins/${p.slug}`,
         label: p.title,
-        icon: p.icon || '🔌',
+        icon: p.icon || '⚡',
       });
     }
     return base;
