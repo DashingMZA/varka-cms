@@ -542,3 +542,35 @@ model Plugin {
 
   @@index([active])
 }
+
+/// Contact / custom form (Contact Form 7 parity).
+/// fields: [{id, type, label, required, placeholder, options[]}]
+model Form {
+  id             String      @id @default(cuid())
+  name           String
+  slug           String      @unique
+  title          String?
+  fields         Json        @default("[]")
+  submitLabel    String      @default("Send")
+  successMessage String      @default("Thank you! Your message has been sent.")
+  mailTo         String?
+  active         Boolean     @default(true)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  entries        FormEntry[]
+
+  @@index([active])
+}
+
+/// One submitted form entry.
+model FormEntry {
+  id        String   @id @default(cuid())
+  formId    String
+  form      Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  data      Json     @default("{}")
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([formId, createdAt])
+}
