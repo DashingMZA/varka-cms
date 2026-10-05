@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useMessages } from '@/lib/i18n';
+import { listThemesAction, activateThemeAction } from '@/actions/settings';
 
 /** Label with hard fallback so missing i18n never shows raw keys */
 function L(
@@ -49,12 +50,12 @@ export function ThemePicker({
   const [hydrated, setHydrated] = useState(false);
 
   const load = useCallback(async () => {
-    const res = await fetch('/api/themes', { credentials: 'include' });
-    if (!res.ok) {
-      setError(`Load failed (${res.status})`);
+    const result = await listThemesAction();
+    if (!result.ok) {
+      setError(`Load failed: ${result.error}`);
       return;
     }
-    const data = (await res.json()) as { themes: ThemeRow[]; active: string };
+    const data = result.data as { themes: ThemeRow[]; active: string };
     setThemes(data.themes ?? []);
   }, []);
 
@@ -71,16 +72,10 @@ export function ThemePicker({
     setError(null);
     setMessage(null);
     setBusy(themeId);
-    const res = await fetch('/api/themes', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ themeId }),
-    });
+    const result = await activateThemeAction(themeId);
     setBusy(null);
-    if (!res.ok) {
-      const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(body.error ?? `Activate failed (${res.status})`);
+    if (!result.ok) {
+      setError(result.error ?? 'Activate failed');
       return;
     }
     setMessage(L(t, 'activatedTheme', 'Theme activated.').replace('{themeId}', themeId));

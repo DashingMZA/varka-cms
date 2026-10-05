@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { ListTable, TableNav } from '@/components/list-table/list-table';
 import { useMessages } from '@/lib/i18n';
+import { listTagsAction, createTagAction } from '@/actions/taxonomy';
 
 type Row = {
   id: string;
@@ -10,40 +11,44 @@ type Row = {
   _count?: { posts: number };
 };
 
-export function TagsAdmin() {
+export function TagsAdmin({
+  initialItems = [],
+}: {
+  initialItems?: Row[];
+}) {
   const { t } = useMessages();
-  const [items, setItems] = useState<Row[]>([]);
+  const [items, setItems] = useState<Row[]>(initialItems);
   const [name, setName] = useState('');
   const [q, setQ] = useState('');
   const [search, setSearch] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [bulk, setBulk] = useState('');
+  const [hydrated, setHydrated] = useState(false);
 
   const load = useCallback(async () => {
-    const res = await fetch('/api/tags', { credentials: 'include' });
-    if (!res.ok) {
-      setError(t('errors', 'loadFailed') + ` (${res.status})`);
+    const result = await listTagsAction();
+    if (!result.ok) {
+      setError(t('errors', 'loadFailed') + `: ${result.error}`);
       return;
     }
-    const data = (await res.json()) as { items: Row[] };
-    setItems(data.items ?? []);
+    setItems((result.data.items as Row[]) ?? []);
   }, [t]);
 
   useEffect(() => {
+    // Skip first fetch when server provided initial data
+    if (!hydrated && initialItems.length > 0) {
+      setHydrated(true);
+      return;
+    }
     void load();
-  }, [load]);
+  }, [load, hydrated, initialItems.length]);
 
   async function onCreate(e: FormEvent) {
     e.preventDefault();
     if (!name.trim()) return;
-    const res = await fetch('/api/tags', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name.trim() }),
-    });
-    if (!res.ok) {
-      setError(t('errors', 'saveFailed') + ` (${res.status})`);
+    const result = await createTagAction({ name: name.trim() });
+    if (!result.ok) {
+      setError(t('errors', 'saveFailed') + `: ${result.error}`);
       return;
     }
     setName('');

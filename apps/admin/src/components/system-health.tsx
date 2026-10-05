@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useMessages } from '@/lib/i18n';
+import { getHealthAction } from '@/actions/updates';
 
 /** Label with hard fallback so missing i18n never shows raw keys */
 function L(
@@ -32,15 +33,14 @@ export function SystemHealth() {
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch('/api/health');
-      const body = (await res.json()) as Health;
+      const body = await getHealthAction();
       setData(body);
-      if (!res.ok) setError(L(t, 'healthStatus', `Health ${res.status}`).replace('{status}', String(res.status)));
+      if (!body.ok) setError(L(t, 'healthStatus', 'Health check failed'));
       else setError(null);
     } catch {
       setError(L(t, 'networkError', 'Network error'));
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     void load();
