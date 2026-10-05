@@ -30,9 +30,15 @@ loadEnvFile(resolve(monorepoRoot, '.env'));
 loadEnvFile(resolve(packageRoot, '.env'));
 
 const url = process.env.DATABASE_URL;
+// prisma generate doesn't need a live DB — only the URL string for config.
+// Use a dummy when missing so `pnpm db:generate` works in CI/build envs
+// without database access (e.g. Vercel build). Runtime still requires the
+// real DATABASE_URL (see packages/database/src/client.ts).
+const effectiveUrl = url ?? 'postgresql://localhost:5432/varka_dummy';
 if (!url) {
-  throw new Error(
-    'DATABASE_URL is missing. Set it in the monorepo root .env (copy from .env.example).',
+  console.warn(
+    '[prisma] DATABASE_URL is missing — using dummy URL for generate only. ' +
+      'Set it in the monorepo root .env (copy from .env.example) for migrations/runtime.',
   );
 }
 
@@ -43,6 +49,6 @@ export default defineConfig({
     seed: 'npx tsx prisma/seed.ts',
   },
   datasource: {
-    url,
+    url: effectiveUrl,
   },
 });
