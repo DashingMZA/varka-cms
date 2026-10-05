@@ -1,0 +1,17 @@
+{
+  "profile": "الملف الشخصي",
+  "profileUpdated": "تم تحديث الملف الشخصي",
+  "displayName": "الاسم المعروض",
+  "firstName": "الاسم الأول",
+  "lastName": "اسم العائلة",
+  "nickname": "الكنية",
+  "email": "البريد الإلكتروني",
+  "website": "الموقع",
+  "bio": "نبذة",
+  "changePassword": "تغيير كلمة المرور",
+  "currentPassword": "كلمة المرور الحالية",
+  "newPassword": "كلمة المرور الجديدة",
+  "updateProfile": "تحديث الملف الشخصي",
+  "saving": "جارٍ الحفظ…",
+  "loading": "جارٍ التحميل…"
+}

@@ -2,6 +2,13 @@
 
 import { useEffect, useState, type FormEvent } from 'react';
 import { getMyProfileAction, updateMyProfileAction } from '@/actions/users';
+import { useMessages } from '@/lib/i18n';
+
+function L(t: (ns: 'profile' | 'common', key: string) => string, key: string, fallback: string): string {
+  const v = t('profile', key);
+  if (!v || v === key || v.startsWith('profile.')) return fallback;
+  return v;
+}
 
 type Profile = {
   id: string;
@@ -15,6 +22,7 @@ type Profile = {
 };
 
 export function UserProfileForm() {
+  const { t } = useMessages();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -70,17 +78,17 @@ export function UserProfileForm() {
       setError(res.error);
       return;
     }
-    setMessage('Profile updated');
+    setMessage(L(t, 'profileUpdated', 'Profile updated'));
     setCurrentPassword('');
     setNewPassword('');
   }
 
-  if (!profile && !error) return <p className="v-muted">Loading…</p>;
+  if (!profile && !error) return <p className="v-muted">{L(t, 'loading', 'Loading…')}</p>;
 
   return (
     <form onSubmit={onSubmit} style={{ maxWidth: 480, display: 'grid', gap: 12 }}>
       <h1 className="v-page-title" style={{ margin: 0 }}>
-        Profile
+        {L(t, 'profile', 'Profile')}
       </h1>
       {error ? (
         <p role="alert" className="v-alert v-alert--error">
@@ -90,37 +98,37 @@ export function UserProfileForm() {
       {message ? <p className="v-alert v-alert--ok">{message}</p> : null}
 
       <label>
-        Display name
+        {L(t, 'displayName', 'Display name')}
         <input value={name} onChange={(e) => setName(e.target.value)} />
       </label>
       <label>
-        First name
+        {L(t, 'firstName', 'First name')}
         <input value={firstName} onChange={(e) => setFirstName(e.target.value)} />
       </label>
       <label>
-        Last name
+        {L(t, 'lastName', 'Last name')}
         <input value={lastName} onChange={(e) => setLastName(e.target.value)} />
       </label>
       <label>
-        Nickname
+        {L(t, 'nickname', 'Nickname')}
         <input value={nickname} onChange={(e) => setNickname(e.target.value)} />
       </label>
       <label>
-        Email
+        {L(t, 'email', 'Email')}
         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
       </label>
       <label>
-        Website
+        {L(t, 'website', 'Website')}
         <input value={website} onChange={(e) => setWebsite(e.target.value)} />
       </label>
       <label>
-        Bio
+        {L(t, 'bio', 'Bio')}
         <textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={3} />
       </label>
 
-      <h2 style={{ margin: '12px 0 0', fontSize: 16 }}>Change password</h2>
+      <h2 style={{ margin: '12px 0 0', fontSize: 16 }}>{L(t, 'changePassword', 'Change password')}</h2>
       <label>
-        Current password
+        {L(t, 'currentPassword', 'Current password')}
         <input
           type="password"
           autoComplete="current-password"
@@ -129,7 +137,7 @@ export function UserProfileForm() {
         />
       </label>
       <label>
-        New password
+        {L(t, 'newPassword', 'New password')}
         <input
           type="password"
           autoComplete="new-password"
@@ -139,7 +147,7 @@ export function UserProfileForm() {
       </label>
 
       <button type="submit" className="v-btn v-btn--primary" disabled={loading}>
-        {loading ? 'Saving…' : 'Update Profile'}
+        {loading ? L(t, 'saving', 'Saving…') : L(t, 'updateProfile', 'Update Profile')}
       </button>
     </form>
   );

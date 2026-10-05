@@ -1,0 +1,17 @@
+{
+  "profile": "Perfil",
+  "profileUpdated": "Perfil actualizado",
+  "displayName": "Nombre visible",
+  "firstName": "Nombre",
+  "lastName": "Apellido",
+  "nickname": "Apodo",
+  "email": "Correo",
+  "website": "Sitio web",
+  "bio": "Biografía",
+  "changePassword": "Cambiar contraseña",
+  "currentPassword": "Contraseña actual",
+  "newPassword": "Nueva contraseña",
+  "updateProfile": "Actualizar perfil",
+  "saving": "Guardando…",
+  "loading": "Cargando…"
+}

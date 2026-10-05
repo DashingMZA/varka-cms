@@ -1,0 +1,17 @@
+{
+  "profile": "پروفائل",
+  "profileUpdated": "پروفائل اپ ڈیٹ ہو گیا",
+  "displayName": "ظاہری نام",
+  "firstName": "پہلا نام",
+  "lastName": "آخری نام",
+  "nickname": "عرفی نام",
+  "email": "ای میل",
+  "website": "ویب سائٹ",
+  "bio": "تعارف",
+  "changePassword": "پاس ورڈ تبدیل کریں",
+  "currentPassword": "موجودہ پاس ورڈ",
+  "newPassword": "نیا پاس ورڈ",
+  "updateProfile": "پروفائل اپ ڈیٹ کریں",
+  "saving": "محفوظ ہو رہا ہے…",
+  "loading": "لوڈ ہو رہا ہے…"
+}
