@@ -16,5 +16,6 @@
   "searchUsers": "Buscar usuarios",
   "title": "Usuarios",
   "username": "Nombre de usuario",
-  "website": "Sitio web"
+  "website": "Sitio web",
+  "rolesCapabilities": "Roles y capacidades"
 }

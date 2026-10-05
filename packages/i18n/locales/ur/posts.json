@@ -1,1 +1,27 @@
-{"allowComments":"تبصرے کی اجازت دیں","allowTrackbacks":"ٹریک بیکس اور پنگ بیکس کی اجازت دیں","author":"مصنف","categories":"زمرے","discussion":"بحث","excerpt":"اقتباس","featuredImage":"نمایاں تصویر","preview":"پیش نظارہ","publish":"شائع کریں","publishDate":"اشاعت کی تاریخ","saveDraft":"مسودہ محفوظ کریں","slug":"سلگ","status":"حیثیت","tags":"ٹیگز","titlePlaceholder":"عنوان شامل کریں","update":"اپ ڈیٹ","visibility":"مرئیت"}
+{
+  "allowComments": "تبصرے کی اجازت دیں",
+  "allowTrackbacks": "ٹریک بیکس اور پنگ بیکس کی اجازت دیں",
+  "author": "مصنف",
+  "categories": "زمرے",
+  "discussion": "بحث",
+  "excerpt": "اقتباس",
+  "featuredImage": "نمایاں تصویر",
+  "preview": "پیش نظارہ",
+  "publish": "شائع کریں",
+  "publishDate": "اشاعت کی تاریخ",
+  "saveDraft": "مسودہ محفوظ کریں",
+  "slug": "سلگ",
+  "status": "حیثیت",
+  "tags": "ٹیگز",
+  "titlePlaceholder": "عنوان شامل کریں",
+  "update": "اپ ڈیٹ",
+  "visibility": "مرئیت",
+  "creatingDraft": "مسودہ بنایا جا رہا ہے…",
+  "revisions": "نظرثانی",
+  "noRevisions": "ابھی کوئی نظرثانی نہیں۔ محفوظ کرنے کے بعد ظاہر ہوں گی۔",
+  "noTitle": "(بغیر عنوان)",
+  "restore": "بحال کریں",
+  "restoreRevisionConfirm": "یہ نظرثانی بحال کریں؟ موجودہ مواد تبدیل ہو جائے گا۔",
+  "restoreFailed": "بحالی ناکام",
+  "loadRevisionsFailed": "نظرثانی لوڈ ناکام"
+}

@@ -1,0 +1,16 @@
+{
+  "title": "تھیمز",
+  "activate": "فعال کریں",
+  "active": "فعال",
+  "customize": "حسب ضرورت",
+  "noThemes": "کوئی تھیمز دستیاب نہیں۔",
+  "preview": "براہ راست پیش نظارہ",
+  "details": "تھیم کی تفصیلات",
+  "themesRegistered": "{count} تھیمز رجسٹرڈ (متوقع 10)۔",
+  "activatedTheme": "{themeId} فعال ہو گیا",
+  "activateFailed": "فعال ناکام ({status})",
+  "loadFailed": "لوڈ ناکام ({status})",
+  "activeLabel": "فعال:",
+  "publicSiteLabel": "عوامی سائٹ:",
+  "optionalEnvLabel": "اختیاری env"
+}

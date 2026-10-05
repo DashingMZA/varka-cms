@@ -1,0 +1,21 @@
+{
+  "title": "سیکیورٹی",
+  "auditLog": "آڈٹ لاگ",
+  "sessions": "سیشنز",
+  "rateLimits": "شرح کی حدود",
+  "rateLimit": "شرح محدود کرنا",
+  "when": "وقت",
+  "action": "عمل",
+  "actor": "کرنے والا",
+  "entity": "شے",
+  "ip": "IP",
+  "noAuditEvents": "ابھی کوئی آڈٹ ایونٹس نہیں ہیں۔ ایونٹس بنانے کے لیے تھیم فعال کریں یا تبصرہ ماڈریٹ کریں۔",
+  "loadFailedStatus": "لوڈ ناکام ({status})",
+  "capabilityMatrix": "",
+  "permission": "اجازت",
+  "capabilityMatrixSuffix": " سے صلاحیتوں کا میٹرکس۔ مالک کے پاس تمام صلاحیتیں ہیں۔",
+  "system": "سسٹم",
+  "systemDescPrefix": "صحت، کیش ڈرائیور، قطار کی گہرائی، سیکیورٹی آڈٹ۔ پس منظر ورکر: ",
+  "systemDescSuffix": " (میموری قطار — پراسس لوکل)۔",
+  "health": "صحت"
+}
