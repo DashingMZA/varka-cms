@@ -4,6 +4,7 @@ import { use, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useMessages } from '@/lib/i18n';
 import { resetPasswordSchema, zodErrorKeys } from '@varka/validation';
+import { resetPasswordAction } from '@/actions/auth';
 
 export function ResetPasswordForm({
   searchParams,
@@ -38,21 +39,9 @@ export function ResetPasswordForm({
     }
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/reset-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Origin: window.location.origin,
-        },
-        body: JSON.stringify({
-          token: parsed.data.token,
-          newPassword: parsed.data.password,
-        }),
-        credentials: 'include',
-      });
-      if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { message?: string };
-        setError(data.message ?? mapKey('tokenRequired'));
+      const result = await resetPasswordAction(parsed.data.token, parsed.data.password);
+      if (!result.ok) {
+        setError(result.error ?? mapKey('tokenRequired'));
         setLoading(false);
         return;
       }

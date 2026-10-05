@@ -4,6 +4,11 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { useMessages } from '@/lib/i18n';
 import { loginPasswordField, otpField, zodErrorKeys } from '@varka/validation';
 import { z } from 'zod';
+import {
+  enableTwoFactorAction,
+  verifyTwoFactorEnableAction,
+  disableTwoFactorAction,
+} from '@/actions/auth';
 
 type Props = {
   enabled: boolean;
@@ -83,25 +88,13 @@ export function TwoFactorSettings({ enabled: initial }: Props) {
     }
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/two-factor/enable', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Origin: window.location.origin,
-        },
-        body: JSON.stringify({ password: parsed.data.password }),
-        credentials: 'include',
-      });
-      const data = (await res.json().catch(() => ({}))) as {
-        message?: string;
-        totpURI?: string;
-        backupCodes?: string[];
-      };
-      if (!res.ok) {
-        setError(data.message ?? t('auth', 'invalidCredentials'));
+      const result = await enableTwoFactorAction(parsed.data.password);
+      if (!result.ok) {
+        setError(result.error ?? t('auth', 'invalidCredentials'));
         setLoading(false);
         return;
       }
+      const data = result.data ?? {};
       setTotpUri(data.totpURI ?? null);
       setBackupCodes(Array.isArray(data.backupCodes) ? data.backupCodes : []);
       setPendingEnable(true);
@@ -123,18 +116,9 @@ export function TwoFactorSettings({ enabled: initial }: Props) {
     }
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/two-factor/verify-totp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Origin: window.location.origin,
-        },
-        body: JSON.stringify({ code: parsed.data.code }),
-        credentials: 'include',
-      });
-      if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { message?: string };
-        setError(data.message ?? mapKey('otpInvalid'));
+      const result = await verifyTwoFactorEnableAction(parsed.data.code);
+      if (!result.ok) {
+        setError(result.error ?? mapKey('otpInvalid'));
         setLoading(false);
         return;
       }
@@ -164,18 +148,9 @@ export function TwoFactorSettings({ enabled: initial }: Props) {
     }
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/two-factor/disable', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Origin: window.location.origin,
-        },
-        body: JSON.stringify({ password: parsed.data.password }),
-        credentials: 'include',
-      });
-      if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { message?: string };
-        setError(data.message ?? t('auth', 'invalidCredentials'));
+      const result = await disableTwoFactorAction(parsed.data.password);
+      if (!result.ok) {
+        setError(result.error ?? t('auth', 'invalidCredentials'));
         setLoading(false);
         return;
       }

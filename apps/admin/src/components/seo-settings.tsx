@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useMessages } from '@/lib/i18n';
+import { getSeoAction, saveSeoAction } from '@/actions/settings';
 
 /** Label with hard fallback so missing i18n never shows raw keys */
 function L(
@@ -24,12 +25,12 @@ export function SeoSettings() {
 
   useEffect(() => {
     void (async () => {
-      const res = await fetch('/api/seo', { credentials: 'include' });
-      if (!res.ok) {
-        setError(L(t, 'loadFailed', 'Load failed ({status})').replace('{status}', String(res.status)));
+      const result = await getSeoAction();
+      if (!result.ok) {
+        setError(L(t, 'loadFailed', 'Load failed: {error}').replace('{error}', result.error));
         return;
       }
-      const data = (await res.json()) as {
+      const data = result.data as {
         settings: Record<string, unknown>;
         defaults: Record<string, unknown>;
       };
@@ -47,18 +48,13 @@ export function SeoSettings() {
   async function save() {
     setMessage(null);
     setError(null);
-    const res = await fetch('/api/seo', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({
-        'seo.defaultDescription': description,
-        'seo.titleTemplate': titleTemplate,
-        'seo.robotsIndex': robotsIndex,
-      }),
+    const result = await saveSeoAction({
+      'seo.defaultDescription': description,
+      'seo.titleTemplate': titleTemplate,
+      'seo.robotsIndex': robotsIndex,
     });
-    if (!res.ok) {
-      setError(L(t, 'saveFailed', 'Save failed ({status})').replace('{status}', String(res.status)));
+    if (!result.ok) {
+      setError(L(t, 'saveFailed', 'Save failed: {error}').replace('{error}', result.error));
       return;
     }
     setMessage(L(t, 'saved', 'Saved'));

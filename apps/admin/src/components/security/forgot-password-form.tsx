@@ -4,6 +4,7 @@ import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useMessages } from '@/lib/i18n';
 import { forgotPasswordSchema, zodErrorKeys } from '@varka/validation';
+import { forgetPasswordAction } from '@/actions/auth';
 
 export function ForgotPasswordForm() {
   const { t } = useMessages();
@@ -31,19 +32,11 @@ export function ForgotPasswordForm() {
     }
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/forget-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Origin: window.location.origin,
-        },
-        body: JSON.stringify({
-          email: parsed.data.email,
-          redirectTo: `${window.location.origin}/reset-password`,
-        }),
-        credentials: 'include',
-      });
-      if (!res.ok && res.status >= 500) {
+      const result = await forgetPasswordAction(
+        parsed.data.email,
+        `${window.location.origin}/reset-password`,
+      );
+      if (!result.ok) {
         setError(t('auth', 'networkError'));
         setLoading(false);
         return;
