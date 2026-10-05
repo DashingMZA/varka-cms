@@ -17,3 +17,9 @@ Newest first. Read this before starting related work so decisions stay consisten
 | 2026-09-18 | [admin-dashboard-wp-parity-audit](./admin-dashboard-wp-parity-audit.md) | WP admin parity audit; Privacy/Categories/Tags/Appearance IA; shared list-table |
 | 2026-09-18 | [setup-wp-admin-skill-and-memory](./setup-wp-admin-skill-and-memory.md) | Installed wp-admin-dashboard skill; CLAUDE.md / AGENTS.md; task memory folder |
 | 2026-10-05 | [plugin-system-wordpress-import](./plugin-system-wordpress-import.md) | WordPress-style plugin system: `@varka/plugins` package (manifest schema, ZIP installer, registry), Plugin model + migration, admin Plugins page (ZIP upload/activate/delete), dynamic plugin pages at /plugins/[slug], plugin API dispatch, bundled wordpress-import v1.0.0 plugin (WP REST import via admin UI); pushed as 6ab7e78 |
+
+## Deployment fix (2026-10-05)
+- Prisma schema fix: added `notFoundLogs NotFoundLog[]` to Site model (was breaking Vercel build)
+- All 24 pending commits pushed to GitHub, Vercel deployment READY
+- Full feature test passed: Updates, Tools (Import/Export/Scheduled), 404 monitor, Bulk Edit, Media
+- User ran db:migrate, 404 monitor verified working
