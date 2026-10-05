@@ -39,5 +39,7 @@
   "private": "Privado",
   "restore": "Restaurar",
   "deletePermanently": "Eliminar permanentemente",
-  "deletePermanentlyConfirm": "¿Eliminar permanentemente? No se puede deshacer."
+  "deletePermanentlyConfirm": "¿Eliminar permanentemente? No se puede deshacer.",
+  "scheduled": "Programado",
+  "scheduleFor": "Programar para"
 }

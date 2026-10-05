@@ -61,5 +61,7 @@
   "set": "set",
   "restore": "Restore",
   "deletePermanently": "Delete Permanently",
-  "deletePermanentlyConfirm": "Permanently delete selected items? This cannot be undone."
+  "deletePermanentlyConfirm": "Permanently delete selected items? This cannot be undone.",
+  "scheduled": "Scheduled",
+  "scheduleFor": "Schedule for"
 }

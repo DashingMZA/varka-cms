@@ -46,6 +46,7 @@ export const updatePostInput = z.object({
   seoTitle: z.string().max(300).optional().nullable(),
   seoDescription: z.string().max(500).optional().nullable(),
   status: z.enum(['DRAFT', 'PENDING_REVIEW', 'SCHEDULED', 'PUBLISHED', 'TRASHED']).optional(),
+  scheduledAt: z.string().datetime().optional().nullable(),
   version: z.number().int().positive(),
   languageId: z.string().min(1),
   categoryIds: z.array(z.string()).optional(),
@@ -255,10 +256,22 @@ export async function updatePost(
       requirePermission(ctx, 'posts.publish');
       publishFields.status = 'PUBLISHED';
       publishFields.publishedAt = new Date();
+      publishFields.scheduledAt = null;
+    } else if (input.status === 'SCHEDULED') {
+      requirePermission(ctx, 'posts.publish');
+      publishFields.status = 'SCHEDULED';
+      if (input.scheduledAt) {
+        publishFields.scheduledAt = new Date(input.scheduledAt);
+      }
     } else if (input.status) {
       if (input.status === 'TRASHED') requirePermission(ctx, 'posts.delete');
       publishFields.status = input.status;
       if (input.status === 'TRASHED') publishFields.deletedAt = new Date();
+      if (input.status === 'DRAFT') publishFields.scheduledAt = null;
+    }
+    // Allow updating scheduledAt without changing status
+    if (input.scheduledAt !== undefined && input.status !== 'PUBLISHED') {
+      publishFields.scheduledAt = input.scheduledAt ? new Date(input.scheduledAt) : null;
     }
 
     return tx.post.update({

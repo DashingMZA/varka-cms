@@ -53,6 +53,7 @@ export function PostEditor({ postId }: { postId: string }) {
   const [seoTitle, setSeoTitle] = useState('');
   const [seoDescription, setSeoDescription] = useState('');
   const [status, setStatus] = useState('DRAFT');
+  const [scheduledAt, setScheduledAt] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [mediaOpen, setMediaOpen] = useState(false);
@@ -91,6 +92,11 @@ export function PostEditor({ postId }: { postId: string }) {
       const data = result.data as Post;
       setPost(data);
       setStatus(data.status);
+      const sched = (data as unknown as { scheduledAt?: string | null }).scheduledAt;
+      if (sched) {
+        const d = new Date(sched);
+        setScheduledAt(d.toISOString().slice(0, 16));
+      }
       const tr = data.translations[0];
       if (tr) {
         setTitle(tr.title);
@@ -161,6 +167,9 @@ export function PostEditor({ postId }: { postId: string }) {
         categoryIds,
         tagIds,
         ...(publish ? { status: 'PUBLISHED' } : { status }),
+        ...(status === 'SCHEDULED' && scheduledAt
+          ? { scheduledAt: new Date(scheduledAt).toISOString() }
+          : {}),
       });
       setSaving(false);
       if (!result.ok) {
@@ -318,9 +327,22 @@ export function PostEditor({ postId }: { postId: string }) {
                   <select value={status} onChange={(e) => setStatus(e.target.value)}>
                     <option value="DRAFT">{t('blogs', 'draft')}</option>
                     <option value="PENDING_REVIEW">{t('blogs', 'pendingReview')}</option>
+                    <option value="SCHEDULED">{t('blogs', 'scheduled') || 'Scheduled'}</option>
                     <option value="PUBLISHED">{t('blogs', 'published')}</option>
                   </select>
                 </p>
+                {status === 'SCHEDULED' ? (
+                  <p style={{ margin: '0 0 8px' }}>
+                    <label>
+                      {t('blogs', 'scheduleFor') || 'Schedule for'}:{' '}
+                      <input
+                        type="datetime-local"
+                        value={scheduledAt}
+                        onChange={(e) => setScheduledAt(e.target.value)}
+                      />
+                    </label>
+                  </p>
+                ) : null}
                 <div className="v-btn-row">
                   <button type="button" className="v-btn" onClick={() => void save(false)} disabled={saving}>
                     {t('blogs', 'saveDraft', 'Save Draft')}

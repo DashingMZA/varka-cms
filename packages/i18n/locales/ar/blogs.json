@@ -39,5 +39,7 @@
   "private": "خاص",
   "restore": "استعادة",
   "deletePermanently": "حذف نهائي",
-  "deletePermanentlyConfirm": "حذف العناصر المحددة نهائياً؟ لا يمكن التراجع."
+  "deletePermanentlyConfirm": "حذف العناصر المحددة نهائياً؟ لا يمكن التراجع.",
+  "scheduled": "مجدول",
+  "scheduleFor": "جدولة لـ"
 }
