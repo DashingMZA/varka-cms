@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useMessages } from '@/lib/i18n';
 import {
   listRedirectionsAction,
   createRedirectionAction,
@@ -20,7 +19,6 @@ type Redirection = {
 
 /** Rank Math-style Redirections manager. */
 export function RedirectionsAdmin() {
-  const { t } = useMessages();
   const [items, setItems] = useState<Redirection[]>([]);
   const [loading, setLoading] = useState(true);
   const [source, setSource] = useState('');

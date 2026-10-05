@@ -1,12 +1,10 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { useMessages } from '@/lib/i18n';
 import { installPluginAction } from '@/actions/plugins';
 
 /** WordPress-style Add Plugin: upload a .zip file. */
 export function PluginUpload() {
-  const { t } = useMessages();
   const fileRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);

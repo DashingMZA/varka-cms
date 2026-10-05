@@ -28,15 +28,32 @@ type PostRow = {
 
 type Counts = { all: number; published: number; draft: number; trashed: number };
 
-export function PostsAdmin() {
+type InitialPosts = {
+  items: Array<Record<string, unknown>>;
+  counts: Record<string, number>;
+  total: number;
+} | null;
+
+export function PostsAdmin({
+  initialPosts = null,
+  initialCategories = [],
+}: {
+  initialPosts?: InitialPosts;
+  initialCategories?: Array<{ id: string; name: string }>;
+}) {
   const { t } = useMessages();
-  const [items, setItems] = useState<PostRow[]>([]);
-  const [counts, setCounts] = useState<Counts>({ all: 0, published: 0, draft: 0, trashed: 0 });
+  const [items, setItems] = useState<PostRow[]>(() => (initialPosts?.items as PostRow[]) ?? []);
+  const [counts, setCounts] = useState<Counts>(() => ({
+    all: initialPosts?.counts.all ?? 0,
+    published: initialPosts?.counts.published ?? 0,
+    draft: initialPosts?.counts.draft ?? 0,
+    trashed: initialPosts?.counts.trashed ?? 0,
+  }));
   const [status, setStatus] = useState('all');
   const [q, setQ] = useState('');
   const [dateFilter, setDateFilter] = useState(''); // YYYY-MM format
   const [categoryFilter, setCategoryFilter] = useState('');
-  const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
+  const [categories, setCategories] = useState<Array<{ id: string; name: string }>>(initialCategories);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulk, setBulk] = useState('');
   const [bulkEditStatus, setBulkEditStatus] = useState('');
@@ -44,7 +61,9 @@ export function PostsAdmin() {
   const [error, setError] = useState<string | null>(null);
   const [cols, setCols] = useState({ author: true, categories: true, tags: true, date: true, comments: true, seo: true });
   const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
+  const [total, setTotal] = useState(() => initialPosts?.total ?? 0);
+  // Track if initial server data was used, so we don't refetch on first mount
+  const [hydrated, setHydrated] = useState(false);
   const perPage = 20;
 
   // Quick Edit (WP-style inline row editing: title, slug, status)
@@ -175,11 +194,17 @@ export function PostsAdmin() {
   }, [status, q, dateFilter, categoryFilter, page, t]);
 
   useEffect(() => {
+    // Skip first fetch when server already provided initial data (WordPress-style instant render)
+    if (!hydrated && initialPosts) {
+      setHydrated(true);
+      return;
+    }
     void load();
-  }, [load]);
+  }, [load, hydrated, initialPosts]);
 
-  // Load categories for filter dropdown
+  // Load categories for filter dropdown (skip if server provided them)
   useEffect(() => {
+    if (initialCategories.length > 0) return;
     void (async () => {
       try {
         const { listCategoriesAction } = await import('@/actions/taxonomy');

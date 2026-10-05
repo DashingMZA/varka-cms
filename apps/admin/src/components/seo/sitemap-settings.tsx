@@ -1,12 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useMessages } from '@/lib/i18n';
 import { getSeoSettingsAction, saveSeoSettingsAction } from '@/actions/seo-tools';
 
 /** Rank Math-style Sitemap settings. */
 export function SitemapSettings() {
-  const { t } = useMessages();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
