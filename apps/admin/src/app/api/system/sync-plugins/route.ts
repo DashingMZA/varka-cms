@@ -8,8 +8,8 @@ const PLUGIN_PERMISSIONS = [
   'plugins.delete',
 ] as const;
 
-const PLUGIN_TABLE_SQL = `
-CREATE TABLE IF NOT EXISTS "Plugin" (
+const PLUGIN_TABLE_STATEMENTS = [
+  `CREATE TABLE IF NOT EXISTS "Plugin" (
   "id" TEXT NOT NULL PRIMARY KEY,
   "slug" TEXT NOT NULL UNIQUE,
   "name" TEXT NOT NULL,
@@ -20,9 +20,9 @@ CREATE TABLE IF NOT EXISTS "Plugin" (
   "manifest" JSONB,
   "installedAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-CREATE INDEX IF NOT EXISTS "Plugin_active_idx" ON "Plugin"("active");
-`;
+)`,
+  `CREATE INDEX IF NOT EXISTS "Plugin_active_idx" ON "Plugin"("active")`,
+];
 
 /**
  * One-click initializer for the plugin system — makes everything dynamic.
@@ -36,8 +36,11 @@ export async function POST() {
   try {
     await requireServerAuth('settings.update');
 
-    // 1. Plugin table
-    await prisma.$executeRawUnsafe(PLUGIN_TABLE_SQL);
+    // 1. Plugin table (one statement at a time — Prisma raw queries
+    // use prepared statements which reject multi-command strings)
+    for (const sql of PLUGIN_TABLE_STATEMENTS) {
+      await prisma.$executeRawUnsafe(sql);
+    }
 
     // 2. Permissions
     for (const key of PLUGIN_PERMISSIONS) {

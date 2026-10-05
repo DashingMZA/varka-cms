@@ -45,26 +45,37 @@ export async function listPluginsAction(): Promise<
 > {
   try {
     await requireServerAuth('plugins.read');
-    const [rows, discovered] = await Promise.all([
-      prisma.plugin.findMany({ orderBy: { name: 'asc' } }) as Promise<PluginRow[]>,
-      discoverInstalledPlugins(),
-    ]);
+    const discovered = await discoverInstalledPlugins();
+    // Plugin table may not exist yet (migration not run) — still show
+    // discovered plugins so the user can initialize from the UI.
+    let rows: PluginRow[] = [];
+    try {
+      rows = (await prisma.plugin.findMany({
+        orderBy: { name: 'asc' },
+      })) as PluginRow[];
+    } catch {
+      rows = [];
+    }
     const bySlug = new Map(rows.map((r: PluginRow) => [r.slug, r]));
     // Auto-activate bundled plugins (manifest autoActivate) that have no DB row yet.
     for (const d of discovered) {
       if (!bySlug.has(d.slug) && d.manifest.autoActivate) {
-        const created = await prisma.plugin.create({
-          data: {
-            slug: d.slug,
-            name: d.manifest.name,
-            version: d.manifest.version,
-            description: d.manifest.description ?? null,
-            author: d.manifest.author ?? null,
-            active: true,
-            manifest: JSON.parse(JSON.stringify(d.manifest)),
-          },
-        });
-        bySlug.set(d.slug, created);
+        try {
+          const created = await prisma.plugin.create({
+            data: {
+              slug: d.slug,
+              name: d.manifest.name,
+              version: d.manifest.version,
+              description: d.manifest.description ?? null,
+              author: d.manifest.author ?? null,
+              active: true,
+              manifest: JSON.parse(JSON.stringify(d.manifest)),
+            },
+          });
+          bySlug.set(d.slug, created);
+        } catch {
+          // Table missing — will be picked up after "Initialize plugin system".
+        }
       }
     }
     const items: PluginListItem[] = discovered.map((d) => {
