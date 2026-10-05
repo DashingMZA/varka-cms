@@ -7,6 +7,7 @@ export function MediaSettings() {
   const [medium, setMedium] = useState(300);
   const [large, setLarge] = useState(1024);
   const [organizeByYm, setOrganizeByYm] = useState(true);
+  const [storageDriver, setStorageDriver] = useState('');
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -20,11 +21,13 @@ export function MediaSettings() {
         medium: number;
         large: number;
         organizeByYm: boolean;
+        storageDriver?: string;
       };
       setThumbnail(d.thumbnail);
       setMedium(d.medium);
       setLarge(d.large);
       setOrganizeByYm(d.organizeByYm);
+      setStorageDriver(d.storageDriver ?? '');
     })();
   }, []);
 
@@ -36,7 +39,7 @@ export function MediaSettings() {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ thumbnail, medium, large, organizeByYm }),
+      body: JSON.stringify({ thumbnail, medium, large, organizeByYm, storageDriver }),
     });
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
@@ -92,6 +95,23 @@ export function MediaSettings() {
             />
             Organize uploads into year/month folders (uploads/YYYY/MM/…)
           </label>
+          <label style={{ fontWeight: 600 }}>
+            Storage driver
+            <select
+              value={storageDriver}
+              onChange={(e) => setStorageDriver(e.target.value)}
+              style={{ display: 'block', width: '100%', padding: 8, marginTop: 4 }}
+            >
+              <option value="">Use STORAGE_DRIVER from .env</option>
+              <option value="local">Local folder (public/uploads)</option>
+              <option value="s3">Amazon S3</option>
+              <option value="r2">Cloudflare R2</option>
+            </select>
+          </label>
+          <p className="v-muted" style={{ margin: 0, fontSize: 12 }}>
+            Credentials stay in .env (S3_* / R2_*). This only picks which driver is
+            active — it overrides STORAGE_DRIVER without a redeploy.
+          </p>
         </div>
         {msg ? <div className="v-alert v-alert--ok">{msg}</div> : null}
         {err ? <div className="v-alert v-alert--error">{err}</div> : null}

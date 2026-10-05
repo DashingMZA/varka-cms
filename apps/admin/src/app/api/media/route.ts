@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server';
-import {
-  createStorageAdapterFromEnv,
-  listMedia,
-  uploadMedia,
-} from '@varka/media';
+import { listMedia, uploadMedia } from '@varka/media';
+import { getStorageAdapter } from '@/lib/media-storage';
 import { guard } from '@/lib/api-guard';
 
 async function getSiteId(db: {
@@ -36,7 +33,7 @@ export async function POST(req: Request) {
   try {
     const { prisma } = await import('@varka/database');
     const siteId = await getSiteId(prisma as never);
-    const storage = createStorageAdapterFromEnv();
+    const storage = await getStorageAdapter();
 
     const form = await req.formData();
     const file = form.get('file');

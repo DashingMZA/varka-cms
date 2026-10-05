@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server';
-import {
-  createStorageAdapterFromEnv,
-  deleteMedia,
-  updateMediaMeta,
-} from '@varka/media';
+import { updateMediaMeta, deleteMedia } from '@varka/media';
+import { getStorageAdapter } from '@/lib/media-storage';
 
 async function getCtx() {
   return {
@@ -44,7 +41,7 @@ export async function DELETE(
     const { id } = await ctx.params;
     const { prisma } = await import('@varka/database');
     const auth = await getCtx();
-    const storage = createStorageAdapterFromEnv();
+    const storage = await getStorageAdapter();
     const result = await deleteMedia(prisma as never, storage, auth, id);
     return NextResponse.json(result);
   } catch (e) {

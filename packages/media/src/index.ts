@@ -1,7 +1,7 @@
 export type { StorageAdapter, StorageDriverName, PutObjectInput, PutObjectResult } from './types';
 export { createLocalAdapter } from './local-adapter';
 export { createS3Adapter, type S3LikeClient, type S3AdapterOptions } from './s3-adapter';
-export { resolveStorageDriver, createStorageAdapterFromEnv } from './driver';
+export { resolveStorageDriver, createStorageAdapterFromEnv, normalizeDriverName } from './driver';
 export {
   listMedia,
   uploadMedia,

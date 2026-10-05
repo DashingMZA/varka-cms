@@ -1,12 +1,12 @@
 'use server';
 
 import {
-  createStorageAdapterFromEnv,
   listMedia,
   uploadMedia,
   deleteMedia,
   updateMediaMeta,
 } from '@varka/media';
+import { getStorageAdapter } from '@/lib/media-storage';
 import { prisma, requireServerAuth } from '@/lib/server-db';
 import { revalidatePath } from 'next/cache';
 
@@ -36,7 +36,7 @@ export async function uploadMediaAction(formData: FormData): Promise<ActionResul
     if (!(file instanceof File)) return { ok: false, error: 'file required' };
 
     const buf = Buffer.from(await file.arrayBuffer());
-    const storage = createStorageAdapterFromEnv();
+    const storage = await getStorageAdapter();
     const result = await uploadMedia(
       prisma as never,
       storage,
@@ -83,7 +83,7 @@ export async function updateMediaAction(
 export async function deleteMediaAction(id: string): Promise<ActionResult<{ id: string }>> {
   try {
     const { ctx } = await requireServerAuth('media.delete');
-    const storage = createStorageAdapterFromEnv();
+    const storage = await getStorageAdapter();
     await deleteMedia(prisma as never, storage, ctx, id);
     revalidatePath('/media');
     return { ok: true, data: { id } };

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { createHash } from 'node:crypto';
 import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
-import { resolveStorageDriver } from '@varka/media';
+import { getStorageDriver } from '@/lib/media-storage';
 
 /**
  * Serve local-storage objects with strong browser caching.
@@ -15,9 +15,10 @@ export async function GET(
   ctx: { params: Promise<{ key: string[] }> },
 ) {
   try {
-    if (resolveStorageDriver() !== 'local') {
+    const { driver } = await getStorageDriver();
+    if (driver !== 'local') {
       return NextResponse.json(
-        { error: 'File proxy only available for STORAGE_DRIVER=local' },
+        { error: 'File proxy only available for the local storage driver' },
         { status: 400 },
       );
     }
