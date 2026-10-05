@@ -1,6 +1,18 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { useMessages } from '@/lib/i18n';
+
+/** Label with hard fallback so missing i18n never shows raw keys */
+function L(
+  t: (ns: 'tables' | 'common', key: string) => string,
+  key: string,
+  fallback: string,
+): string {
+  const v = t('tables', key);
+  if (!v || v === key || v.startsWith('tables.')) return fallback;
+  return v;
+}
 
 /** Shared WP-style list-table primitives (one pattern for every entity). */
 
@@ -53,14 +65,15 @@ export function TableNav(props: {
   searchLabel?: string;
   searchPlaceholder?: string;
 }) {
+  const { t } = useMessages();
   return (
     <div className="v-tablenav" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', marginBottom: 10 }}>
       <select
         value={props.bulkValue}
         onChange={(e) => props.onBulkChange(e.target.value)}
-        aria-label="Bulk actions"
+        aria-label={L(t, 'bulkActions', 'Bulk actions')}
       >
-        <option value="">Bulk actions</option>
+        <option value="">{L(t, 'bulkActions', 'Bulk actions')}</option>
         {props.bulkOptions.map((o) => (
           <option key={o.value} value={o.value}>
             {o.label}
@@ -68,7 +81,7 @@ export function TableNav(props: {
         ))}
       </select>
       <button type="button" className="v-btn" onClick={props.onBulkApply}>
-        Apply
+        {t('common', 'apply') || 'Apply'}
       </button>
       {props.children}
       <form
@@ -82,11 +95,11 @@ export function TableNav(props: {
           type="search"
           value={props.search}
           onChange={(e) => props.onSearchChange(e.target.value)}
-          placeholder="Search…"
-          aria-label="Search"
+          placeholder={L(t, 'searchPlaceholder', 'Search…')}
+          aria-label={t('common', 'search') || 'Search'}
         />
         <button type="submit" className="v-btn">
-          Search
+          {t('common', 'search') || 'Search'}
         </button>
       </form>
     </div>
@@ -99,8 +112,9 @@ export function ListTable(props: {
   empty?: string;
   isEmpty?: boolean;
 }) {
+  const { t } = useMessages();
   if (props.isEmpty) {
-    return <p className="v-muted">{props.empty ?? 'No items found.'}</p>;
+    return <p className="v-muted">{props.empty ?? L(t, 'noItemsFound', 'No items found.')}</p>;
   }
   return (
     <div className="v-table-wrap">

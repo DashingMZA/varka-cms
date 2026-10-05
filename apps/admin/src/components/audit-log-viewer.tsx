@@ -1,6 +1,18 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { useMessages } from '@/lib/i18n';
+
+/** Label with hard fallback so missing i18n never shows raw keys */
+function L(
+  t: (ns: 'security' | 'common', key: string) => string,
+  key: string,
+  fallback: string,
+): string {
+  const v = t('security', key);
+  if (!v || v === key || v.startsWith('security.')) return fallback;
+  return v;
+}
 
 type Row = {
   id: string;
@@ -14,13 +26,14 @@ type Row = {
 };
 
 export function AuditLogViewer() {
+  const { t } = useMessages();
   const [items, setItems] = useState<Row[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const res = await fetch('/api/audit?limit=50', { credentials: 'include' });
     if (!res.ok) {
-      setError(`Load failed (${res.status})`);
+      setError(L(t, 'loadFailedStatus', `Load failed (${res.status})`).replace('{status}', String(res.status)));
       return;
     }
     const data = (await res.json()) as { items: Row[] };
@@ -36,7 +49,7 @@ export function AuditLogViewer() {
     <div style={{ marginTop: 16 }}>
       <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
         <button type="button" onClick={() => void load()} style={{ fontSize: 13 }}>
-          Refresh
+          {t('common', 'refresh') || 'Refresh'}
         </button>
       </div>
       {error ? (
@@ -47,18 +60,18 @@ export function AuditLogViewer() {
       <table style={{ width: '100%', borderCollapse: 'collapse', background: 'var(--card)' }}>
         <thead>
           <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--border)' }}>
-            <th style={{ padding: 8 }}>When</th>
-            <th style={{ padding: 8 }}>Action</th>
-            <th style={{ padding: 8 }}>Actor</th>
-            <th style={{ padding: 8 }}>Entity</th>
-            <th style={{ padding: 8 }}>IP</th>
+            <th style={{ padding: 8 }}>{L(t, 'when', 'When')}</th>
+            <th style={{ padding: 8 }}>{L(t, 'action', 'Action')}</th>
+            <th style={{ padding: 8 }}>{L(t, 'actor', 'Actor')}</th>
+            <th style={{ padding: 8 }}>{L(t, 'entity', 'Entity')}</th>
+            <th style={{ padding: 8 }}>{L(t, 'ip', 'IP')}</th>
           </tr>
         </thead>
         <tbody>
           {items.length === 0 ? (
             <tr>
               <td colSpan={5} style={{ padding: 12, color: 'var(--muted)' }}>
-                No audit events yet. Activate a theme or moderate a comment to generate events.
+                {L(t, 'noAuditEvents', 'No audit events yet. Activate a theme or moderate a comment to generate events.')}
               </td>
             </tr>
           ) : (

@@ -4,6 +4,18 @@ import { useEffect, useState } from 'react';
 import { ScreenMeta } from '@/components/screen-meta/screen-meta';
 import { TiptapEditor } from '@/components/tiptap-editor';
 import { getPageAction, updatePageAction } from '@/actions/pages';
+import { useMessages } from '@/lib/i18n';
+
+/** Label with hard fallback so missing i18n never shows raw keys */
+function L(
+  t: (ns: 'pages' | 'common', key: string) => string,
+  key: string,
+  fallback: string,
+): string {
+  const v = t('pages', key);
+  if (!v || v === key || v.startsWith('pages.')) return fallback;
+  return v;
+}
 
 type Translation = {
   languageId?: string;
@@ -31,6 +43,7 @@ function slugify(title: string): string {
 }
 
 export function PageEditor({ pageId }: { pageId: string }) {
+  const { t } = useMessages();
   const [page, setPage] = useState<Page | null>(null);
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
@@ -75,7 +88,7 @@ export function PageEditor({ pageId }: { pageId: string }) {
   async function save(publish = false) {
     if (!page || !languageId) return;
     if (!title.trim()) {
-      setError('Title is required');
+      setError(L(t, 'titleRequired', 'Title is required'));
       return;
     }
     setSaving(true);
@@ -96,16 +109,25 @@ export function PageEditor({ pageId }: { pageId: string }) {
     const data = res.data as Page;
     setPage(data);
     setStatus(data.status);
-    setMessage(publish ? 'Published' : 'Saved');
+    setMessage(publish ? L(t, 'published', 'Published') : L(t, 'saved', 'Saved'));
   }
 
-  if (!page && !error) return <p className="v-muted">Loading…</p>;
+  if (!page && !error) return <p className="v-muted">{L(t, 'loading', 'Loading…')}</p>;
 
   return (
     <div>
-      <ScreenMeta help={[{ id: 'page', title: 'Page editor', body: 'Edit page title, content, and SEO.' }]} options={[]} />
+      <ScreenMeta
+        help={[
+          {
+            id: 'page',
+            title: L(t, 'editorHelpTitle', 'Page editor'),
+            body: L(t, 'editorHelpBody', 'Edit page title, content, and SEO.'),
+          },
+        ]}
+        options={[]}
+      />
       <div className="v-page-header">
-        <h1 className="v-page-title">Edit Page</h1>
+        <h1 className="v-page-title">{L(t, 'editPage', 'Edit Page')}</h1>
       </div>
       {message ? <p className="v-alert v-alert--ok">{message}</p> : null}
       {error ? (
@@ -120,10 +142,10 @@ export function PageEditor({ pageId }: { pageId: string }) {
             className="v-editor__title"
             value={title}
             onChange={(e) => onTitleChange(e.target.value)}
-            placeholder="Add title"
+            placeholder={L(t, 'addTitle', 'Add title')}
           />
           <p className="v-editor__slug">
-            Slug:{' '}
+            {L(t, 'slugLabel', 'Slug:')}{' '}
             <input
               value={slug}
               onChange={(e) => {
@@ -132,17 +154,21 @@ export function PageEditor({ pageId }: { pageId: string }) {
               }}
             />
           </p>
-          <TiptapEditor value={content} onChange={setContent} placeholder="Write page content…" />
+          <TiptapEditor
+            value={content}
+            onChange={setContent}
+            placeholder={L(t, 'writeContent', 'Write page content…')}
+          />
 
           <div className="v-panel">
-            <h3 className="v-panel__h">SEO</h3>
+            <h3 className="v-panel__h">{L(t, 'seoPanel', 'SEO')}</h3>
             <div className="v-panel__b" style={{ display: 'grid', gap: 8 }}>
               <label>
-                SEO title
+                {L(t, 'seoTitleField', 'SEO title')}
                 <input value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} />
               </label>
               <label>
-                SEO description
+                {L(t, 'seoDescriptionField', 'SEO description')}
                 <textarea value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} rows={2} />
               </label>
             </div>
@@ -151,18 +177,18 @@ export function PageEditor({ pageId }: { pageId: string }) {
 
         <aside className="v-editor__side">
           <div className="v-panel">
-            <h3 className="v-panel__h">Publish</h3>
+            <h3 className="v-panel__h">{L(t, 'publish', 'Publish')}</h3>
             <div className="v-panel__b">
               <p style={{ margin: '0 0 8px' }}>
-                Status:{' '}
+                {L(t, 'status', 'Status')}:{' '}
                 <select value={status} onChange={(e) => setStatus(e.target.value)}>
-                  <option value="DRAFT">Draft</option>
-                  <option value="PUBLISHED">Published</option>
+                  <option value="DRAFT">{L(t, 'draft', 'Draft')}</option>
+                  <option value="PUBLISHED">{L(t, 'published', 'Published')}</option>
                 </select>
               </p>
               <div className="v-btn-row">
                 <button type="button" className="v-btn" disabled={saving} onClick={() => void save(false)}>
-                  Save Draft
+                  {L(t, 'saveDraft', 'Save Draft')}
                 </button>
                 <button
                   type="button"
@@ -170,7 +196,7 @@ export function PageEditor({ pageId }: { pageId: string }) {
                   disabled={saving}
                   onClick={() => void save(true)}
                 >
-                  Publish
+                  {L(t, 'publish', 'Publish')}
                 </button>
               </div>
             </div>

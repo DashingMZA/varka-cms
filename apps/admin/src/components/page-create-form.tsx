@@ -5,8 +5,21 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { slugify } from '@/lib/slugify';
 import { TiptapEditor } from '@/components/tiptap-editor';
+import { useMessages } from '@/lib/i18n';
+
+/** Label with hard fallback so missing i18n never shows raw keys */
+function L(
+  t: (ns: 'pages' | 'common', key: string) => string,
+  key: string,
+  fallback: string,
+): string {
+  const v = t('pages', key);
+  if (!v || v === key || v.startsWith('pages.')) return fallback;
+  return v;
+}
 
 export function PageCreateForm() {
+  const { t } = useMessages();
   const router = useRouter();
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
@@ -23,7 +36,7 @@ export function PageCreateForm() {
 
   async function create(publish: boolean) {
     if (!title.trim()) {
-      setError('Please enter a title');
+      setError(L(t, 'enterTitle', 'Please enter a title'));
       return;
     }
     setBusy(true);
@@ -42,7 +55,10 @@ export function PageCreateForm() {
       });
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { error?: string };
-        setError(body.error ?? `Create failed (${res.status})`);
+        setError(
+          body.error ??
+            L(t, 'createFailed', 'Create failed ({status})').replace('{status}', String(res.status)),
+        );
         setBusy(false);
         return;
       }
@@ -57,7 +73,7 @@ export function PageCreateForm() {
       }
       router.push(`/content/pages/${page.id}`);
     } catch {
-      setError('Network error');
+      setError(L(t, 'networkError', 'Network error'));
       setBusy(false);
     }
   }
@@ -65,9 +81,9 @@ export function PageCreateForm() {
   return (
     <div>
       <div className="v-page-header">
-        <h1 className="v-page-title">Add New Page</h1>
+        <h1 className="v-page-title">{L(t, 'newPage', 'Add New Page')}</h1>
         <Link href="/content/pages" className="v-btn">
-          ← All Pages
+          ← {L(t, 'allPages', 'All Pages')}
         </Link>
       </div>
       {error ? <div className="v-alert v-alert--error">{error}</div> : null}
@@ -77,31 +93,31 @@ export function PageCreateForm() {
             className="v-editor__title"
             value={title}
             onChange={(e) => onTitleChange(e.target.value)}
-            placeholder="Add title"
+            placeholder={L(t, 'addTitle', 'Add title')}
             autoFocus
           />
           <div className="v-editor__slug">
-            <span>Permalink:</span>
+            <span>{L(t, 'permalink', 'Permalink:')}</span>
             <input
               value={slug}
               onChange={(e) => {
                 setSlugTouched(true);
                 setSlug(e.target.value);
               }}
-              placeholder="auto-from-title"
+              placeholder={L(t, 'autoFromTitle', 'auto-from-title')}
             />
           </div>
           <label className="v-muted" style={{ display: 'block', marginBottom: 6, fontWeight: 600 }}>
-            Content
+            {L(t, 'content', 'Content')}
           </label>
           <TiptapEditor value={contentHtml} onChange={setContentHtml} />
         </div>
         <aside className="v-editor__meta">
           <section className="v-panel" style={{ marginTop: 0 }}>
-            <h2 className="v-panel__h">Publish</h2>
+            <h2 className="v-panel__h">{L(t, 'publish', 'Publish')}</h2>
             <div className="v-panel__b">
               <p className="v-muted" style={{ marginTop: 0 }}>
-                Not saved until you click Save Draft or Publish.
+                {L(t, 'notSavedNote', 'Not saved until you click Save Draft or Publish.')}
               </p>
               <div className="v-btn-row">
                 <button
@@ -110,7 +126,7 @@ export function PageCreateForm() {
                   disabled={busy || !title.trim()}
                   onClick={() => void create(false)}
                 >
-                  {busy ? 'Saving…' : 'Save Draft'}
+                  {busy ? L(t, 'saving', 'Saving…') : L(t, 'saveDraft', 'Save Draft')}
                 </button>
                 <button
                   type="button"
@@ -118,20 +134,20 @@ export function PageCreateForm() {
                   disabled={busy || !title.trim()}
                   onClick={() => void create(true)}
                 >
-                  Publish
+                  {L(t, 'publish', 'Publish')}
                 </button>
               </div>
             </div>
           </section>
           <section className="v-panel">
-            <h2 className="v-panel__h">Page attributes</h2>
+            <h2 className="v-panel__h">{L(t, 'pageAttributes', 'Page attributes')}</h2>
             <div className="v-panel__b">
               <label>
-                Template
+                {L(t, 'template', 'Template')}
                 <select value={template} onChange={(e) => setTemplate(e.target.value)}>
-                  <option value="default">Default</option>
-                  <option value="full-width">Full width</option>
-                  <option value="landing">Landing</option>
+                  <option value="default">{L(t, 'templateDefault', 'Default')}</option>
+                  <option value="full-width">{L(t, 'templateFullWidth', 'Full width')}</option>
+                  <option value="landing">{L(t, 'templateLanding', 'Landing')}</option>
                 </select>
               </label>
             </div>

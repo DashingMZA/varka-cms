@@ -1,6 +1,18 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useMessages } from '@/lib/i18n';
+
+/** Label with hard fallback so missing i18n never shows raw keys */
+function L(
+  t: (ns: 'media' | 'common', key: string) => string,
+  key: string,
+  fallback: string,
+): string {
+  const v = t('media', key);
+  if (!v || v === key || v.startsWith('media.')) return fallback;
+  return v;
+}
 
 type SizeMeta = {
   key: string;
@@ -46,6 +58,7 @@ export function InsertImageModal({
 }) {
   const [items, setItems] = useState<Asset[]>([]);
   const [selected, setSelected] = useState<Asset | null>(null);
+  const { t } = useMessages();
   const [size, setSize] = useState<string>('medium');
 
   useEffect(() => {
@@ -87,7 +100,7 @@ export function InsertImageModal({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Insert image"
+      aria-label={L(t, 'insertImage', 'Insert image')}
       style={{
         position: 'fixed',
         inset: 0,
@@ -105,7 +118,7 @@ export function InsertImageModal({
         style={{ width: 'min(720px, 100%)', maxHeight: '90vh', overflow: 'auto', margin: 0 }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="v-panel__h">Insert media</h2>
+        <h2 className="v-panel__h">{L(t, 'insertMedia', 'Insert media')}</h2>
         <div className="v-panel__b">
           <div
             style={{
@@ -151,7 +164,7 @@ export function InsertImageModal({
             <>
               <p style={{ margin: '0 0 8px', fontWeight: 600 }}>{selected.filename}</p>
               <label style={{ display: 'grid', gap: 4, fontWeight: 600, marginBottom: 12 }}>
-                Size
+                {L(t, 'size', 'Size')}
                 <select
                   value={size}
                   onChange={(e) => setSize(e.target.value)}
@@ -170,15 +183,17 @@ export function InsertImageModal({
               </label>
             </>
           ) : (
-            <p className="v-muted">Select an image, then choose size (thumbnail / medium / large / original).</p>
+            <p className="v-muted">
+              {L(t, 'selectImageHint', 'Select an image, then choose size (thumbnail / medium / large / original).')}
+            </p>
           )}
 
           <div className="v-btn-row">
             <button type="button" className="v-btn v-btn--primary" disabled={!selected} onClick={insert}>
-              Insert into post
+              {L(t, 'insertIntoPost', 'Insert into post')}
             </button>
             <button type="button" className="v-btn" onClick={onClose}>
-              Cancel
+              {t('common', 'cancel') || 'Cancel'}
             </button>
           </div>
         </div>
