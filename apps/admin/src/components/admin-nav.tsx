@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { useMessages } from '@/lib/i18n';
+import { prefetchRouteData } from '@/lib/prefetch';
 import type { AppLocale } from '@varka/i18n';
 
 type NavChild = { href: string; label: string };
@@ -298,6 +299,7 @@ export function AdminNav(
                             <Link
                               href={child.href}
                               className={`v-nav__link v-nav__link--sub${ca ? ' is-active' : ''}`}
+                              onMouseEnter={() => prefetchRouteData(child.href)}
                             >
                               {child.label}
                             </Link>
@@ -312,6 +314,7 @@ export function AdminNav(
                   href={item.href}
                   className={`v-nav__link${active ? ' is-active' : ''}`}
                   title={item.label}
+                  onMouseEnter={() => prefetchRouteData(item.href)}
                 >
                   {item.icon ? (
                     <span className="v-nav__icon" aria-hidden>
