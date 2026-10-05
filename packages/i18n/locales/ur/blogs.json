@@ -36,5 +36,8 @@
   "publishBox": "اشاعت",
   "visibility": "نظر آنے کی حد",
   "public": "عوامی",
-  "private": "نجی"
+  "private": "نجی",
+  "restore": "بحال کریں",
+  "deletePermanently": "مستقل حذف کریں",
+  "deletePermanentlyConfirm": "منتخب آئٹمز مستقل حذف کریں؟ یہ واپس نہیں ہو سکتا."
 }

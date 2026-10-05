@@ -141,19 +141,70 @@ export async function trashPostAction(postId: string): Promise<ActionResult<{ id
   }
 }
 
+export async function restorePostAction(postId: string): Promise<ActionResult<{ id: string }>> {
+  try {
+    await requireServerAuth('posts.update');
+    await prisma.post.update({
+      where: { id: postId },
+      data: { status: 'DRAFT', deletedAt: null },
+    });
+    revalidatePath('/content/posts');
+    return { ok: true, data: { id: postId } };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function deletePostPermanentlyAction(postId: string): Promise<ActionResult<{ id: string }>> {
+  try {
+    await requireServerAuth('posts.delete');
+    await prisma.post.delete({ where: { id: postId } });
+    revalidatePath('/content/posts');
+    return { ok: true, data: { id: postId } };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function emptyTrashAction(): Promise<ActionResult<{ count: number }>> {
+  try {
+    const { siteId } = await requireServerAuth('posts.delete');
+    const result = await prisma.post.deleteMany({
+      where: { siteId, status: 'TRASHED' },
+    });
+    revalidatePath('/content/posts');
+    return { ok: true, data: { count: result.count } };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
 export async function bulkPostsAction(
   ids: string[],
-  action: 'publish' | 'draft' | 'trash',
+  action: 'publish' | 'draft' | 'trash' | 'restore' | 'deletePermanently',
 ): Promise<ActionResult<{ count: number }>> {
   try {
     await requireServerAuth(
-      action === 'trash' ? 'posts.delete' : action === 'publish' ? 'posts.publish' : 'posts.update',
+      action === 'trash' || action === 'deletePermanently'
+        ? 'posts.delete'
+        : action === 'publish'
+          ? 'posts.publish'
+          : 'posts.update',
     );
     if (!ids.length) return { ok: true, data: { count: 0 } };
     if (action === 'trash') {
       await prisma.post.updateMany({
         where: { id: { in: ids } },
         data: { status: 'TRASHED', deletedAt: new Date() },
+      });
+    } else if (action === 'restore') {
+      await prisma.post.updateMany({
+        where: { id: { in: ids } },
+        data: { status: 'DRAFT', deletedAt: null },
+      });
+    } else if (action === 'deletePermanently') {
+      await prisma.post.deleteMany({
+        where: { id: { in: ids } },
       });
     } else {
       await prisma.post.updateMany({

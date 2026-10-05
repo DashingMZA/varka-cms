@@ -58,5 +58,8 @@
   "addTags": "Separate tags with commas",
   "excerptHelp": "Write an excerpt (optional)",
   "noDescription": "No description",
-  "set": "set"
+  "set": "set",
+  "restore": "Restore",
+  "deletePermanently": "Delete Permanently",
+  "deletePermanentlyConfirm": "Permanently delete selected items? This cannot be undone."
 }

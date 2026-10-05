@@ -36,5 +36,8 @@
   "publishBox": "Publicar",
   "visibility": "Visibilidad",
   "public": "Público",
-  "private": "Privado"
+  "private": "Privado",
+  "restore": "Restaurar",
+  "deletePermanently": "Eliminar permanentemente",
+  "deletePermanentlyConfirm": "¿Eliminar permanentemente? No se puede deshacer."
 }

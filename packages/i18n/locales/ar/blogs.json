@@ -36,5 +36,8 @@
   "publishBox": "نشر",
   "visibility": "الظهور",
   "public": "عام",
-  "private": "خاص"
+  "private": "خاص",
+  "restore": "استعادة",
+  "deletePermanently": "حذف نهائي",
+  "deletePermanentlyConfirm": "حذف العناصر المحددة نهائياً؟ لا يمكن التراجع."
 }

@@ -9,6 +9,8 @@ import {
   listPostsAction,
   createPostAction,
   trashPostAction,
+  restorePostAction,
+  deletePostPermanentlyAction,
   bulkPostsAction,
   getPostAction,
   updatePostAction,
@@ -201,6 +203,14 @@ export function PostsAdmin() {
         await bulkPostsAction(ids, 'publish');
       } else if (bulk === 'draft') {
         await bulkPostsAction(ids, 'draft');
+      } else if (bulk === 'restore') {
+        await bulkPostsAction(ids, 'restore');
+      } else if (bulk === 'deletePermanently') {
+        if (!window.confirm(t('blogs', 'deletePermanentlyConfirm') || 'Permanently delete selected items? This cannot be undone.')) {
+          setLoading(false);
+          return;
+        }
+        await bulkPostsAction(ids, 'deletePermanently');
       }
       await load();
       setSelected(new Set());
@@ -278,9 +288,18 @@ export function PostsAdmin() {
         <div className="v-bulk">
           <select value={bulk} onChange={(e) => setBulk(e.target.value)}>
             <option value="">{t('blogs', 'bulkActions')}</option>
-            <option value="publish">{t('blogs', 'publish')}</option>
-            <option value="draft">{t('blogs', 'draft')}</option>
-            <option value="trash">{t('blogs', 'trash')}</option>
+            {status === 'trash' ? (
+              <>
+                <option value="restore">{t('blogs', 'restore') || 'Restore'}</option>
+                <option value="deletePermanently">{t('blogs', 'deletePermanently') || 'Delete Permanently'}</option>
+              </>
+            ) : (
+              <>
+                <option value="publish">{t('blogs', 'publish')}</option>
+                <option value="draft">{t('blogs', 'draft')}</option>
+                <option value="trash">{t('blogs', 'trash')}</option>
+              </>
+            )}
           </select>
           <button type="button" className="v-btn" disabled={!bulk || selected.size === 0} onClick={() => void applyBulk()}>
             {t('common', 'apply') || 'Apply'}
@@ -367,36 +386,75 @@ export function PostsAdmin() {
                       </Link>
                     </strong>
                     <div className="row-actions">
-                      <span>
-                        <Link href={`/content/posts/${p.id}`}>{t('common', 'edit') || 'Edit'}</Link>
-                      </span>
-                      {' | '}
-                      <span>
-                        <a
-                          href="#"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            if (quickEditId === p.id) closeQuickEdit();
-                            else void openQuickEdit(p);
-                          }}
-                        >
-                          {t('blogs', 'quickEdit') || 'Quick Edit'}
-                        </a>
-                      </span>
-                      {' | '}
-                      <a
-                        href="#"
-                        className="trash"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          void (async () => {
-                            await trashPostAction(p.id);
-                            await load();
-                          })();
-                        }}
-                      >
-                        {t('common', 'trash') || 'Trash'}
-                      </a>
+                      {status === 'trash' ? (
+                        <>
+                          <span>
+                            <a
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                void (async () => {
+                                  await restorePostAction(p.id);
+                                  await load();
+                                })();
+                              }}
+                            >
+                              {t('blogs', 'restore') || 'Restore'}
+                            </a>
+                          </span>
+                          {' | '}
+                          <span>
+                            <a
+                              href="#"
+                              className="trash"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (window.confirm(t('blogs', 'deletePermanentlyConfirm') || 'Permanently delete this item? This cannot be undone.')) {
+                                  void (async () => {
+                                    await deletePostPermanentlyAction(p.id);
+                                    await load();
+                                  })();
+                                }
+                              }}
+                            >
+                              {t('blogs', 'deletePermanently') || 'Delete Permanently'}
+                            </a>
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <span>
+                            <Link href={`/content/posts/${p.id}`}>{t('common', 'edit') || 'Edit'}</Link>
+                          </span>
+                          {' | '}
+                          <span>
+                            <a
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (quickEditId === p.id) closeQuickEdit();
+                                else void openQuickEdit(p);
+                              }}
+                            >
+                              {t('blogs', 'quickEdit') || 'Quick Edit'}
+                            </a>
+                          </span>
+                          {' | '}
+                          <a
+                            href="#"
+                            className="trash"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              void (async () => {
+                                await trashPostAction(p.id);
+                                await load();
+                              })();
+                            }}
+                          >
+                            {t('common', 'trash') || 'Trash'}
+                          </a>
+                        </>
+                      )}
                     </div>
                   </td>
                   {cols.author ? <td>{p.author?.name || p.author?.email || '—'}</td> : null}
