@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import Link from 'next/link';
-import { useMessages } from '@/lib/i18n';
 import {
   listCategoriesAction,
   createCategoryAction,
@@ -30,7 +29,6 @@ function slugify(name: string) {
 
 /** WordPress-style Categories: Add form left, table right, with Edit/Quick Edit/Delete/View. */
 export function CategoriesAdmin() {
-  const { t } = useMessages();
   const [items, setItems] = useState<Row[]>([]);
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');

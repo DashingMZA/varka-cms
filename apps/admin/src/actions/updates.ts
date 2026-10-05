@@ -1,6 +1,6 @@
 'use server';
 
-import { prisma, requireServerAuth } from '@/lib/server-db';
+import { requireServerAuth } from '@/lib/server-db';
 
 export type ActionResult<T = unknown> =
   | { ok: true; data: T }

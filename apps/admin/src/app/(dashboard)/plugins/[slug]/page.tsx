@@ -1,4 +1,4 @@
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/server-db';
 import { pluginPath } from '@varka/plugins';
 import { readFile } from 'node:fs/promises';
