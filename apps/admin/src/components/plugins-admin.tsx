@@ -69,6 +69,27 @@ export function PluginsAdmin() {
     setBusy(null);
   }
 
+  async function onSync() {
+    setBusy('sync');
+    setNotice(null);
+    try {
+      const res = await fetch('/api/system/sync-plugins', { method: 'POST' });
+      const data = (await res.json()) as { ok: boolean; error?: string; granted?: string };
+      if (!data.ok) {
+        setNotice({ kind: 'err', text: data.error ?? 'Sync failed' });
+      } else {
+        setNotice({
+          kind: 'ok',
+          text: `Plugin system ready. ${data.granted ?? ''} Refreshing…`,
+        });
+        refresh();
+      }
+    } catch {
+      setNotice({ kind: 'err', text: 'Sync failed' });
+    }
+    setBusy(null);
+  }
+
   async function onDelete(p: PluginListItem) {
     if (!window.confirm(`Delete plugin "${p.name}"? Its files will be removed.`)) return;
     setBusy(p.slug);
@@ -100,6 +121,18 @@ export function PluginsAdmin() {
             {busy === 'install' ? 'Installing…' : 'Install Plugin'}
           </button>
         </form>
+        <p className="v-muted" style={{ marginTop: 12 }}>
+          First time here?{' '}
+          <button
+            type="button"
+            className="v-btn v-btn--secondary"
+            disabled={busy === 'sync'}
+            onClick={() => void onSync()}
+          >
+            {busy === 'sync' ? 'Setting up…' : 'Initialize plugin system'}
+          </button>{' '}
+          Creates the database table and grants plugin permissions to Owner/Admin roles.
+        </p>
       </section>
 
       <section className="v-card">

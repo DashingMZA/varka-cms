@@ -107,6 +107,7 @@ const PERMISSIONS = [
   'users.read', 'users.create', 'users.update', 'users.disable',
   'languages.read', 'languages.manage',
   'audit.read', 'security.read', 'security.manage',
+  'plugins.read', 'plugins.install', 'plugins.activate', 'plugins.delete',
 ] as const;
 
 const ROLE_PERMS: Record<string, readonly string[]> = {
