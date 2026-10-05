@@ -1,0 +1,14 @@
+{
+  "selectAll": "Seleccionar todo",
+  "selectRow": "Seleccionar fila",
+  "noItems": "Sin elementos.",
+  "items": "elementos",
+  "item": "elemento",
+  "showing": "Mostrando",
+  "of": "de",
+  "bulkActions": "Acciones en lote",
+  "searchPlaceholder": "Buscar…",
+  "noItemsFound": "No se encontraron elementos.",
+  "screenOptions": "Opciones de pantalla",
+  "showOnScreen": "Mostrar en pantalla"
+}

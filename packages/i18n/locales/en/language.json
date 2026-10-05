@@ -22,5 +22,7 @@
   "script": "Script",
   "title": "Languages",
   "updateFailed": "Update failed ({status})",
-  "yes": "yes"
+  "yes": "yes",
+  "languages": "Languages",
+  "languagesDesc": "Manage locales for content and public URLs. Seed provides English; add Punjabi or others here."
 }

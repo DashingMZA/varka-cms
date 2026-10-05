@@ -23,5 +23,11 @@
   "itemUrl": "URL",
   "indent": "Sangrar",
   "outdent": "Anular sangría",
-  "menusSaved": "Menús guardados."
+  "menusSaved": "Menús guardados.",
+  "appearance": "Apariencia",
+  "appearanceDesc": "Gestiona temas, menús y áreas de widgets del sitio público.",
+  "menusDesc": "Crea menús de navegación y asígnalos a las ubicaciones del tema. Los cambios se guardan en los ajustes del sitio.",
+  "themesDescPrefix": "Activa un tema para el sitio público. Los temas siguen el contrato compartido en ",
+  "themesDescSuffix": ".",
+  "widgetsDesc": "Arrastra widgets a las zonas del tema. Los cambios se guardan en los ajustes del sitio."
 }

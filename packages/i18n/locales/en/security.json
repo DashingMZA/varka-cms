@@ -3,5 +3,19 @@
   "auditLog": "Audit log",
   "sessions": "Sessions",
   "rateLimits": "Rate limits",
-  "rateLimit": "Rate limiting"
+  "rateLimit": "Rate limiting",
+  "when": "When",
+  "action": "Action",
+  "actor": "Actor",
+  "entity": "Entity",
+  "ip": "IP",
+  "noAuditEvents": "No audit events yet. Activate a theme or moderate a comment to generate events.",
+  "loadFailedStatus": "Load failed ({status})",
+  "capabilityMatrix": "Capability matrix from ",
+  "permission": "Permission",
+  "capabilityMatrixSuffix": ". Owner holds all capabilities.",
+  "system": "System",
+  "systemDescPrefix": "Health, cache driver, queue depth, security audit. Background worker: ",
+  "systemDescSuffix": " (memory queue — process-local).",
+  "health": "Health"
 }

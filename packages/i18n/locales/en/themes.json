@@ -5,5 +5,12 @@
   "customize": "Customize",
   "noThemes": "No themes available.",
   "preview": "Live Preview",
-  "details": "Theme Details"
+  "details": "Theme Details",
+  "themesRegistered": "{count} themes registered (expect 10).",
+  "activatedTheme": "Activated {themeId}",
+  "activateFailed": "Activate failed ({status})",
+  "loadFailed": "Load failed ({status})",
+  "activeLabel": "Active:",
+  "publicSiteLabel": "Public site:",
+  "optionalEnvLabel": "optional env"
 }

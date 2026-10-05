@@ -22,5 +22,7 @@
   "script": "Escritura",
   "title": "Idiomas",
   "updateFailed": "Error al actualizar ({status})",
-  "yes": "sí"
+  "yes": "sí",
+  "languages": "Idiomas",
+  "languagesDesc": "Gestiona los idiomas del contenido y las URL públicas. La semilla incluye inglés; añade punyabí u otros aquí."
 }

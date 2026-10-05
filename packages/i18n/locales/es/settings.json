@@ -139,5 +139,12 @@
   "dataExport": "Exportación de datos personales",
   "allowDataExport": "Permitir solicitudes de exportación",
   "dataErasure": "Borrado de datos personales",
-  "allowDataErasure": "Permitir solicitudes de borrado"
+  "allowDataErasure": "Permitir solicitudes de borrado",
+  "autosave": "Autoguardado",
+  "autosaveDesc": "Retraso antes de guardar los borradores automáticamente (estilo WordPress). Los títulos vacíos nunca se guardan.",
+  "intervalSeconds": "Intervalo (segundos)",
+  "allowedRange": "Rango permitido: {min}s – {max}s",
+  "intervalSet": "Intervalo de autoguardado establecido en {s}s",
+  "saveSettings": "Guardar ajustes",
+  "saveFailed": "Error al guardar"
 }

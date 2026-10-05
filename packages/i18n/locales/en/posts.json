@@ -1,1 +1,27 @@
-{"allowComments":"Allow comments","allowTrackbacks":"Allow trackbacks and pingbacks","author":"Author","categories":"Categories","discussion":"Discussion","excerpt":"Excerpt","featuredImage":"Featured image","preview":"Preview","publish":"Publish","publishDate":"Publish date","saveDraft":"Save Draft","slug":"Slug","status":"Status","tags":"Tags","titlePlaceholder":"Add title","update":"Update","visibility":"Visibility"}
+{
+  "allowComments": "Allow comments",
+  "allowTrackbacks": "Allow trackbacks and pingbacks",
+  "author": "Author",
+  "categories": "Categories",
+  "discussion": "Discussion",
+  "excerpt": "Excerpt",
+  "featuredImage": "Featured image",
+  "preview": "Preview",
+  "publish": "Publish",
+  "publishDate": "Publish date",
+  "saveDraft": "Save Draft",
+  "slug": "Slug",
+  "status": "Status",
+  "tags": "Tags",
+  "titlePlaceholder": "Add title",
+  "update": "Update",
+  "visibility": "Visibility",
+  "creatingDraft": "Creating draft…",
+  "revisions": "Revisions",
+  "noRevisions": "No revisions yet. They appear after saves.",
+  "noTitle": "(no title)",
+  "restore": "Restore",
+  "restoreRevisionConfirm": "Restore this revision? Current content will be replaced.",
+  "restoreFailed": "Restore failed",
+  "loadRevisionsFailed": "Failed to load revisions"
+}

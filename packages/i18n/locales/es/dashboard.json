@@ -3,5 +3,15 @@
   "overview": "Resumen",
   "overviewBody": "De un vistazo muestra conteos en vivo de la base de datos. Actividad lista entradas, comentarios y eventos de auditoría recientes.",
   "navigation": "Navegación",
-  "navigationBody": "Usa el menú izquierdo para gestionar contenido, medios, usuarios y ajustes."
+  "navigationBody": "Usa el menú izquierdo para gestionar contenido, medios, usuarios y ajustes.",
+  "loadingHealth": "Cargando estado…",
+  "status": "Estado",
+  "cache": "Caché",
+  "database": "Base de datos",
+  "queueDepth": "Profundidad de cola",
+  "healthOk": "OK",
+  "healthDegraded": "DEGRADADO",
+  "lastCheck": "Última comprobación:",
+  "networkError": "Error de red",
+  "healthStatus": "Estado {status}"
 }

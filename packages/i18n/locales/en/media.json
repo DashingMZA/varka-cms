@@ -27,5 +27,10 @@
   "thumbnail": "Thumbnail",
   "medium": "Medium",
   "large": "Large",
-  "fullSize": "Full size"
+  "fullSize": "Full size",
+  "insertImage": "Insert image",
+  "insertMedia": "Insert media",
+  "size": "Size",
+  "selectImageHint": "Select an image, then choose size (thumbnail / medium / large / original).",
+  "insertIntoPost": "Insert into post"
 }

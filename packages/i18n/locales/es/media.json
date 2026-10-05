@@ -27,5 +27,10 @@
   "thumbnail": "Miniatura",
   "medium": "Mediano",
   "large": "Grande",
-  "fullSize": "Tamaño completo"
+  "fullSize": "Tamaño completo",
+  "insertImage": "Insertar imagen",
+  "insertMedia": "Insertar medio",
+  "size": "Tamaño",
+  "selectImageHint": "Selecciona una imagen y luego elige el tamaño (miniatura / mediano / grande / original).",
+  "insertIntoPost": "Insertar en la entrada"
 }

@@ -1,0 +1,16 @@
+{
+  "title": "Temas",
+  "activate": "Activar",
+  "active": "Activo",
+  "customize": "Personalizar",
+  "noThemes": "No hay temas disponibles.",
+  "preview": "Vista previa",
+  "details": "Detalles del tema",
+  "themesRegistered": "{count} temas registrados (se esperan 10).",
+  "activatedTheme": "{themeId} activado",
+  "activateFailed": "Error al activar ({status})",
+  "loadFailed": "Error al cargar ({status})",
+  "activeLabel": "Activo:",
+  "publicSiteLabel": "Sitio público:",
+  "optionalEnvLabel": "env opcional"
+}

@@ -1,0 +1,21 @@
+{
+  "title": "Seguridad",
+  "auditLog": "Registro de auditoría",
+  "sessions": "Sesiones",
+  "rateLimits": "Límites de velocidad",
+  "rateLimit": "Limitación de velocidad",
+  "when": "Fecha",
+  "action": "Acción",
+  "actor": "Actor",
+  "entity": "Entidad",
+  "ip": "IP",
+  "noAuditEvents": "Aún no hay eventos de auditoría. Activa un tema o modera un comentario para generar eventos.",
+  "loadFailedStatus": "Error al cargar ({status})",
+  "capabilityMatrix": "Matriz de capacidades de ",
+  "permission": "Permiso",
+  "capabilityMatrixSuffix": ". El propietario tiene todas las capacidades.",
+  "system": "Sistema",
+  "systemDescPrefix": "Salud, controlador de caché, profundidad de cola, auditoría de seguridad. Trabajador en segundo plano: ",
+  "systemDescSuffix": " (cola en memoria — local al proceso).",
+  "health": "Salud"
+}

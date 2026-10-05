@@ -139,5 +139,12 @@
   "dataExport": "Personal data export",
   "allowDataExport": "Allow personal data export requests",
   "dataErasure": "Personal data erasure",
-  "allowDataErasure": "Allow personal data erasure requests"
+  "allowDataErasure": "Allow personal data erasure requests",
+  "autosave": "Autosave",
+  "autosaveDesc": "Delay before drafts are saved automatically (WordPress-style). Empty titles are never saved.",
+  "intervalSeconds": "Interval (seconds)",
+  "allowedRange": "Allowed range: {min}s – {max}s",
+  "intervalSet": "Autosave interval set to {s}s",
+  "saveSettings": "Save settings",
+  "saveFailed": "Save failed"
 }

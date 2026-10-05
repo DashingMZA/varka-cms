@@ -5,5 +5,10 @@
   "items": "items",
   "item": "item",
   "showing": "Showing",
-  "of": "of"
+  "of": "of",
+  "bulkActions": "Bulk actions",
+  "searchPlaceholder": "Search…",
+  "noItemsFound": "No items found.",
+  "screenOptions": "Screen Options",
+  "showOnScreen": "Show on screen"
 }
