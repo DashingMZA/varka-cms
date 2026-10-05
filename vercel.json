@@ -1,6 +1,1 @@
-{
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "_comment": "Prefer Root Directory apps/admin + apps/admin/vercel.json. This file is fallback if project root is monorepo root.",
-  "installCommand": "corepack enable && pnpm install",
-  "buildCommand": "pnpm db:generate && pnpm --filter @varka/admin build"
-}
+{"$schema":"https://openapi.vercel.sh/vercel.json","buildCommand":"pnpm db:generate && pnpm --filter @varka/admin build","installCommand":"corepack enable && pnpm install"}

@@ -90,6 +90,19 @@ function loadRootEnv(): void {
 loadRootEnv();
 
 const WP_BASE = (process.env.WP_BASE_URL ?? 'https://celebrtiy.com/wp-json/wp/v2').replace(/\/$/, '');
+
+// WordPress REST API only exposes `status=publish` to anonymous requests —
+// asking for draft/pending/future/private without credentials returns
+// HTTP 400 "Status is forbidden." Optional Application-Password auth
+// (Users → Profile → Application Passwords in wp-admin) unlocks all statuses.
+const WP_USERNAME = process.env.WP_USERNAME ?? '';
+const WP_APP_PASSWORD = process.env.WP_APP_PASSWORD ?? '';
+const WP_HAS_AUTH = WP_USERNAME !== '' && WP_APP_PASSWORD !== '';
+const WP_AUTH_HEADER = WP_HAS_AUTH
+  ? `Basic ${Buffer.from(`${WP_USERNAME}:${WP_APP_PASSWORD}`).toString('base64')}`
+  : null;
+// Anonymous: only published content is visible. Authenticated: everything.
+const WP_STATUS_FILTER = WP_HAS_AUTH ? 'publish,draft,pending,future,private' : 'publish';
 const SITE_SLUG = process.env.IMPORT_SITE_SLUG ?? 'varka';
 const REQUEST_DELAY_MS = 250;
 const REQUEST_TIMEOUT_MS = 30_000;
@@ -173,7 +186,10 @@ async function fetchWithRetry(url: string): Promise<Response> {
     try {
       const res = await fetch(url, {
         signal: ctrl.signal,
-        headers: { 'User-Agent': 'VARKA-wp-import/1.0 (+https://celebrtiy.com)' },
+        headers: {
+          'User-Agent': 'VARKA-wp-import/1.0 (+https://celebrtiy.com)',
+          ...(WP_AUTH_HEADER ? { Authorization: WP_AUTH_HEADER } : {}),
+        },
       });
       if (!res.ok) {
         const body = await res.text().catch(() => '');
@@ -656,7 +672,7 @@ async function importPosts(siteId: string, languageId: string): Promise<void> {
   const posts = await wpGetAll<WpPost>(
     '/posts',
     'id,slug,status,date,modified,title,content,excerpt,featured_media,categories,tags,author,comment_status,_embedded',
-    '&orderby=id&order=asc&status=publish,draft,pending,future,private&_embed=author',
+    `&orderby=id&order=asc&status=${WP_STATUS_FILTER}&_embed=author`,
   );
   console.log(`[posts] fetched ${posts.length}`);
 
@@ -734,7 +750,7 @@ async function importPages(siteId: string, languageId: string): Promise<void> {
   const pages = await wpGetAll<WpPost>(
     '/pages',
     'id,slug,status,date,modified,title,content,excerpt,featured_media,parent,author,comment_status,_embedded',
-    '&orderby=id&order=asc&status=publish,draft,pending,future,private&_embed=author',
+    `&orderby=id&order=asc&status=${WP_STATUS_FILTER}&_embed=author`,
   );
   console.log(`[pages] fetched ${pages.length}: ${pages.map((p) => p.slug).join(', ')}`);
 
@@ -825,6 +841,9 @@ async function upsertSiteSettings(siteId: string): Promise<void> {
 
 async function main(): Promise<void> {
   console.log(`[import] source: ${WP_BASE}`);
+  console.log(
+    `[import] wp auth: ${WP_HAS_AUTH ? `enabled (${WP_USERNAME}) — importing statuses: ${WP_STATUS_FILTER}` : 'not set — importing published content only (set WP_USERNAME + WP_APP_PASSWORD for drafts)'}`,
+  );
   console.log(`[import] storage root: ${STORAGE_ROOT}`);
   console.log(`[import] media public base: ${MEDIA_PUBLIC_BASE}`);
 

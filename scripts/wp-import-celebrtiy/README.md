@@ -38,6 +38,12 @@ pnpm db:import:celebrtiy
 The script runs with `tsx` (already a devDependency of `@varka/database`; the same runner `packages/database` uses for its seed script). Optional env overrides:
 
 - `WP_BASE_URL` — WP REST base (default `https://celebrtiy.com/wp-json/wp/v2`)
+- `WP_USERNAME` + `WP_APP_PASSWORD` — optional WordPress Application Password
+  (wp-admin → Users → Profile → Application Passwords). **Without these, only
+  `publish` posts/pages are imported** — the WP REST API returns HTTP 400
+  "Status is forbidden" for draft/pending/future/private to anonymous callers.
+  With them set, all statuses are imported (draft→DRAFT, pending→PENDING_REVIEW,
+  future→SCHEDULED).
 - `IMPORT_SITE_SLUG` — target site (default `varka`)
 - `LOCAL_STORAGE_PATH` — where media files are written, relative to repo root (default `.storage`; must match the value `apps/admin` uses)
 - `MEDIA_PUBLIC_URL` — public URL prefix for stored media (default `/api/media/file`, which `apps/admin` serves at `src/app/api/media/file/[...key]`; must match the value `apps/admin` uses)
