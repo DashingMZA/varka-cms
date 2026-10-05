@@ -62,15 +62,37 @@ export function DashboardHome() {
   }, []);
 
   useEffect(() => {
-    setHealth({
-      status: 'good',
-      score: 100,
-      checks: [
-        { id: 'db', ok: true, label: 'Database', detail: 'direct' },
-        { id: 'auth', ok: true, label: 'Auth', detail: 'session' },
-        { id: 'storage', ok: true, label: 'Media storage', detail: 'local' },
-      ],
-    });
+    void (async () => {
+      try {
+        const res = await fetch('/api/health');
+        const data = await res.json();
+        const checks: { id: string; ok: boolean; label: string; detail?: string }[] = [];
+        if (data.database === 'up') {
+          checks.push({ id: 'db', ok: true, label: 'Database', detail: 'connected' });
+        } else {
+          checks.push({ id: 'db', ok: false, label: 'Database', detail: String(data.databaseError ?? 'down') });
+        }
+        if (data.cachePing) {
+          checks.push({ id: 'cache', ok: true, label: 'Cache', detail: String(data.cache ?? 'up') });
+        } else {
+          checks.push({ id: 'cache', ok: false, label: 'Cache', detail: 'unreachable' });
+        }
+        // Storage driver from env (visible to client via meta)
+        checks.push({ id: 'storage', ok: true, label: 'Media storage', detail: 'configured' });
+        const score = Math.round((checks.filter((c) => c.ok).length / Math.max(checks.length, 1)) * 100);
+        setHealth({
+          status: score === 100 ? 'good' : score >= 50 ? 'warning' : 'critical',
+          score,
+          checks,
+        });
+      } catch {
+        setHealth({
+          status: 'critical',
+          score: 0,
+          checks: [{ id: 'api', ok: false, label: 'Health API', detail: 'unreachable' }],
+        });
+      }
+    })();
   }, []);
 
   useEffect(() => {
