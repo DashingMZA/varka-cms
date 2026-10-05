@@ -51,6 +51,7 @@ function buildNav(t: (ns: 'nav' | 'common', key: string) => string): NavItem[] {
       ],
     },
     { href: '/comments', label: L(t, 'comments', 'Comments'), icon: '💬' },
+    { href: '/forms', label: L(t, 'forms', 'Forms'), icon: '✉' },
     {
       href: '/appearance',
       label: L(t, 'appearance', 'Appearance'),
