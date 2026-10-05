@@ -16,14 +16,24 @@ function fail(e: unknown): ActionResult<never> {
   return { ok: false, error: e instanceof Error ? e.message : 'Error' };
 }
 
-export async function listMediaAction(limit = 100): Promise<ActionResult<{ items: unknown[] }>> {
+export async function listMediaAction(
+  opts?: { cursor?: string; limit?: number },
+): Promise<ActionResult<{ items: unknown[]; nextCursor: string | null; hasMore: boolean }>> {
   try {
     const { ctx, siteId } = await requireServerAuth('media.read');
     const result = (await listMedia(prisma as never, ctx, {
       siteId,
-    })) as { items?: unknown[] };
-    const items = (result.items ?? []).slice(0, Math.min(limit, 200));
-    return { ok: true, data: { items: JSON.parse(JSON.stringify(items)) } };
+      cursor: opts?.cursor,
+      limit: opts?.limit ?? 40,
+    })) as { items?: unknown[]; nextCursor?: string | null; hasMore?: boolean };
+    return {
+      ok: true,
+      data: {
+        items: JSON.parse(JSON.stringify(result.items ?? [])),
+        nextCursor: result.nextCursor ?? null,
+        hasMore: result.hasMore ?? false,
+      },
+    };
   } catch (e) {
     return fail(e);
   }
