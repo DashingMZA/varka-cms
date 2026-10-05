@@ -25,5 +25,13 @@
   "importComplete": "Import complete",
   "warnings": "warnings",
   "uploadFile": "Upload file",
-  "importing": "Importing…"
+  "importing": "Importing…",
+  "scheduledActions": "Scheduled Actions",
+  "scheduledDesc": "Posts scheduled for future publishing.",
+  "noScheduled": "No scheduled posts.",
+  "scheduledFor": "Scheduled For",
+  "title": "Title",
+  "actions": "Actions",
+  "edit": "Edit",
+  "loading": "Loading…"
 }

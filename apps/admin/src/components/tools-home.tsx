@@ -28,6 +28,11 @@ export function ToolsHome() {
       desc: L(t, 'exportDesc', 'Download your content as a JSON file.'),
     },
     {
+      href: '/tools/scheduled',
+      title: L(t, 'scheduledActions', 'Scheduled Actions'),
+      desc: L(t, 'scheduledDesc', 'Posts scheduled for future publishing.'),
+    },
+    {
       href: '/system',
       title: L(t, 'siteHealth', 'Site Health'),
       desc: L(t, 'siteHealthDesc', 'Check your site health and system status.'),

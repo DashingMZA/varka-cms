@@ -25,5 +25,13 @@
   "importComplete": "اكتمل الاستيراد",
   "warnings": "تحذيرات",
   "uploadFile": "ارفع ملف",
-  "importing": "جارٍ الاستيراد…"
+  "importing": "جارٍ الاستيراد…",
+  "scheduledActions": "الإجراءات المجدولة",
+  "scheduledDesc": "المقالات المجدولة للنشر المستقبلي.",
+  "noScheduled": "لا توجد مقالات مجدولة.",
+  "scheduledFor": "مجدول لـ",
+  "title": "العنوان",
+  "actions": "إجراءات",
+  "edit": "تحرير",
+  "loading": "جارٍ التحميل…"
 }

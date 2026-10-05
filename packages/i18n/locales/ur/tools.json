@@ -25,5 +25,13 @@
   "importComplete": "امپورٹ مکمل",
   "warnings": "تنبیہات",
   "uploadFile": "فائل اپ لوڈ کریں",
-  "importing": "امپورٹ ہو رہا ہے…"
+  "importing": "امپورٹ ہو رہا ہے…",
+  "scheduledActions": "شیڈولڈ ایکشنز",
+  "scheduledDesc": "مستقبل میں شائع ہونے والی پوسٹس۔",
+  "noScheduled": "کوئی شیڈولڈ پوسٹ نہیں۔",
+  "scheduledFor": "شیڈول شدہ",
+  "title": "عنوان",
+  "actions": "ایکشنز",
+  "edit": "ترمیم",
+  "loading": "لوڈ ہو رہا ہے…"
 }

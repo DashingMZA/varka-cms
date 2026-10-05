@@ -83,6 +83,7 @@ function buildNav(t: (ns: 'nav' | 'common', key: string) => string): NavItem[] {
         { href: '/tools', label: L(t, 'availableTools', 'Available Tools') },
         { href: '/tools/import', label: L(t, 'import', 'Import') },
         { href: '/tools/export', label: L(t, 'export', 'Export') },
+        { href: '/tools/scheduled', label: L(t, 'scheduledActions', 'Scheduled Actions') },
         { href: '/system', label: L(t, 'siteHealth', 'Site Health') },
       ],
     },

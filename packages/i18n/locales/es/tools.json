@@ -25,5 +25,13 @@
   "importComplete": "Importación completa",
   "warnings": "advertencias",
   "uploadFile": "Subir archivo",
-  "importing": "Importando…"
+  "importing": "Importando…",
+  "scheduledActions": "Acciones programadas",
+  "scheduledDesc": "Entradas programadas para publicación futura.",
+  "noScheduled": "No hay entradas programadas.",
+  "scheduledFor": "Programado para",
+  "title": "Título",
+  "actions": "Acciones",
+  "edit": "Editar",
+  "loading": "Cargando…"
 }

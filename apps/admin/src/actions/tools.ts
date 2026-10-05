@@ -12,6 +12,26 @@ function fail(e: unknown): ActionResult<never> {
 
 export type ExportContentType = 'posts' | 'pages' | 'media' | 'categories' | 'tags' | 'comments';
 
+export async function listScheduledPostsAction(): Promise<
+  ActionResult<Array<{ id: string; scheduledAt: string | null; translations: Array<{ title: string; slug: string }> }>>
+> {
+  try {
+    const { siteId } = await requireServerAuth('tools.export');
+    const posts = await prisma.post.findMany({
+      where: { siteId, status: 'SCHEDULED', deletedAt: null },
+      select: {
+        id: true,
+        scheduledAt: true,
+        translations: { select: { title: true, slug: true } },
+      },
+      orderBy: { scheduledAt: 'asc' },
+    });
+    return { ok: true, data: JSON.parse(JSON.stringify(posts)) };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
 export async function importContentAction(
   json: string,
 ): Promise<ActionResult<{ imported: Record<string, number>; errors: string[] }>> {
