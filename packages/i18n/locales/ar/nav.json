@@ -20,5 +20,9 @@
   "languages": "اللغات",
   "seo": "SEO",
   "tools": "الأدوات",
-  "settings": "الإعدادات"
+  "settings": "الإعدادات",
+  "expandMenu": "توسيع القائمة",
+  "collapseMenu": "طي القائمة",
+  "expand": "توسيع",
+  "collapse": "طي"
 }

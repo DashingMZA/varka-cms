@@ -286,10 +286,10 @@ export function AdminNav(
           className="v-nav__collapse"
           onClick={toggleFold}
           aria-pressed={folded}
-          title={folded ? 'Expand menu' : 'Collapse menu'}
+          title={folded ? L(t, 'expandMenu', 'Expand menu') : L(t, 'collapseMenu', 'Collapse menu')}
         >
           {folded ? '»' : '«'}{' '}
-          <span className="v-nav__label">{folded ? 'Expand' : 'Collapse'}</span>
+          <span className="v-nav__label">{folded ? L(t, 'expand', 'Expand') : L(t, 'collapse', 'Collapse')}</span>
         </button>
         <button type="button" className="v-nav__signout" onClick={signOut}>
           <span className="v-nav__label">{t('common', 'signOut') || 'Sign out'}</span>

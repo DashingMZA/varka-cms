@@ -1,5 +1,6 @@
 'use client';
 
+import { useCallback, useMemo } from 'react';
 import {
   loadAllMessages,
   resolveLocale,
@@ -35,10 +36,13 @@ export function setStoredLocale(locale: AppLocale) {
  */
 export function useMessages(locale?: string) {
   const loc = resolveLocale(locale ?? getStoredLocale());
-  const messages = loadAllMessages(loc);
-  function t(ns: MessageNamespace, key: string, fallback?: string) {
-    return tPath(messages[ns] as MessageTree, key, fallback);
-  }
+  const messages = useMemo(() => loadAllMessages(loc), [loc]);
+  const t = useCallback(
+    (ns: MessageNamespace, key: string, fallback?: string) => {
+      return tPath(messages[ns] as MessageTree, key, fallback);
+    },
+    [messages],
+  );
   return { locale: loc, messages, t, isRtl: isRtlLocale(loc), locales: SUPPORTED_LOCALES };
 }
 

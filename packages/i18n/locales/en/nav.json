@@ -28,5 +28,9 @@
   "settingsDiscussion": "Discussion",
   "settingsMedia": "Media",
   "settingsPermalinks": "Permalinks",
-  "settingsPrivacy": "Privacy"
+  "settingsPrivacy": "Privacy",
+  "expandMenu": "Expand menu",
+  "collapseMenu": "Collapse menu",
+  "expand": "Expand",
+  "collapse": "Collapse"
 }
