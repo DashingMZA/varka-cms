@@ -61,3 +61,4 @@ export {
   type PublicPostDetail,
   type PublicPostsDb,
 } from './public-posts';
+export { runWordPressImport, buildImportConfig, type WordPressImportOptions, type WordPressImportConfig } from './wordpress-import';

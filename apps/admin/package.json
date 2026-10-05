@@ -30,6 +30,7 @@
     "@varka/i18n": "workspace:*",
     "@varka/media": "workspace:*",
     "@varka/permissions": "workspace:*",
+    "@varka/plugins": "workspace:*",
     "@varka/queue": "workspace:*",
     "@varka/security": "workspace:*",
     "@varka/themes": "workspace:*",

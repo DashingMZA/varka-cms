@@ -75,6 +75,7 @@ function buildNav(t: (ns: 'nav' | 'common', key: string) => string): NavItem[] {
     { href: '/languages', label: L(t, 'languages', 'Languages'), icon: '文' },
     { href: '/seo', label: L(t, 'seo', 'SEO'), icon: '◎' },
     { href: '/system', label: L(t, 'tools', 'Tools'), icon: '⚒' },
+    { href: '/plugins', label: L(t, 'plugins', 'Plugins'), icon: '🔌' },
     {
       href: '/settings',
       label: L(t, 'settings', 'Settings'),
@@ -101,16 +102,29 @@ function pathMatches(pathname: string, href: string): boolean {
   return pathname.startsWith(clean + '/');
 }
 
-export function AdminNav(props: { locale?: AppLocale | string } = {}) {
-  const { locale } = props;
+export function AdminNav(
+  props: {
+    locale?: AppLocale | string;
+    pluginMenu?: Array<{ slug: string; title: string; icon: string }>;
+  } = {},
+) {
+  const { locale, pluginMenu = [] } = props;
   const pathname = usePathname() || '';
   const { t, locale: resolvedLocale } = useMessages(locale);
   // Rebuild labels only when locale changes — not every render (t is unstable)
-  const NAV = useMemo(
-    () => buildNav((ns, key) => t(ns as 'nav', key)),
+  const NAV = useMemo(() => {
+    const base = buildNav((ns, key) => t(ns as 'nav', key));
+    // Append active plugin pages (e.g. "WP Import" → /plugins/wordpress-import)
+    for (const p of pluginMenu) {
+      base.push({
+        href: `/plugins/${p.slug}`,
+        label: p.title,
+        icon: p.icon || '🔌',
+      });
+    }
+    return base;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [resolvedLocale],
-  );
+  }, [resolvedLocale, pluginMenu]);
   const [folded, setFolded] = useState(false);
   const [open, setOpen] = useState<Record<string, boolean>>({});
 

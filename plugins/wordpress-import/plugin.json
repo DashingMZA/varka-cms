@@ -1,0 +1,15 @@
+{
+  "admin": {
+    "entry": "dist/entry.js",
+    "menuIcon": "\u21ea",
+    "menuTitle": "WP Import"
+  },
+  "author": "VARKA",
+  "autoActivate": true,
+  "description": "Import posts, pages, categories, tags, and media from any WordPress site via its REST API.",
+  "license": "MIT",
+  "name": "Import from WordPress",
+  "slug": "wordpress-import",
+  "varka": ">=1.0.0",
+  "version": "1.0.0"
+}

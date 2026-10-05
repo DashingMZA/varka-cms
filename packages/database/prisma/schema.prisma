@@ -525,3 +525,20 @@ model AuditLog {
   @@index([action, createdAt])
   @@index([entityType, entityId])
 }
+
+/// Installed plugin (WordPress-style). Files live in the plugin dir;
+/// this row tracks install state + activation.
+model Plugin {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  version     String
+  description String?
+  author      String?
+  active      Boolean  @default(false)
+  manifest    Json?
+  installedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([active])
+}

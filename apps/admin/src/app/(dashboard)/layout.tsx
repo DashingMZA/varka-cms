@@ -6,6 +6,7 @@ import { AdminNav } from '@/components/admin-nav';
 import { AdminTopbar } from '@/components/admin-topbar';
 import { HtmlAttrs } from '@/components/html-attrs';
 import { resolveSession } from '@/lib/resolve-session';
+import { getActivePluginMenuAction } from '@/actions/plugins';
 
 /** Never cache auth-gated chrome — otherwise post-login still hits a cached 307→/login */
 export const dynamic = 'force-dynamic';
@@ -43,13 +44,24 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   const locale = resolveLocale(jar.get('varka_locale')?.value ?? 'en');
   const dir = isRtlLocale(locale) ? 'rtl' : 'ltr';
 
+  // Active plugin menu entries (e.g. "WP Import") for the sidebar.
+  let pluginMenu: Array<{ slug: string; title: string; icon: string }> = [];
+  if (sessionUserId) {
+    try {
+      const r = await getActivePluginMenuAction();
+      if (r.ok) pluginMenu = r.data;
+    } catch {
+      /* nav renders without plugin entries */
+    }
+  }
+
   return (
     <div className="v-admin" data-admin-scheme={scheme} lang={locale} dir={dir}>
       <HtmlAttrs locale={locale} dir={dir} scheme={scheme} />
       <AdminTopbar locale={locale} />
       <aside className="v-sidebar">
         <div className="v-sidebar__brand">VARKA</div>
-        <AdminNav locale={locale} />
+        <AdminNav locale={locale} pluginMenu={pluginMenu} />
       </aside>
       <div className="v-main">{children}</div>
     </div>

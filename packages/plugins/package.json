@@ -1,0 +1,25 @@
+{
+  "name": "@varka/plugins",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "echo lint:@varka/plugins",
+    "build": "echo build:@varka/plugins"
+  },
+  "dependencies": {
+    "zod": "^4.6.5",
+    "adm-zip": "^0.5.16"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.4",
+    "typescript": "7.0.2",
+    "@types/adm-zip": "^0.5.7"
+  }
+}
