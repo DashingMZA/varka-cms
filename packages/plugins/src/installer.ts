@@ -13,6 +13,8 @@ type AdmZip = {
     getEntries(): Array<{
       entryName: string;
       isDirectory: boolean;
+      /** Central-directory header; size = declared uncompressed bytes. */
+      header: { size: number };
       getData(): Buffer;
     }>;
   };
@@ -25,7 +27,9 @@ export type InstallResult =
   | { ok: true; manifest: PluginManifest; replaced: boolean }
   | { ok: false; error: string };
 
-const MAX_ZIP_BYTES = 50 * 1024 * 1024; // 50 MB
+const MAX_ZIP_BYTES = 50 * 1024 * 1024; // 50 MB compressed
+const MAX_DECOMPRESSED_BYTES = 250 * 1024 * 1024; // 250 MB total decompressed (zip-bomb guard)
+const MAX_FILE_BYTES = 50 * 1024 * 1024; // 50 MB per file decompressed
 const MAX_FILES = 2000;
 
 /**
@@ -37,7 +41,7 @@ const MAX_FILES = 2000;
  *
  * Safety:
  * - rejects zip-slip paths (.., absolute, drive letters)
- * - caps file count and total size
+ * - caps file count, compressed size, per-file and total decompressed size (zip-bomb guard)
  * - validates plugin.json before touching the live plugin dir
  * - extracts to a temp dir, then atomically renames into place
  */
@@ -96,8 +100,10 @@ export async function installPluginFromZip(
     };
   }
 
-  // Validate every path before writing anything (zip-slip protection).
+  // Validate every path before writing anything (zip-slip protection),
+  // enforcing decompressed-size caps as we inflate (zip-bomb guard).
   const files: Array<{ rel: string; data: Buffer }> = [];
+  let decompressedTotal = 0;
   for (const e of entries) {
     if (prefix && !e.entryName.startsWith(prefix)) continue;
     const rel = prefix ? e.entryName.slice(prefix.length) : e.entryName;
@@ -110,7 +116,21 @@ export async function installPluginFromZip(
     ) {
       return { ok: false, error: `Unsafe path in ZIP: ${e.entryName}` };
     }
-    files.push({ rel, data: e.getData() });
+    // Fast pre-check on the declared uncompressed size, before inflating.
+    const declaredSize = e.header?.size ?? 0;
+    if (declaredSize > MAX_FILE_BYTES) {
+      return { ok: false, error: `File too large when decompressed: ${e.entryName}` };
+    }
+    const data = e.getData();
+    // Ground-truth check: headers can lie, the inflated buffer cannot.
+    if (data.length > MAX_FILE_BYTES) {
+      return { ok: false, error: `File too large when decompressed: ${e.entryName}` };
+    }
+    decompressedTotal += data.length;
+    if (decompressedTotal > MAX_DECOMPRESSED_BYTES) {
+      return { ok: false, error: 'ZIP contents exceed 250 MB when decompressed.' };
+    }
+    files.push({ rel, data });
   }
 
   // The compiled admin entry must exist.
