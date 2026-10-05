@@ -18,6 +18,8 @@ export async function listPostsAction(opts?: {
   limit?: number;
   page?: number;
   perPage?: number;
+  dateFilter?: string;
+  categoryId?: string;
 }): Promise<ActionResult<{ items: unknown[]; counts: Record<string, number>; total: number; page: number; perPage: number }>> {
   try {
     const { siteId } = await requireServerAuth('posts.read');
@@ -44,6 +46,23 @@ export async function listPostsAction(opts?: {
       };
     }
 
+    // Date filter (YYYY-MM format)
+    if (opts?.dateFilter) {
+      const [year, month] = opts.dateFilter.split('-').map(Number);
+      if (year && month) {
+        const start = new Date(year, month - 1, 1);
+        const end = new Date(year, month, 1);
+        where.publishedAt = { gte: start, lt: end };
+      }
+    }
+
+    // Category filter
+    if (opts?.categoryId) {
+      where.categories = {
+        some: { categoryId: opts.categoryId },
+      };
+    }
+
     const [items, total, all, published, draft, trashed] = await Promise.all([
       prisma.post.findMany({
         where: where as never,
@@ -58,6 +77,9 @@ export async function listPostsAction(opts?: {
           },
           tags: {
             include: { tag: { include: { translations: true } } },
+          },
+          _count: {
+            select: { comments: true },
           },
         },
       }),

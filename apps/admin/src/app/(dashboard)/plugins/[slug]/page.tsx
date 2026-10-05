@@ -16,8 +16,6 @@ async function loadPluginAdmin(slug: string): Promise<{
   Page: React.ComponentType<Record<string, unknown>>;
 } | null> {
   if (!/^[a-z0-9-]{2,64}$/.test(slug)) return null;
-  const row = await prisma.plugin.findUnique({ where: { slug } }).catch(() => null);
-  if (!row?.active) return null;
 
   const dir = pluginPath(slug);
   let manifest: PluginManifest;
@@ -27,6 +25,28 @@ async function loadPluginAdmin(slug: string): Promise<{
     return null;
   }
   if (manifest.slug !== slug) return null;
+
+  // Auto-activate bundled plugins (manifest autoActivate) that have no DB row yet.
+  // This ensures /plugins/[slug] works even if the list page was never visited.
+  let row = await prisma.plugin.findUnique({ where: { slug } }).catch(() => null);
+  if (!row && manifest.autoActivate) {
+    try {
+      row = await prisma.plugin.create({
+        data: {
+          slug,
+          name: manifest.name,
+          version: manifest.version,
+          description: manifest.description ?? null,
+          author: manifest.author ?? null,
+          active: true,
+          manifest: JSON.parse(JSON.stringify(manifest)),
+        },
+      });
+    } catch {
+      /* ignore — will 404 below if still inactive */
+    }
+  }
+  if (!row?.active) return null;
 
   const entryAbs = path.join(/*turbopackIgnore: true*/ dir, manifest.admin.entry);
   let mod: { default?: React.ComponentType<Record<string, unknown>> };

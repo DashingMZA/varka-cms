@@ -27,6 +27,8 @@ type Post = {
   version: number;
   publishedAt?: string | null;
   featuredImageId?: string | null;
+  visibility?: string;
+  password?: string | null;
   translations: Translation[];
   categories?: Array<{ categoryId: string }>;
   tags?: Array<{ tagId: string }>;
@@ -53,6 +55,8 @@ export function PostEditor({ postId }: { postId: string }) {
   const [seoTitle, setSeoTitle] = useState('');
   const [seoDescription, setSeoDescription] = useState('');
   const [status, setStatus] = useState('DRAFT');
+  const [visibility, setVisibility] = useState('PUBLIC');
+  const [postPassword, setPostPassword] = useState('');
   const [scheduledAt, setScheduledAt] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -92,6 +96,8 @@ export function PostEditor({ postId }: { postId: string }) {
       const data = result.data as Post;
       setPost(data);
       setStatus(data.status);
+      setVisibility(data.visibility || 'PUBLIC');
+      setPostPassword(data.password || '');
       const sched = (data as unknown as { scheduledAt?: string | null }).scheduledAt;
       if (sched) {
         const d = new Date(sched);
@@ -166,6 +172,8 @@ export function PostEditor({ postId }: { postId: string }) {
         languageId: tr.languageId,
         categoryIds,
         tagIds,
+        visibility,
+        password: visibility === 'PASSWORD' ? postPassword || null : null,
         ...(publish ? { status: 'PUBLISHED' } : { status }),
         ...(status === 'SCHEDULED' && scheduledAt
           ? { scheduledAt: new Date(scheduledAt).toISOString() }
@@ -179,6 +187,8 @@ export function PostEditor({ postId }: { postId: string }) {
       const data = result.data as Post;
       setPost(data);
       setStatus(data.status);
+      setVisibility(data.visibility || 'PUBLIC');
+      setPostPassword(data.password || '');
       if (!silent) {
         setMessage(
           publish
@@ -198,6 +208,8 @@ export function PostEditor({ postId }: { postId: string }) {
       seoTitle,
       seoDescription,
       status,
+      visibility,
+      postPassword,
       postId,
       categoryIds,
       tagIds,
@@ -207,7 +219,7 @@ export function PostEditor({ postId }: { postId: string }) {
 
   useAutosave(
     Boolean(post && title.trim()),
-    [title, slug, contentHtml, excerpt, seoTitle, seoDescription, categoryIds, tagIds, status],
+    [title, slug, contentHtml, excerpt, seoTitle, seoDescription, categoryIds, tagIds, status, visibility],
     () => save(false, true),
   );
 
@@ -331,6 +343,27 @@ export function PostEditor({ postId }: { postId: string }) {
                     <option value="PUBLISHED">{t('blogs', 'published')}</option>
                   </select>
                 </p>
+                <p style={{ margin: '0 0 8px' }}>
+                  {t('blogs', 'visibility', 'Visibility')}:{' '}
+                  <select value={visibility} onChange={(e) => setVisibility(e.target.value)}>
+                    <option value="PUBLIC">{t('blogs', 'visibilityPublic', 'Public')}</option>
+                    <option value="PRIVATE">{t('blogs', 'visibilityPrivate', 'Private')}</option>
+                    <option value="PASSWORD">{t('blogs', 'visibilityPassword', 'Password protected')}</option>
+                  </select>
+                </p>
+                {visibility === 'PASSWORD' ? (
+                  <p style={{ margin: '0 0 8px' }}>
+                    <label>
+                      {t('blogs', 'password', 'Password')}:{' '}
+                      <input
+                        type="text"
+                        value={postPassword}
+                        onChange={(e) => setPostPassword(e.target.value)}
+                        placeholder={t('blogs', 'passwordPlaceholder', 'Enter password')}
+                      />
+                    </label>
+                  </p>
+                ) : null}
                 {status === 'SCHEDULED' ? (
                   <p style={{ margin: '0 0 8px' }}>
                     <label>
@@ -349,6 +382,20 @@ export function PostEditor({ postId }: { postId: string }) {
                   </button>
                   <button
                     type="button"
+                    className="v-btn"
+                    onClick={() => {
+                      void save(false);
+                      // Open preview in new tab after save
+                      setTimeout(() => {
+                        window.open(`/api/preview/post/${postId}`, '_blank');
+                      }, 500);
+                    }}
+                    disabled={saving}
+                  >
+                    {t('blogs', 'preview', 'Preview')}
+                  </button>
+                  <button
+                    type="button"
                     className="v-btn v-btn--primary"
                     onClick={() => void save(true)}
                     disabled={saving}
@@ -356,6 +403,25 @@ export function PostEditor({ postId }: { postId: string }) {
                     {isPublished ? t('blogs', 'update') : t('blogs', 'publish')}
                   </button>
                 </div>
+                <p style={{ margin: '8px 0 0' }}>
+                  <button
+                    type="button"
+                    className="v-link-danger"
+                    onClick={async () => {
+                      if (!confirm(t('blogs', 'trashConfirm', 'Move this post to trash?'))) return;
+                      const { trashPostAction } = await import('@/actions/posts');
+                      const result = await trashPostAction(postId);
+                      if (result.ok) {
+                        window.location.href = '/content/posts';
+                      } else {
+                        setError(result.error || 'Trash failed');
+                      }
+                    }}
+                    style={{ color: '#b32d2e', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                  >
+                    {t('blogs', 'moveToTrash', 'Move to Trash')}
+                  </button>
+                </p>
               </div>
             </div>
           ) : null}

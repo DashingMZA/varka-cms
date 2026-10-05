@@ -250,6 +250,8 @@ model Post {
   authorProfileId String?
   featuredImageId String?
   status          ContentStatus @default(DRAFT)
+  visibility      String        @default("PUBLIC")
+  password        String?
   publishedAt     DateTime?
   scheduledAt     DateTime?
   deletedAt       DateTime?

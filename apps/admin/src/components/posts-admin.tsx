@@ -34,12 +34,15 @@ export function PostsAdmin() {
   const [counts, setCounts] = useState<Counts>({ all: 0, published: 0, draft: 0, trashed: 0 });
   const [status, setStatus] = useState('all');
   const [q, setQ] = useState('');
+  const [dateFilter, setDateFilter] = useState(''); // YYYY-MM format
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulk, setBulk] = useState('');
   const [bulkEditStatus, setBulkEditStatus] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [cols, setCols] = useState({ author: true, categories: true, tags: true, date: true });
+  const [cols, setCols] = useState({ author: true, categories: true, tags: true, date: true, comments: true, seo: true });
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const perPage = 20;
@@ -153,6 +156,8 @@ export function PostsAdmin() {
         perPage,
         status: status !== 'all' ? status.toUpperCase() : undefined,
         q: q.trim() || undefined,
+        dateFilter: dateFilter || undefined,
+        categoryId: categoryFilter || undefined,
       });
       if (!result.ok) {
         setError(t('errors', 'loadFailed') + `: ${result.error}`);
@@ -167,11 +172,27 @@ export function PostsAdmin() {
       setError(t('errors', 'networkError'));
     }
     setLoading(false);
-  }, [status, q, page, t]);
+  }, [status, q, dateFilter, categoryFilter, page, t]);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  // Load categories for filter dropdown
+  useEffect(() => {
+    void (async () => {
+      try {
+        const { listCategoriesAction } = await import('@/actions/taxonomy');
+        const result = await listCategoriesAction();
+        if (result.ok) {
+          const cats = (result.data.items as Array<{ id: string; translations?: Array<{ name?: string }> }>) ?? [];
+          setCategories(cats.map((c) => ({ id: c.id, name: c.translations?.[0]?.name || c.id })));
+        }
+      } catch {
+        /* ignore */
+      }
+    })();
+  }, []);
 
   const filtered = useMemo(() => {
     if (status === 'all') return items;
@@ -284,6 +305,18 @@ export function PostsAdmin() {
             checked: cols.date,
             onChange: () => toggleCol('date'),
           },
+          {
+            id: 'comments',
+            label: t('blogs', 'comments') || 'Comments',
+            checked: cols.comments,
+            onChange: () => toggleCol('comments'),
+          },
+          {
+            id: 'seo',
+            label: t('blogs', 'seoDetails') || 'SEO Details',
+            checked: cols.seo,
+            onChange: () => toggleCol('seo'),
+          },
         ]}
       />
 
@@ -332,6 +365,60 @@ export function PostsAdmin() {
           </select>
           <button type="button" className="v-btn" disabled={!bulk || selected.size === 0} onClick={() => void applyBulk()}>
             {t('common', 'apply') || 'Apply'}
+          </button>
+        </div>
+        {/* WordPress-style filters: date, category, Filter button */}
+        <div className="v-filters" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <select
+            value={dateFilter}
+            onChange={(e) => {
+              setDateFilter(e.target.value);
+              setPage(1);
+            }}
+            aria-label={t('blogs', 'filterByDate') || 'Filter by date'}
+          >
+            <option value="">{t('blogs', 'allDates') || 'All dates'}</option>
+            {(() => {
+              // Generate last 12 months
+              const months = [];
+              const now = new Date();
+              for (let i = 0; i < 12; i++) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                const label = d.toLocaleDateString(undefined, { year: 'numeric', month: 'long' });
+                months.push(
+                  <option key={val} value={val}>
+                    {label}
+                  </option>
+                );
+              }
+              return months;
+            })()}
+          </select>
+          <select
+            value={categoryFilter}
+            onChange={(e) => {
+              setCategoryFilter(e.target.value);
+              setPage(1);
+            }}
+            aria-label={t('blogs', 'filterByCategory') || 'Filter by category'}
+          >
+            <option value="">{t('blogs', 'allCategories') || 'All Categories'}</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            className="v-btn"
+            onClick={() => {
+              setPage(1);
+              void load();
+            }}
+          >
+            {t('common', 'filter') || 'Filter'}
           </button>
         </div>
         {bulk === 'edit' && selected.size > 0 ? (
@@ -406,8 +493,10 @@ export function PostsAdmin() {
             {cols.author ? <th>{t('blogs', 'author')}</th> : null}
             {cols.categories ? <th>{t('blogs', 'categories')}</th> : null}
             {cols.tags ? <th>{t('blogs', 'tags')}</th> : null}
+            {cols.comments ? <th style={{ textAlign: 'center' }}>💬</th> : null}
             <th>{t('blogs', 'status')}</th>
             {cols.date ? <th>{t('blogs', 'date')}</th> : null}
+            {cols.seo ? <th>{t('blogs', 'seoDetails') || 'SEO Details'}</th> : null}
           </tr>
         </thead>
         <tbody>
@@ -429,7 +518,9 @@ export function PostsAdmin() {
                 (cols.author ? 1 : 0) +
                 (cols.categories ? 1 : 0) +
                 (cols.tags ? 1 : 0) +
-                (cols.date ? 1 : 0);
+                (cols.comments ? 1 : 0) +
+                (cols.date ? 1 : 0) +
+                (cols.seo ? 1 : 0);
               return (
                 <Fragment key={p.id}>
                   <tr>
@@ -528,9 +619,46 @@ export function PostsAdmin() {
                   {cols.author ? <td>{p.author?.name || p.author?.email || '—'}</td> : null}
                   {cols.categories ? <td>—</td> : null}
                   {cols.tags ? <td>—</td> : null}
+                  {cols.comments ? (
+                    <td style={{ textAlign: 'center' }}>
+                      <Link href={`/comments?post=${p.id}`} title={t('blogs', 'comments') || 'Comments'}>
+                        {(p as { _count?: { comments?: number } })._count?.comments ?? '—'}
+                      </Link>
+                    </td>
+                  ) : null}
                   <td>{p.status}</td>
                   {cols.date ? (
                     <td>{p.publishedAt || p.updatedAt || '—'}</td>
+                  ) : null}
+                  {cols.seo ? (
+                    <td>
+                      {(() => {
+                        // Basic SEO score: title + excerpt + featured image
+                        const tr = p.translations?.[0];
+                        let score = 0;
+                        if (tr?.title && tr.title.length >= 10) score += 40;
+                        if ((p as { excerpt?: string }).excerpt) score += 30;
+                        if ((p as { seoTitle?: string }).seoTitle) score += 15;
+                        if ((p as { seoDescription?: string }).seoDescription) score += 15;
+                        const color = score >= 70 ? '#46b450' : score >= 40 ? '#ffb900' : '#dc3232';
+                        return (
+                          <span
+                            style={{
+                              display: 'inline-block',
+                              background: color,
+                              color: '#fff',
+                              padding: '2px 8px',
+                              borderRadius: 3,
+                              fontSize: 12,
+                              fontWeight: 600,
+                            }}
+                            title={`${score}/100`}
+                          >
+                            {score} / 100
+                          </span>
+                        );
+                      })()}
+                    </td>
                   ) : null}
                 </tr>
                 {quickEditId === p.id ? (

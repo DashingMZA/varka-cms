@@ -46,6 +46,8 @@ export const updatePostInput = z.object({
   seoTitle: z.string().max(300).optional().nullable(),
   seoDescription: z.string().max(500).optional().nullable(),
   status: z.enum(['DRAFT', 'PENDING_REVIEW', 'SCHEDULED', 'PUBLISHED', 'TRASHED']).optional(),
+  visibility: z.enum(['PUBLIC', 'PRIVATE', 'PASSWORD']).optional(),
+  password: z.string().max(100).optional().nullable(),
   scheduledAt: z.string().datetime().optional().nullable(),
   version: z.number().int().positive(),
   languageId: z.string().min(1),
@@ -272,6 +274,13 @@ export async function updatePost(
     // Allow updating scheduledAt without changing status
     if (input.scheduledAt !== undefined && input.status !== 'PUBLISHED') {
       publishFields.scheduledAt = input.scheduledAt ? new Date(input.scheduledAt) : null;
+    }
+    // Visibility / password protection (WordPress-style)
+    if (input.visibility !== undefined) {
+      publishFields.visibility = input.visibility;
+    }
+    if (input.password !== undefined) {
+      publishFields.password = input.password;
     }
 
     return tx.post.update({
