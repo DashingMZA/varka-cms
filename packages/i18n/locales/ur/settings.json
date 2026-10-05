@@ -28,7 +28,7 @@
   "mediaTitle": "میڈیا ترتیبات",
   "mediaDesc": "تصویری سائز کی حدود اور اپ لوڈ فولڈر کی تنظیم (ورڈپریس طرز).",
   "permalinksTitle": "پرما لنک ترتیبات",
-  "permalinksDesc": "خوبصورت لنکس کی ترتیبات۔",
+  "permalinksDesc": "اپنی ویب سائٹ کے لیے پرما لنک ساخت منتخب کریں. پوسٹ کا نام شامل کرنے سے لنکس سمجھنے میں آسان ہوتے ہیں اور SEO میں مدد مل سکتی ہے.",
   "privacyTitle": "رازداری ترتیبات",
   "privacyDesc": "پرائیویسی پالیسی صفحہ۔",
   "siteUrl": "سائٹ ایڈریس (URL)",
@@ -119,5 +119,17 @@
   "excerpt": "اقتباس",
   "searchVisibility": "سرچ انجن مرئیت",
   "discourageSearch": "سرچ انجنوں کو اس سائٹ کو انڈیکس کرنے سے روکیں",
-  "discourageHint": "اس درخواست کا احترام کرنا سرچ انجنوں پر منحصر ہے."
+  "discourageHint": "اس درخواست کا احترام کرنا سرچ انجنوں پر منحصر ہے.",
+  "commonSettings": "عام ترتیبات",
+  "structurePlain": "سادہ",
+  "structureDayName": "دن اور نام",
+  "structureMonthName": "مہینہ اور نام",
+  "structureNumeric": "عددی",
+  "structurePostName": "پوسٹ کا نام",
+  "structureCustom": "حسب ضرورت ساخت",
+  "customStructure": "حسب ضرورت ساخت",
+  "optional": "اختیاری",
+  "optionalDesc": "زمرہ اور ٹیگ URLs کے لیے حسب ضرورت بیس. طے شدہ کے لیے خالی چھوڑیں.",
+  "categoryBase": "زمرہ بیس",
+  "tagBase": "ٹیگ بیس"
 }

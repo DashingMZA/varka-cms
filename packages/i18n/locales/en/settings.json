@@ -28,7 +28,7 @@
   "mediaTitle": "Media Settings",
   "mediaDesc": "Image size limits and upload folder organization (WordPress-style).",
   "permalinksTitle": "Permalink Settings",
-  "permalinksDesc": "Common settings for pretty permalinks.",
+  "permalinksDesc": "Select the permalink structure for your website. Including the post name makes links easier to understand and can help SEO.",
   "privacyTitle": "Privacy Settings",
   "privacyDesc": "Privacy policy page and related options.",
   "siteUrl": "Site Address (URL)",
@@ -119,5 +119,17 @@
   "excerpt": "Excerpt",
   "searchVisibility": "Search engine visibility",
   "discourageSearch": "Discourage search engines from indexing this site",
-  "discourageHint": "It is up to search engines to honor this request."
+  "discourageHint": "It is up to search engines to honor this request.",
+  "commonSettings": "Common Settings",
+  "structurePlain": "Plain",
+  "structureDayName": "Day and name",
+  "structureMonthName": "Month and name",
+  "structureNumeric": "Numeric",
+  "structurePostName": "Post name",
+  "structureCustom": "Custom Structure",
+  "customStructure": "Custom structure",
+  "optional": "Optional",
+  "optionalDesc": "Custom bases for category and tag URLs. Leave blank for defaults.",
+  "categoryBase": "Category base",
+  "tagBase": "Tag base"
 }

@@ -1,6 +1,13 @@
 'use client';
 
 import { Field, SettingsForm, inputStyle } from '@/components/settings/settings-form';
+import { useMessages } from '@/lib/i18n';
+
+function L(t: (ns: 'settings' | 'common', key: string) => string, key: string, fallback: string): string {
+  const v = t('settings', key);
+  if (!v || v === key || v.startsWith('settings.')) return fallback;
+  return v;
+}
 
 const DEFAULTS = {
   structure: 'day-name',
@@ -9,28 +16,29 @@ const DEFAULTS = {
   tagBase: '',
 };
 
-const STRUCTURES: { id: string; label: string; example: string }[] = [
-  { id: 'plain', label: 'Plain', example: '/?p=123' },
-  { id: 'day-name', label: 'Day and name', example: '/2026/09/17/sample-post/' },
-  { id: 'month-name', label: 'Month and name', example: '/2026/09/sample-post/' },
-  { id: 'numeric', label: 'Numeric', example: '/archives/123' },
-  { id: 'post-name', label: 'Post name', example: '/sample-post/' },
-  { id: 'custom', label: 'Custom Structure', example: '/%year%/%monthnum%/%day%/%postname%/' },
-];
 
 export default function PermalinksSettingsPage() {
+  const { t } = useMessages();
+  const STRUCTURES_T = [
+    { id: 'plain', label: L(t, 'structurePlain', 'Plain'), example: '/?p=123' },
+    { id: 'day-name', label: L(t, 'structureDayName', 'Day and name'), example: '/2026/09/17/sample-post/' },
+    { id: 'month-name', label: L(t, 'structureMonthName', 'Month and name'), example: '/2026/09/sample-post/' },
+    { id: 'numeric', label: L(t, 'structureNumeric', 'Numeric'), example: '/archives/123' },
+    { id: 'post-name', label: L(t, 'structurePostName', 'Post name'), example: '/sample-post/' },
+    { id: 'custom', label: L(t, 'structureCustom', 'Custom Structure'), example: '/%year%/%monthnum%/%day%/%postname%/' },
+  ];
   return (
     <SettingsForm
       group="permalinks"
-      title="Permalink Settings"
-      description="Select the permalink structure for your website. Including the post name makes links easier to understand and can help SEO."
+      title={L(t, 'permalinksTitle', 'Permalink Settings')}
+      description={L(t, 'permalinksDesc', 'Select the permalink structure for your website.')}
       defaults={DEFAULTS}
     >
       {(v, set) => (
         <>
-          <Field label="Common Settings">
+          <Field label={L(t, 'commonSettings', 'Common Settings')}>
             <div style={{ display: 'grid', gap: 10 }}>
-              {STRUCTURES.map((s) => (
+              {STRUCTURES_T.map((s) => (
                 <label
                   key={s.id}
                   style={{
@@ -58,7 +66,7 @@ export default function PermalinksSettingsPage() {
             </div>
           </Field>
           {v.structure === 'custom' ? (
-            <Field label="Custom structure">
+            <Field label={L(t, 'customStructure', 'Custom structure')}>
               <input
                 style={{ ...inputStyle, maxWidth: 480, fontFamily: 'monospace' }}
                 value={String(v.customStructure ?? '')}
@@ -66,11 +74,11 @@ export default function PermalinksSettingsPage() {
               />
             </Field>
           ) : null}
-          <h2 style={{ fontSize: 15, margin: '8px 0 0' }}>Optional</h2>
+          <h2 style={{ fontSize: 15, margin: '8px 0 0' }}>{L(t, 'optional', 'Optional')}</h2>
           <p style={{ margin: 0, fontSize: 13, color: 'var(--muted)' }}>
-            Custom bases for category and tag URLs. Leave blank for defaults.
+            {L(t, 'optionalDesc', 'Custom bases for category and tag URLs. Leave blank for defaults.')}
           </p>
-          <Field label="Category base">
+          <Field label={L(t, 'categoryBase', 'Category base')}>
             <input
               style={inputStyle}
               value={String(v.categoryBase ?? '')}
@@ -78,7 +86,7 @@ export default function PermalinksSettingsPage() {
               placeholder="topics"
             />
           </Field>
-          <Field label="Tag base">
+          <Field label={L(t, 'tagBase', 'Tag base')}>
             <input
               style={inputStyle}
               value={String(v.tagBase ?? '')}

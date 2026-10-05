@@ -28,7 +28,7 @@
   "mediaTitle": "إعدادات الوسائط",
   "mediaDesc": "حدود حجم الصور وتنظيم مجلد الرفع (بأسلوب ووردبريس).",
   "permalinksTitle": "إعدادات الروابط الدائمة",
-  "permalinksDesc": "روابط جميلة.",
+  "permalinksDesc": "اختر هيكل الروابط الدائمة لموقعك. تضمين اسم المقال يجعل الروابط أسهل للفهم ويمكن أن يساعد SEO.",
   "privacyTitle": "إعدادات الخصوصية",
   "privacyDesc": "صفحة سياسة الخصوصية.",
   "siteUrl": "عنوان الموقع (URL)",
@@ -119,5 +119,17 @@
   "excerpt": "المقتطف",
   "searchVisibility": "ظهور محرك البحث",
   "discourageSearch": "تثبيط محركات البحث عن فهرسة هذا الموقع",
-  "discourageHint": "الأمر متروك لمحركات البحث لاحترام هذا الطلب."
+  "discourageHint": "الأمر متروك لمحركات البحث لاحترام هذا الطلب.",
+  "commonSettings": "الإعدادات الشائعة",
+  "structurePlain": "عادي",
+  "structureDayName": "اليوم والاسم",
+  "structureMonthName": "الشهر والاسم",
+  "structureNumeric": "رقمي",
+  "structurePostName": "اسم المقال",
+  "structureCustom": "هيكل مخصص",
+  "customStructure": "هيكل مخصص",
+  "optional": "اختياري",
+  "optionalDesc": "قواعد مخصصة لروابط التصنيفات والوسوم. اتركها فارغة للافتراضي.",
+  "categoryBase": "قاعدة التصنيف",
+  "tagBase": "قاعدة الوسم"
 }
