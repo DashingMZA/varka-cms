@@ -94,14 +94,24 @@ async function loadOrganizeByYm(db: MediaDb, siteId: string): Promise<boolean> {
 export async function listMedia(
   db: MediaDb,
   ctx: AuthContext,
-  opts: { siteId: string; cursor?: string; limit?: number; folder?: string },
+  opts: { siteId: string; cursor?: string; limit?: number; folder?: string; mimePrefix?: string; month?: string },
 ) {
   requirePermission(ctx, 'media.read');
   const limit = Math.min(opts.limit ?? 40, 100);
+  // month filter: "YYYY-MM"
+  let dateWhere: Record<string, unknown> | undefined;
+  if (opts.month && /^\d{4}-\d{2}$/.test(opts.month)) {
+    const [y, m] = opts.month.split('-').map(Number) as [number, number];
+    const start = new Date(Date.UTC(y, m - 1, 1));
+    const end = new Date(Date.UTC(y, m, 1));
+    dateWhere = { gte: start, lt: end };
+  }
   const items = (await db.mediaAsset.findMany({
     where: {
       siteId: opts.siteId,
       ...(opts.folder ? { folder: opts.folder } : {}),
+      ...(opts.mimePrefix ? { mimeType: { startsWith: opts.mimePrefix } } : {}),
+      ...(dateWhere ? { createdAt: dateWhere } : {}),
     },
     take: limit + 1,
     ...(opts.cursor ? { cursor: { id: opts.cursor }, skip: 1 } : {}),
