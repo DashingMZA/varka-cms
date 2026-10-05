@@ -34,6 +34,9 @@ export function PostsAdmin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cols, setCols] = useState({ author: true, categories: true, tags: true, date: true });
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const perPage = 20;
 
   useEffect(() => {
     try {
@@ -61,7 +64,8 @@ export function PostsAdmin() {
     setError(null);
     try {
       const result = await listPostsAction({
-        limit: 100,
+        page,
+        perPage,
         status: status !== 'all' ? status.toUpperCase() : undefined,
         q: q.trim() || undefined,
       });
@@ -72,12 +76,13 @@ export function PostsAdmin() {
       }
       setItems((result.data.items as PostRow[]) ?? []);
       setCounts((result.data.counts as Counts) ?? counts);
+      setTotal(result.data.total ?? 0);
       setSelected(new Set());
     } catch {
       setError(t('errors', 'networkError'));
     }
     setLoading(false);
-  }, [status, q, t]);
+  }, [status, q, page, t]);
 
   useEffect(() => {
     void load();
@@ -306,6 +311,27 @@ export function PostsAdmin() {
           )}
         </tbody>
       </table>
+      {total > perPage ? (
+        <div className="v-pagination" style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, justifyContent: 'center' }}>
+          <button
+            className="v-btn v-btn--small"
+            disabled={page <= 1 || loading}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+          >
+            ← {t('common', 'previous')}
+          </button>
+          <span className="v-muted" style={{ fontSize: 13 }}>
+            {t('common', 'page')} {page} {t('common', 'of')} {Math.ceil(total / perPage)} ({total} {t('common', 'items')})
+          </span>
+          <button
+            className="v-btn v-btn--small"
+            disabled={page >= Math.ceil(total / perPage) || loading}
+            onClick={() => setPage((p) => p + 1)}
+          >
+            {t('common', 'next')} →
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -63,5 +63,8 @@
   "submit": "Submit",
   "signOut": "Sign out",
   "untitled": "Untitled",
-  "selectAll": "Select all"
+  "selectAll": "Select all",
+  "page": "Page",
+  "of": "of",
+  "items": "items"
 }

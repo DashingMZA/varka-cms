@@ -63,5 +63,8 @@
   "submit": "Enviar",
   "signOut": "Cerrar sesión",
   "untitled": "Sin título",
-  "selectAll": "Seleccionar todo"
+  "selectAll": "Seleccionar todo",
+  "page": "Página",
+  "of": "de",
+  "items": "elementos"
 }

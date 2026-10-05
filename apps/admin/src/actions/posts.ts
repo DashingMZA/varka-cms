@@ -16,10 +16,14 @@ export async function listPostsAction(opts?: {
   status?: string;
   q?: string;
   limit?: number;
-}): Promise<ActionResult<{ items: unknown[]; counts: Record<string, number> }>> {
+  page?: number;
+  perPage?: number;
+}): Promise<ActionResult<{ items: unknown[]; counts: Record<string, number>; total: number; page: number; perPage: number }>> {
   try {
     const { siteId } = await requireServerAuth('posts.read');
-    const limit = Math.min(opts?.limit ?? 100, 200);
+    const perPage = Math.min(opts?.perPage ?? 20, 100);
+    const page = Math.max(opts?.page ?? 1, 1);
+    const limit = Math.min(opts?.limit ?? perPage, 200);
     const status = opts?.status && opts.status !== 'all' ? opts.status.toUpperCase() : undefined;
     const q = opts?.q?.trim();
 
@@ -40,10 +44,11 @@ export async function listPostsAction(opts?: {
       };
     }
 
-    const [items, all, published, draft, trashed] = await Promise.all([
+    const [items, total, all, published, draft, trashed] = await Promise.all([
       prisma.post.findMany({
         where: where as never,
         take: limit,
+        skip: (page - 1) * perPage,
         orderBy: { updatedAt: 'desc' },
         include: {
           translations: true,
@@ -56,6 +61,7 @@ export async function listPostsAction(opts?: {
           },
         },
       }),
+      prisma.post.count({ where: where as never }),
       prisma.post.count({ where: { siteId, deletedAt: null } }),
       prisma.post.count({ where: { siteId, deletedAt: null, status: 'PUBLISHED' } }),
       prisma.post.count({ where: { siteId, deletedAt: null, status: 'DRAFT' } }),
@@ -67,6 +73,9 @@ export async function listPostsAction(opts?: {
       data: {
         items: JSON.parse(JSON.stringify(items)),
         counts: { all, published, draft, trashed },
+        total,
+        page,
+        perPage,
       },
     };
   } catch (e) {
