@@ -176,25 +176,20 @@ export function AdminNav(
   const [folded, setFolded] = useState(false);
   const [open, setOpen] = useState<Record<string, boolean>>({});
 
-  // Open parent for current path; only setState when a section actually opens
+  // WordPress behavior: only the section matching current path stays open.
+  // When navigating to a different section, previous sections auto-close.
   useEffect(() => {
-    const parents = ['/content', '/content/pages', '/appearance', '/users', '/settings'] as const;
-    setOpen((prev) => {
-      let changed = false;
-      const next = { ...prev };
-      for (const href of parents) {
-        let shouldOpen = pathname === href || pathname.startsWith(`${href}/`);
-        // Posts section must not auto-open on Pages routes
-        if (href === '/content' && pathname.startsWith('/content/pages')) {
-          shouldOpen = false;
-        }
-        if (shouldOpen && !next[href]) {
-          next[href] = true;
-          changed = true;
-        }
+    const parents = ['/content', '/content/pages', '/appearance', '/users', '/settings', '/seo', '/tools', '/plugins', '/forms', '/media'] as const;
+    const next: Record<string, boolean> = {};
+    for (const href of parents) {
+      let shouldOpen = pathname === href || pathname.startsWith(`${href}/`);
+      // Posts section must not auto-open on Pages routes
+      if (href === '/content' && pathname.startsWith('/content/pages')) {
+        shouldOpen = false;
       }
-      return changed ? next : prev;
-    });
+      if (shouldOpen) next[href] = true;
+    }
+    setOpen(next);
   }, [pathname]);
 
   useEffect(() => {
