@@ -12,34 +12,43 @@ function fail(e: unknown): ActionResult<never> {
 export async function listPagesAction(opts?: {
   q?: string;
   limit?: number;
-}): Promise<ActionResult<{ items: unknown[] }>> {
+  page?: number;
+  perPage?: number;
+}): Promise<ActionResult<{ items: unknown[]; total: number; page: number; perPage: number }>> {
   try {
     const { siteId } = await requireServerAuth('pages.read');
     const q = opts?.q?.trim();
-    const items = await prisma.page.findMany({
-      where: {
-        siteId,
-        ...(q
-          ? {
-              translations: {
-                some: {
-                  OR: [
-                    { title: { contains: q, mode: 'insensitive' } },
-                    { slug: { contains: q, mode: 'insensitive' } },
-                  ],
-                },
+    const perPage = Math.min(opts?.perPage ?? 20, 100);
+    const page = Math.max(opts?.page ?? 1, 1);
+    const where = {
+      siteId,
+      ...(q
+        ? {
+            translations: {
+              some: {
+                OR: [
+                  { title: { contains: q, mode: 'insensitive' } },
+                  { slug: { contains: q, mode: 'insensitive' } },
+                ],
               },
-            }
-          : {}),
-      },
-      take: Math.min(opts?.limit ?? 100, 200),
-      orderBy: { updatedAt: 'desc' },
-      include: {
-        translations: true,
-        author: { select: { id: true, name: true, email: true } },
-      },
-    });
-    return { ok: true, data: { items: JSON.parse(JSON.stringify(items)) } };
+            },
+          }
+        : {}),
+    };
+    const [items, total] = await Promise.all([
+      prisma.page.findMany({
+        where: where as never,
+        take: Math.min(opts?.limit ?? perPage, 200),
+        skip: (page - 1) * perPage,
+        orderBy: { updatedAt: 'desc' },
+        include: {
+          translations: true,
+          author: { select: { id: true, name: true, email: true } },
+        },
+      }),
+      prisma.page.count({ where: where as never }),
+    ]);
+    return { ok: true, data: { items: JSON.parse(JSON.stringify(items)), total, page, perPage } };
   } catch (e) {
     return fail(e);
   }

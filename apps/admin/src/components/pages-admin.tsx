@@ -30,6 +30,9 @@ export function PagesAdmin() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const perPage = 20;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -37,7 +40,8 @@ export function PagesAdmin() {
     try {
       const result = await listPagesAction({
         q: q.trim() || undefined,
-        limit: 100,
+        page,
+        perPage,
       });
       if (!result.ok) {
         setError(t('errors', 'loadFailed') + `: ${result.error}`);
@@ -50,6 +54,7 @@ export function PagesAdmin() {
         list = list.filter((p) => p.status === status.toUpperCase());
       }
       setItems(list);
+      setTotal(result.data.total ?? 0);
       setCounts({
         all: allItems.length,
         published: allItems.filter((p) => p.status === 'PUBLISHED').length,
@@ -61,7 +66,7 @@ export function PagesAdmin() {
       setError(t('errors', 'networkError'));
     }
     setLoading(false);
-  }, [status, q, t]);
+  }, [status, q, page, t]);
 
   useEffect(() => {
     void load();
@@ -241,6 +246,27 @@ export function PagesAdmin() {
             )}
           </tbody>
         </table>
+        {total > perPage ? (
+          <div className="v-pagination" style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, justifyContent: 'center' }}>
+            <button
+              className="v-btn v-btn--small"
+              disabled={page <= 1 || loading}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              ← {t('common', 'previous')}
+            </button>
+            <span className="v-muted" style={{ fontSize: 13 }}>
+              {t('common', 'page')} {page} {t('common', 'of')} {Math.ceil(total / perPage)} ({total} {t('common', 'items')})
+            </span>
+            <button
+              className="v-btn v-btn--small"
+              disabled={page >= Math.ceil(total / perPage) || loading}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              {t('common', 'next')} →
+            </button>
+          </div>
+        ) : null}
       </div>
     </div>
   );
