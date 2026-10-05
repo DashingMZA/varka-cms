@@ -24,6 +24,7 @@
     "@varka/cache": "workspace:*",
     "@varka/security": "workspace:*",
     "better-auth": "^1.3.7",
+    "zod": "^4.6.5",
     "@node-rs/argon2": "^2.0.2"
   },
   "devDependencies": {

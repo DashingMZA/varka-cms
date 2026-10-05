@@ -1,0 +1,133 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CelebrtiyLayout from '../../celebrtiy/layouts/CelebrtiyLayout.astro';
+import {
+  isCelebrtiyTheme,
+  getSiteInfo,
+  getNavCategories,
+  getFooterPages,
+  getCategoryBySlug,
+  getPostsByCategory,
+  getSidebarPicks,
+} from '../../celebrtiy/lib/data';
+import BreadcrumbHero from '../../celebrtiy/components/BreadcrumbHero.astro';
+import PostCard from '../../celebrtiy/components/PostCard.astro';
+import CardRow from '../../celebrtiy/components/CardRow.astro';
+import Pagination from '../../celebrtiy/components/Pagination.astro';
+
+const { slug } = Astro.params;
+const celebrtiy = await isCelebrtiyTheme();
+
+const PER_PAGE = 12;
+const rawPage = Number.parseInt(Astro.url.searchParams.get('page') ?? '1', 10);
+const pageNum = Number.isFinite(rawPage) && rawPage > 0 ? rawPage : 1;
+
+const cat = slug ? await getCategoryBySlug(String(slug)) : null;
+if (!cat) {
+  Astro.response.status = 404;
+}
+const { posts, total } = cat
+  ? await getPostsByCategory(cat.slug, PER_PAGE, (pageNum - 1) * PER_PAGE)
+  : { posts: [], total: 0 };
+const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+
+const site = celebrtiy ? await getSiteInfo() : null;
+const nav = celebrtiy ? await getNavCategories() : [];
+const footerPages = celebrtiy ? await getFooterPages() : [];
+const picks = celebrtiy ? await getSidebarPicks(4) : [];
+
+const title = cat ? `${cat.name} — ${total} ${total === 1 ? 'post' : 'posts'}` : 'Category not found';
+const description = cat?.description ?? '';
+---
+{celebrtiy && site ? (
+  <CelebrtiyLayout
+    title={cat?.name ?? 'Category not found'}
+    description={description}
+    path={cat?.path ?? `/category/${slug}`}
+    type="website"
+    noindex={!cat}
+    siteName={site.name}
+    tagline={site.tagline}
+    footerText={site.footerText}
+    navCategories={nav}
+    footerPages={footerPages}
+  >
+    {cat ? (
+      <>
+        <BreadcrumbHero
+          crumbs={[{ label: 'Home', href: '/' }, { label: cat.name }]}
+          title={cat.name}
+        />
+        <div class="celebrtiy-container">
+          {cat.description ? (
+            <section class="celebrtiy-section" style="padding-bottom:0;">
+              <div class="celebrtiy-cat-block">
+                <p>{cat.description}</p>
+              </div>
+            </section>
+          ) : null}
+          <section class="celebrtiy-section">
+            <div class="celebrtiy-card-row">
+              {posts.map((p) => (
+                <PostCard post={p} />
+              ))}
+            </div>
+            {posts.length === 0 ? (
+              <p class="celebrtiy-more-info">No posts in this category yet.</p>
+            ) : null}
+            <Pagination page={pageNum} totalPages={totalPages} base={cat.path} />
+          </section>
+        </div>
+        <CardRow title="Top Picks For You" posts={picks} />
+      </>
+    ) : (
+      <>
+        <BreadcrumbHero
+          crumbs={[{ label: 'Home', href: '/' }, { label: 'Not Found' }]}
+          title="Category Not Found"
+        />
+        <div class="celebrtiy-container">
+          <section class="celebrtiy-section">
+            <p class="celebrtiy-more-info">This category does not exist.</p>
+            <p style="margin-top:1.5rem;">
+              <a class="celebrtiy-btn" href="/">Back to Home</a>
+            </p>
+          </section>
+        </div>
+      </>
+    )}
+  </CelebrtiyLayout>
+) : (
+  <BaseLayout
+    title={cat?.name ?? 'Category not found'}
+    description={description}
+    path={cat?.path ?? `/category/${slug}`}
+    type="website"
+    noindex={!cat}
+  >
+    <div class="container">
+      <h1 class="post-title">{cat?.name ?? 'Category not found'}</h1>
+      {cat?.description ? <p class="post-meta">{cat.description}</p> : null}
+      <div class="prose">
+        {posts.length === 0 ? (
+          <p>No posts in this category yet.</p>
+        ) : (
+          <ul>
+            {posts.map((p) => (
+              <li>
+                <a href={p.path}>{p.title}</a>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      {totalPages > 1 ? (
+        <p class="post-meta">
+          Page {pageNum} of {totalPages}
+          {pageNum > 1 ? <a href={`${cat?.path}?page=${pageNum - 1}`}> ← Prev</a> : null}
+          {pageNum < totalPages ? <a href={`${cat?.path}?page=${pageNum + 1}`}> Next →</a> : null}
+        </p>
+      ) : null}
+    </div>
+  </BaseLayout>
+)}

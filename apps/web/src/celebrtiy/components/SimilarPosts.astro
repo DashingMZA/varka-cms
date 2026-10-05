@@ -1,0 +1,18 @@
+---
+import TabCarousel from './TabCarousel.astro';
+import type { CelebrtiyPostCard } from '../lib/data';
+
+interface Props {
+  posts: CelebrtiyPostCard[];
+}
+
+const { posts } = Astro.props;
+---
+{posts.length > 0 ? (
+  <div class="celebrtiy-similar">
+    <div class="celebrtiy-container">
+      <h2 class="celebrtiy-section-title">Similar Posts</h2>
+      <TabCarousel id="similar-posts" posts={posts} />
+    </div>
+  </div>
+) : null}

@@ -1,30 +1,151 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import CelebrtiyLayout from '../celebrtiy/layouts/CelebrtiyLayout.astro';
 import { activeTheme } from '../lib/theme';
 import { fetchPublishedPosts } from '../lib/content-api';
+import {
+  isCelebrtiyTheme,
+  getSiteInfo,
+  getNavCategories,
+  getFooterPages,
+  getFeaturedPosts,
+  getLatestPosts,
+  getPostsByCategory,
+  listCategories,
+  type CelebrtiyPostCard,
+  type CelebrtiySiteInfo,
+  type CelebrtiyNavCategory,
+  type CelebrtiyFooterPage,
+  type CelebrtiyCategory,
+} from '../celebrtiy/lib/data';
+import FeaturedGrid from '../celebrtiy/components/FeaturedGrid.astro';
+import CategoryQuickLinks from '../celebrtiy/components/CategoryQuickLinks.astro';
+import CardRow from '../celebrtiy/components/CardRow.astro';
+import CategoryBlock from '../celebrtiy/components/CategoryBlock.astro';
+import TabCarousel from '../celebrtiy/components/TabCarousel.astro';
+import MoreInfo from '../celebrtiy/components/MoreInfo.astro';
 
+const celebrtiy = await isCelebrtiyTheme();
+
+/* Generic-theme data (unchanged behavior) */
 const theme = activeTheme();
 const themeName = theme?.manifest?.name ?? 'Clean Editorial';
-const posts = await fetchPublishedPosts(10);
+const posts = celebrtiy ? [] : await fetchPublishedPosts(10);
+
+/* Celebrtiy homepage data */
+let site: CelebrtiySiteInfo | null = null;
+let nav: CelebrtiyNavCategory[] = [];
+let footerPages: CelebrtiyFooterPage[] = [];
+let featured: CelebrtiyPostCard[] = [];
+let latest: CelebrtiyPostCard[] = [];
+let randomPool: CelebrtiyPostCard[] = [];
+let tabs: Array<{ label: string; slug: string }> = [];
+let catSections: Array<{ cat: CelebrtiyNavCategory; description: string | null; posts: CelebrtiyPostCard[] }> = [];
+
+if (celebrtiy) {
+  const [siteInfo, navCats, footPages, featuredPosts, latestPosts, cats] =
+    await Promise.all([
+      getSiteInfo(),
+      getNavCategories(),
+      getFooterPages(),
+      getFeaturedPosts(5),
+      getLatestPosts(8),
+      listCategories(),
+    ]);
+  site = siteInfo;
+  nav = navCats;
+  footerPages = footPages;
+  featured = featuredPosts;
+  latest = latestPosts;
+
+  const descBySlug = new Map(cats.map((c) => [c.slug, c.description]));
+  const sections = await Promise.all(
+    navCats.slice(0, 4).map(async (c) => ({
+      cat: c,
+      description: descBySlug.get(c.slug) ?? null,
+      posts: (await getPostsByCategory(c.slug, 4, 0)).posts,
+    })),
+  );
+  catSections = sections.filter((s) => s.posts.length > 0);
+
+  // Random Biographies carousel: shuffled pool across latest + category posts
+  const pool = new Map<string, CelebrtiyPostCard>();
+  for (const p of [...latestPosts, ...sections.flatMap((s) => s.posts)]) {
+    pool.set(p.id, p);
+  }
+  randomPool = [...pool.values()];
+  for (let i = randomPool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [randomPool[i], randomPool[j]] = [randomPool[j], randomPool[i]];
+  }
+  randomPool = randomPool.slice(0, 12);
+
+  const tabCats: CelebrtiyCategory[] = cats;
+  tabs = [
+    { label: 'All', slug: 'all' },
+    ...tabCats.map((c) => ({ label: c.name, slug: c.slug })),
+  ];
+}
 ---
-<BaseLayout title="VARKA" description="Modern editorial publishing" path="/" type="website">
-  <h1 class="post-title">VARKA</h1>
-  <p class="post-meta">Public site · {themeName}</p>
-  <div class="prose">
-    {posts.length === 0 ? (
-      <p>
-        No published posts yet. Create and <strong>Publish</strong> a post in the admin dashboard
-        (same DATABASE_URL).
-      </p>
-    ) : (
-      <ul>
-        {posts.map((p) => (
-          <li>
-            <a href={p.path}>{p.title}</a>
-            {p.excerpt ? <span style="color:var(--varka-muted)"> — {p.excerpt}</span> : null}
-          </li>
-        ))}
-      </ul>
-    )}
-  </div>
-</BaseLayout>
+{celebrtiy && site ? (
+  <CelebrtiyLayout
+    title={site.name}
+    description={site.tagline || `${site.name} — biographies and stories`}
+    path="/"
+    type="website"
+    siteName={site.name}
+    tagline={site.tagline}
+    footerText={site.footerText}
+    navCategories={nav}
+    footerPages={footerPages}
+  >
+    <FeaturedGrid posts={featured} />
+    <CategoryQuickLinks categories={nav} />
+    <CardRow title="Latest Biographies" posts={latest} />
+    {catSections.map((s) => (
+      <>
+        <CategoryBlock
+          name={s.cat.name}
+          description={s.description}
+          path={s.cat.path}
+        />
+        <CardRow
+          title={s.cat.name}
+          posts={s.posts}
+          link={{ label: `More ${s.cat.name}`, href: s.cat.path }}
+        />
+      </>
+    ))}
+    {randomPool.length > 0 ? (
+      <section class="celebrtiy-section">
+        <div class="celebrtiy-container">
+          <h2 class="celebrtiy-section-title">Random Biographies</h2>
+          <TabCarousel id="random-bios" tabs={tabs} posts={randomPool} />
+        </div>
+      </section>
+    ) : null}
+    <MoreInfo title={site.moreInfoTitle} html={site.moreInfoHtml} />
+  </CelebrtiyLayout>
+) : (
+  <BaseLayout title="VARKA" description="Modern editorial publishing" path="/" type="website">
+    <h1 class="post-title">VARKA</h1>
+    <p class="post-meta">Public site · {themeName}</p>
+    <div class="prose">
+      {posts.length === 0 ? (
+        <p>
+          No published posts yet. Create and <strong>Publish</strong> a post in the admin dashboard
+          (same DATABASE_URL).
+        </p>
+      ) : (
+        <ul>
+          {posts.map((p) => (
+            <li>
+              <a href={p.path}>{p.title}</a>
+              {p.excerpt ? <span style="color:var(--varka-muted)"> — {p.excerpt}</span> : null}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  </BaseLayout>
+)}

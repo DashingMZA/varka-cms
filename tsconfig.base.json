@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2023",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "resolveJsonModule": true,
@@ -22,7 +26,15 @@
     "isolatedModules": true,
     "skipLibCheck": true,
     "verbatimModuleSyntax": true,
-    "types": ["node"]
+    "types": [
+      "node"
+    ]
   },
-  "exclude": ["node_modules", "dist", "build", ".next", ".astro"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    ".next",
+    ".astro"
+  ]
 }

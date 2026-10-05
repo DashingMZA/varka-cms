@@ -3,9 +3,7 @@
 import { prisma, requireServerAuth, slugifyName } from '@/lib/server-db';
 import { revalidatePath } from 'next/cache';
 
-export type ActionResult<T = unknown> =
-  | { ok: true; data: T }
-  | { ok: false; error: string };
+import type { ActionResult } from './posts';
 
 function fail(e: unknown): ActionResult<never> {
   return { ok: false, error: e instanceof Error ? e.message : 'Error' };
@@ -122,7 +120,7 @@ export async function updatePageAction(
       include: { translations: true },
     });
     if (!page) return { ok: false, error: 'Not found' };
-    const tr = page.translations.find((t) => t.languageId === body.languageId);
+    const tr = page.translations.find((t: { languageId: string }) => t.languageId === body.languageId);
     if (!tr) return { ok: false, error: 'Translation not found' };
 
     await prisma.$transaction([

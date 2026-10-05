@@ -9,6 +9,7 @@ import { theme07 } from './theme-07/manifest';
 import { theme08 } from './theme-08/manifest';
 import { theme09 } from './theme-09/manifest';
 import { theme10 } from './theme-10/manifest';
+import { theme11 } from './theme-11/manifest';
 
 /**
  * Registry uses only manifest modules (stable exports).
@@ -26,6 +27,7 @@ const MANIFESTS: Record<string, ThemeManifest> = {
   'theme-08': theme08,
   'theme-09': theme09,
   'theme-10': theme10,
+  'theme-11': theme11,
 };
 
 export const DEFAULT_THEME_ID = 'theme-01';
@@ -74,6 +76,8 @@ export async function getThemeCss(id: string): Promise<string> {
       return (await import('./theme-09/styles.css')).theme09Css;
     case 'theme-10':
       return (await import('./theme-10/styles.css')).theme10Css;
+    case 'theme-11':
+      return (await import('./theme-11/styles.css')).theme11Css;
     default:
       return (await import('./theme-01/styles.css')).theme01Css;
   }

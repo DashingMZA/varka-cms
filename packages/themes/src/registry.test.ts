@@ -10,8 +10,8 @@ import {
 import { themeManifestSchema } from './contract';
 
 describe('theme registry', () => {
-  it('has ten themes', () => {
-    assert.equal(listThemes().length, 10);
+  it('has eleven themes', () => {
+    assert.equal(listThemes().length, 11);
   });
 
   it('manifests validate', () => {
@@ -24,16 +24,17 @@ describe('theme registry', () => {
     assert.equal(getTheme('missing').manifest.id, DEFAULT_THEME_ID);
     assert.equal(isThemeId('theme-01'), true);
     assert.equal(isThemeId('theme-10'), true);
+    assert.equal(isThemeId('theme-11'), true);
     assert.equal(isThemeId('theme-99'), false);
   });
 
-  it('unique ids theme-01..theme-10', () => {
+  it('unique ids theme-01..theme-11', () => {
     const ids = listThemes()
       .map((t) => t.manifest.id)
       .toSorted();
     assert.deepEqual(
       ids,
-      Array.from({ length: 10 }, (_, i) => `theme-${String(i + 1).padStart(2, '0')}`),
+      Array.from({ length: 11 }, (_, i) => `theme-${String(i + 1).padStart(2, '0')}`),
     );
   });
 

@@ -25,7 +25,8 @@ function ensureEnvLoaded(): void {
       path.resolve(process.cwd(), '../../.env'),
     ];
     for (const p of candidates) {
-      if (existsSync(p)) {
+      // turbopackIgnore: runtime .env discovery — not a static asset dependency
+      if (existsSync(/*turbopackIgnore: true*/ p)) {
         dotenv.config({ path: p });
         if (process.env.DATABASE_URL) return;
       }

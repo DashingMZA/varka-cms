@@ -23,6 +23,7 @@
     "db:migrate:dev": "pnpm --filter @varka/database migrate:dev",
     "db:seed": "pnpm --filter @varka/database seed",
     "db:studio": "pnpm --filter @varka/database studio",
+    "db:import:celebrtiy": "pnpm --filter @varka/database import:celebrtiy",
     "format": "prettier --write \"**/*.{ts,tsx,js,mjs,cjs,json,md,yml,yaml}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,mjs,cjs,json,md,yml,yaml}\"",
     "gates": "pnpm lint && pnpm typecheck && pnpm test"

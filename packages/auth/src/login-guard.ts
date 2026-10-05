@@ -38,7 +38,7 @@ export async function assertLoginRateLimit(req: Request): Promise<
   const limit = Number(process.env.AUTH_LOGIN_RATE_LIMIT ?? 10);
 
   try {
-    const store = getCache();
+    const store = await getCache();
     const result = await rateLimit({
       key: CacheKeys.rateLogin(ip),
       limit: Number.isFinite(limit) && limit > 0 ? limit : 10,

@@ -2,9 +2,7 @@
 
 import { prisma, requireServerAuth } from '@/lib/server-db';
 
-export type ActionResult<T = unknown> =
-  | { ok: true; data: T }
-  | { ok: false; error: string };
+import type { ActionResult } from './posts';
 
 export async function getDashboardAction(): Promise<
   ActionResult<{
@@ -98,17 +96,19 @@ export async function getDashboardAction(): Promise<
           users: usersTotal,
         },
         activity: {
-          posts: recentPosts.map((p) => ({
-            id: p.id,
-            title: p.translations[0]?.title ?? 'Untitled',
-            status: p.status,
-            updatedAt: p.updatedAt.toISOString(),
-          })),
-          comments: recentComments.map((c) => ({
+          posts: recentPosts.map(
+            (p: { id: string; translations: { title: string }[]; status: string; updatedAt: Date }) => ({
+              id: p.id,
+              title: p.translations[0]?.title ?? 'Untitled',
+              status: p.status,
+              updatedAt: p.updatedAt.toISOString(),
+            }),
+          ),
+          comments: recentComments.map((c: { createdAt: Date }) => ({
             ...c,
             createdAt: c.createdAt.toISOString(),
           })),
-          audit: recentAudit.map((a) => ({
+          audit: recentAudit.map((a: { createdAt: Date }) => ({
             ...a,
             createdAt: a.createdAt.toISOString(),
           })),

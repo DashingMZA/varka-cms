@@ -83,6 +83,7 @@ export function WidgetsAdmin() {
       const idx = fromZone.widgets.findIndex((w) => w.id === drag.widgetId);
       if (idx < 0) return prev;
       const [moved] = fromZone.widgets.splice(idx, 1);
+      if (!moved) return prev;
       const toIdx = toZone.widgets.findIndex((w) => w.id === targetWidgetId);
       if (toIdx < 0) toZone.widgets.push(moved);
       else toZone.widgets.splice(toIdx, 0, moved);

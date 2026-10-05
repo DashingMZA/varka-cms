@@ -1,6 +1,6 @@
 'use client';
 
-import { Field, SettingsForm, inputStyle, selectStyle } from '@/components/settings/settings-form';
+import { Field, SettingsForm, inputStyle } from '@/components/settings/settings-form';
 
 const DEFAULTS = {
   homepageDisplays: 'posts',

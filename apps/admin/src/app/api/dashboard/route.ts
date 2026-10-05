@@ -74,12 +74,14 @@ export async function GET() {
         users: usersTotal,
       },
       activity: {
-        posts: recentPosts.map((p) => ({
-          id: p.id,
-          title: p.translations[0]?.title ?? 'Untitled',
-          status: p.status,
-          updatedAt: p.updatedAt,
-        })),
+        posts: recentPosts.map(
+          (p: { id: string; translations: { title: string }[]; status: string; updatedAt: Date }) => ({
+            id: p.id,
+            title: p.translations[0]?.title ?? 'Untitled',
+            status: p.status,
+            updatedAt: p.updatedAt,
+          }),
+        ),
         comments: recentComments,
         audit: recentAudit,
       },

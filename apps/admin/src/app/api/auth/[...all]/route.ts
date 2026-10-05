@@ -32,14 +32,14 @@ async function parseEmail(req: Request): Promise<string | null> {
 
 export async function GET(
   req: Request,
-  ctx: { params: Promise<{ all: string[] }> },
+  _ctx: { params: Promise<{ all: string[] }> },
 ) {
-  return handler.GET(req, ctx);
+  return handler.GET(req);
 }
 
 export async function POST(
   req: Request,
-  ctx: { params: Promise<{ all: string[] }> },
+  _ctx: { params: Promise<{ all: string[] }> },
 ) {
   const url = new URL(req.url);
   const pathname = url.pathname;
@@ -76,7 +76,7 @@ export async function POST(
       }
     }
 
-    const res = await handler.POST(req, ctx);
+    const res = await handler.POST(req);
 
     if (email && pathname.includes('sign-in/email')) {
       if (res.ok) {
@@ -116,5 +116,5 @@ export async function POST(
     return res;
   }
 
-  return handler.POST(req, ctx);
+  return handler.POST(req);
 }

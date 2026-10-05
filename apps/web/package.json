@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@astrojs/node": "^11.1.5",
+    "@astrojs/vercel": "^9.0.0",
     "@varka/content": "workspace:*",
     "@varka/database": "workspace:*",
     "@varka/i18n": "workspace:*",

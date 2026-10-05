@@ -17,3 +17,4 @@ export { theme07 } from './theme-07/manifest';
 export { theme08 } from './theme-08/manifest';
 export { theme09 } from './theme-09/manifest';
 export { theme10 } from './theme-10/manifest';
+export { theme11 } from './theme-11/manifest';

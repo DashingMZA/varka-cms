@@ -11,9 +11,7 @@ import {
 import { prisma, requireServerAuth, getServerAuth } from '@/lib/server-db';
 import { revalidatePath } from 'next/cache';
 
-export type ActionResult<T = unknown> =
-  | { ok: true; data: T }
-  | { ok: false; error: string };
+import type { ActionResult } from './posts';
 
 function fail(e: unknown): ActionResult<never> {
   return { ok: false, error: e instanceof Error ? e.message : 'Error' };
@@ -157,10 +155,7 @@ export async function updateMyProfileAction(body: {
     if (!userId) return { ok: false, error: 'Not found' };
 
     if (body.newPassword) {
-      await changeOwnPassword(userId, {
-        currentPassword: body.currentPassword ?? '',
-        newPassword: body.newPassword,
-      });
+      await changeOwnPassword(userId, body.currentPassword, body.newPassword);
     }
 
     const user = await updateOwnProfile(userId, {

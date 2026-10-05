@@ -1,0 +1,48 @@
+---
+import type { CelebrtiyPostCard } from '../lib/data';
+
+interface Props {
+  post: CelebrtiyPostCard;
+  large?: boolean;
+  /** Space-separated category slugs for tab-carousel filtering. */
+  dataCats?: string;
+}
+
+const { post, large = false, dataCats } = Astro.props;
+
+function formatDate(iso: string | null): string {
+  if (!iso) return '';
+  try {
+    return new Date(iso).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  } catch {
+    return '';
+  }
+}
+
+const date = formatDate(post.publishedAt);
+const meta = [post.authorName, date].filter(Boolean).join(' · ');
+---
+<article class={`celebrtiy-card${large ? ' celebrtiy-card--large' : ''}`} data-cats={dataCats}>
+  {post.imageUrl ? (
+    <a class="celebrtiy-card-media" href={post.path} tabindex="-1" aria-hidden="true">
+      <img src={post.imageUrl} alt="" loading="lazy" decoding="async" />
+    </a>
+  ) : null}
+  <div class="celebrtiy-card-body">
+    {post.categories[0] ? (
+      <div class="celebrtiy-card-cat">{post.categories[0]}</div>
+    ) : null}
+    <h3 class="celebrtiy-card-title">
+      <a href={post.path}>{post.title}</a>
+    </h3>
+    {meta ? <div class="celebrtiy-card-meta">{meta}</div> : null}
+    {post.excerpt ? (
+      <p class="celebrtiy-card-excerpt">{post.excerpt}</p>
+    ) : null}
+    <a class="celebrtiy-card-link" href={post.path}>Continue Reading →</a>
+  </div>
+</article>

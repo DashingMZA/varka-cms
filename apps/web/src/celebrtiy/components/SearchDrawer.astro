@@ -1,0 +1,18 @@
+---
+/** Slide-down search drawer; toggled by [data-search-toggle] via the layout script. */
+---
+<div class="celebrtiy-search-drawer" id="celebrtiy-search-drawer" data-search-drawer>
+  <div class="celebrtiy-container">
+    <form class="celebrtiy-search-form" action="/search" method="get" role="search">
+      <input
+        type="search"
+        name="q"
+        placeholder="Search biographies…"
+        aria-label="Search"
+        autocomplete="off"
+        required
+      />
+      <button type="submit">Search</button>
+    </form>
+  </div>
+</div>

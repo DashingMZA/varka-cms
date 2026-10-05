@@ -1,0 +1,96 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CelebrtiyLayout from '../celebrtiy/layouts/CelebrtiyLayout.astro';
+import {
+  isCelebrtiyTheme,
+  getSiteInfo,
+  getNavCategories,
+  getFooterPages,
+  searchPosts,
+} from '../celebrtiy/lib/data';
+import BreadcrumbHero from '../celebrtiy/components/BreadcrumbHero.astro';
+import PostCard from '../celebrtiy/components/PostCard.astro';
+
+const celebrtiy = await isCelebrtiyTheme();
+const q = (Astro.url.searchParams.get('q') ?? '').trim().slice(0, 120);
+const results = celebrtiy && q ? await searchPosts(q) : [];
+
+const site = celebrtiy ? await getSiteInfo() : null;
+const nav = celebrtiy ? await getNavCategories() : [];
+const footerPages = celebrtiy ? await getFooterPages() : [];
+
+const title = q ? `Search results for “${q}”` : 'Search';
+---
+{celebrtiy && site ? (
+  <CelebrtiyLayout
+    title={title}
+    description={q ? `${results.length} results for “${q}” on ${site.name}` : `Search ${site.name}`}
+    path="/search"
+    type="website"
+    noindex
+    siteName={site.name}
+    tagline={site.tagline}
+    footerText={site.footerText}
+    navCategories={nav}
+    footerPages={footerPages}
+  >
+    <BreadcrumbHero crumbs={[{ label: 'Home', href: '/' }, { label: 'Search' }]} title="Search" />
+    <div class="celebrtiy-container">
+      <section class="celebrtiy-section">
+        <form class="celebrtiy-search-form" action="/search" method="get" role="search" style="max-width:640px;margin-bottom:2rem;">
+          <input
+            type="search"
+            name="q"
+            value={q}
+            placeholder="Search biographies…"
+            aria-label="Search"
+            autocomplete="off"
+          />
+          <button type="submit">Search</button>
+        </form>
+        {q ? (
+          <>
+            <h2 class="celebrtiy-section-title">
+              {results.length} {results.length === 1 ? 'result' : 'results'} for “{q}”
+            </h2>
+            {results.length > 0 ? (
+              <div class="celebrtiy-card-row">
+                {results.map((p) => (
+                  <PostCard post={p} />
+                ))}
+              </div>
+            ) : (
+              <p class="celebrtiy-more-info">Nothing matched your search. Try different keywords.</p>
+            )}
+          </>
+        ) : (
+          <p class="celebrtiy-more-info">Type a name or keyword above to search.</p>
+        )}
+      </section>
+    </div>
+  </CelebrtiyLayout>
+) : (
+  <BaseLayout title={title} description="Search" path="/search" type="website" noindex>
+    <div class="container">
+      <h1 class="post-title">Search</h1>
+      <form action="/search" method="get" role="search" style="margin-bottom:1.5rem;">
+        <input
+          type="search"
+          name="q"
+          value={q}
+          placeholder="Search posts…"
+          aria-label="Search"
+          style="padding:0.6rem 1rem;border:1px solid var(--varka-border);border-radius:6px;width:min(420px,100%);"
+        />
+        <button type="submit" style="padding:0.6rem 1.25rem;margin-left:0.5rem;">Search</button>
+      </form>
+      <div class="prose">
+        {q ? (
+          <p>Search is available with the Celebrtiy theme active.</p>
+        ) : (
+          <p>Type a keyword above to search.</p>
+        )}
+      </div>
+    </div>
+  </BaseLayout>
+)}

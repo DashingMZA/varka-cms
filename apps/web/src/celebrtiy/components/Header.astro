@@ -1,0 +1,44 @@
+---
+import SearchDrawer from './SearchDrawer.astro';
+import type { CelebrtiyNavCategory } from '../lib/data';
+
+interface Props {
+  siteName: string;
+  tagline?: string;
+  navCategories: CelebrtiyNavCategory[];
+}
+
+const { siteName, tagline, navCategories } = Astro.props;
+---
+<header class="celebrtiy-header">
+  <div class="celebrtiy-container">
+    <div class="celebrtiy-header-inner">
+      <div>
+        <a class="celebrtiy-logo" href="/">{siteName}</a>
+        {tagline ? (
+          <div style="font-size:0.8rem;color:var(--varka-muted);line-height:1.2;">{tagline}</div>
+        ) : null}
+      </div>
+      <nav class="celebrtiy-nav" aria-label="Primary">
+        <a class="celebrtiy-nav-link" href="/">Home</a>
+        {navCategories.map((c) => (
+          <a class="celebrtiy-nav-link" href={c.path}>{c.name}</a>
+        ))}
+      </nav>
+      <button
+        type="button"
+        class="celebrtiy-search-btn"
+        data-search-toggle
+        aria-label="Search"
+        aria-expanded="false"
+        aria-controls="celebrtiy-search-drawer"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" />
+          <line x1="16.5" y1="16.5" x2="21" y2="21" />
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+<SearchDrawer />

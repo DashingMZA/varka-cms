@@ -47,6 +47,11 @@ export function TableNav(props: {
   onSearchChange: (v: string) => void;
   onSearchSubmit: () => void;
   children?: ReactNode;
+  /** Optional i18n labels (accepted for API compatibility; reserved for future wiring). */
+  bulkLabel?: string;
+  applyLabel?: string;
+  searchLabel?: string;
+  searchPlaceholder?: string;
 }) {
   return (
     <div className="v-tablenav" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', marginBottom: 10 }}>

@@ -1,0 +1,20 @@
+---
+import type { CelebrtiyNavCategory } from '../lib/data';
+
+interface Props {
+  categories: CelebrtiyNavCategory[];
+}
+
+const { categories } = Astro.props;
+---
+{categories.length > 0 ? (
+  <section class="celebrtiy-section" style="padding-top:0;">
+    <div class="celebrtiy-container">
+      <div class="celebrtiy-cat-links">
+        {categories.map((c) => (
+          <a class="celebrtiy-cat-link" href={c.path}>{c.name}</a>
+        ))}
+      </div>
+    </div>
+  </section>
+) : null}

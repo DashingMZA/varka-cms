@@ -9,9 +9,7 @@ import {
 import { prisma, requireServerAuth } from '@/lib/server-db';
 import { revalidatePath } from 'next/cache';
 
-export type ActionResult<T = unknown> =
-  | { ok: true; data: T }
-  | { ok: false; error: string };
+import type { ActionResult } from './posts';
 
 function fail(e: unknown): ActionResult<never> {
   return { ok: false, error: e instanceof Error ? e.message : 'Error' };

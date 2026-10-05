@@ -1,0 +1,93 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CelebrtiyLayout from '../../celebrtiy/layouts/CelebrtiyLayout.astro';
+import {
+  isCelebrtiyTheme,
+  getSiteInfo,
+  getNavCategories,
+  getFooterPages,
+  getPageBySlug,
+  type CelebrtiyPage,
+} from '../../celebrtiy/lib/data';
+import BreadcrumbHero from '../../celebrtiy/components/BreadcrumbHero.astro';
+
+const { slug } = Astro.params;
+const celebrtiy = await isCelebrtiyTheme();
+
+const page: CelebrtiyPage | null = slug ? await getPageBySlug(String(slug)) : null;
+if (!page) {
+  Astro.response.status = 404;
+}
+
+const site = celebrtiy ? await getSiteInfo() : null;
+const nav = celebrtiy ? await getNavCategories() : [];
+const footerPages = celebrtiy ? await getFooterPages() : [];
+
+const title = page?.seoTitle || page?.title || String(slug);
+const description = page?.seoDescription || '';
+---
+{celebrtiy && site ? (
+  <CelebrtiyLayout
+    title={title}
+    description={description}
+    path={page?.path ?? `/page/${slug}`}
+    type="website"
+    noindex={!page}
+    siteName={site.name}
+    tagline={site.tagline}
+    footerText={site.footerText}
+    navCategories={nav}
+    footerPages={footerPages}
+  >
+    {page ? (
+      <>
+        <BreadcrumbHero
+          crumbs={[{ label: 'Home', href: '/' }, { label: page.title }]}
+          title={page.title}
+        />
+        <div class="celebrtiy-container">
+          <div class="celebrtiy-article-card celebrtiy-section" style="margin-top:2rem;">
+            <div class="celebrtiy-prose" set:html={page.contentHtml} />
+          </div>
+        </div>
+      </>
+    ) : (
+      <>
+        <BreadcrumbHero
+          crumbs={[{ label: 'Home', href: '/' }, { label: 'Not Found' }]}
+          title="Page Not Found"
+        />
+        <div class="celebrtiy-container">
+          <section class="celebrtiy-section">
+            <p class="celebrtiy-more-info">This page does not exist or is not published.</p>
+            <p style="margin-top:1.5rem;">
+              <a class="celebrtiy-btn" href="/">Back to Home</a>
+            </p>
+          </section>
+        </div>
+      </>
+    )}
+  </CelebrtiyLayout>
+) : (
+  <BaseLayout
+    title={title}
+    description={description}
+    path={page?.path ?? `/page/${slug}`}
+    type="website"
+    noindex={!page}
+  >
+    <div class="container">
+      {page ? (
+        <article>
+          <h1 class="post-title">{page.title}</h1>
+          <div class="prose" set:html={page.contentHtml} />
+        </article>
+      ) : (
+        <div class="prose">
+          <p>Page not found. Publish it in admin (shared database).</p>
+          <p><a href="/">Back home</a></p>
+        </div>
+      )}
+    </div>
+  </BaseLayout>
+)}

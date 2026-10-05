@@ -1,0 +1,18 @@
+---
+interface Props {
+  name: string;
+  description?: string | null;
+  path: string;
+}
+
+const { name, description, path } = Astro.props;
+---
+<section class="celebrtiy-section" style="padding-top:0;">
+  <div class="celebrtiy-container">
+    <div class="celebrtiy-cat-block">
+      <h2 class="celebrtiy-section-title">{name}</h2>
+      {description ? <p>{description}</p> : null}
+      <a class="celebrtiy-card-link" href={path}>Continue Reading →</a>
+    </div>
+  </div>
+</section>

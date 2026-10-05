@@ -7,10 +7,21 @@
  */
 
 import { randomBytes, scrypt as scryptCb, timingSafeEqual } from 'node:crypto';
+import type { BinaryLike, ScryptOptions } from 'node:crypto';
 import { promisify } from 'node:util';
-import { hash as argon2Hash, verify as argon2Verify, Algorithm } from '@node-rs/argon2';
+import { hash as argon2Hash, verify as argon2Verify } from '@node-rs/argon2';
+import type { Algorithm } from '@node-rs/argon2';
 
-const scryptAsync = promisify(scryptCb);
+/**
+ * promisify() resolves to the 3-arg scrypt overload; annotate the 4-arg
+ * (password, salt, keylen, options) form explicitly. No runtime change.
+ */
+const scryptAsync: (
+  password: BinaryLike,
+  salt: BinaryLike,
+  keylen: number,
+  options: ScryptOptions,
+) => Promise<Buffer> = promisify(scryptCb);
 
 export type Argon2Params = {
   memoryCost: number;
@@ -67,8 +78,8 @@ async function verifyScrypt(password: string, encoded: string): Promise<boolean>
   const N = Number(parts[1]);
   const r = Number(parts[2]);
   const p = Number(parts[3]);
-  const salt = Buffer.from(parts[4], 'base64url');
-  const expected = Buffer.from(parts[5], 'base64url');
+  const salt = Buffer.from(parts[4]!, 'base64url');
+  const expected = Buffer.from(parts[5]!, 'base64url');
   try {
     const derived = (await scryptAsync(password, salt, expected.length, {
       N,
@@ -92,7 +103,9 @@ export async function hashPassword(password: string): Promise<string> {
       timeCost: params.timeCost,
       parallelism: params.parallelism,
       outputLen: params.outputLen,
-      algorithm: Algorithm.Argon2id,
+      // Algorithm is a `const enum` (Argon2id = 2); with verbatimModuleSyntax it
+      // cannot be referenced as a value, so use the literal with a type cast.
+      algorithm: 2 as Algorithm,
     });
   } catch {
     return hashWithScrypt(password);

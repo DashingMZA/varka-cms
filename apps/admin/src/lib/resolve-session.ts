@@ -93,11 +93,13 @@ export async function resolveSession(): Promise<ResolvedSession | null> {
       console.warn('[varka/auth] session token not in DB', {
         cookiePrefix: raw.slice(0, 16),
         candidatesTried: candidates.map((c) => c.slice(0, 16)),
-        recentDbTokens: recent.map((r) => ({
-          prefix: r.token.slice(0, 16),
-          userId: r.userId,
-          exp: r.expiresAt.toISOString(),
-        })),
+        recentDbTokens: recent.map(
+          (r: { token: string; userId: string; expiresAt: Date }) => ({
+            prefix: r.token.slice(0, 16),
+            userId: r.userId,
+            exp: r.expiresAt.toISOString(),
+          }),
+        ),
       });
     }
     return null;

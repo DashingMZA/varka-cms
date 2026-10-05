@@ -1,0 +1,19 @@
+---
+/** Informational paragraph block; copy comes from SiteSettings (never hardcoded). */
+interface Props {
+  title?: string;
+  html?: string;
+}
+
+const { title = '', html = '' } = Astro.props;
+---
+{html ? (
+  <section class="celebrtiy-section">
+    <div class="celebrtiy-container">
+      <div class="celebrtiy-more-info">
+        {title ? <h2 class="celebrtiy-section-title">{title}</h2> : null}
+        <div set:html={html} />
+      </div>
+    </div>
+  </section>
+) : null}

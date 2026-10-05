@@ -49,7 +49,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
     }
 
     const tr =
-      page.translations.find((t) => t.languageId === body.languageId) ??
+      page.translations.find((t: { languageId: string }) => t.languageId === body.languageId) ??
       page.translations[0];
     if (
       tr &&

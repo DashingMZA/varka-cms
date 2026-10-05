@@ -1,0 +1,122 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CelebrtiyLayout from '../../celebrtiy/layouts/CelebrtiyLayout.astro';
+import {
+  isCelebrtiyTheme,
+  getSiteInfo,
+  getNavCategories,
+  getFooterPages,
+  getTagBySlug,
+  getPostsByTag,
+  getSidebarPicks,
+} from '../../celebrtiy/lib/data';
+import BreadcrumbHero from '../../celebrtiy/components/BreadcrumbHero.astro';
+import PostCard from '../../celebrtiy/components/PostCard.astro';
+import CardRow from '../../celebrtiy/components/CardRow.astro';
+import Pagination from '../../celebrtiy/components/Pagination.astro';
+
+const { slug } = Astro.params;
+const celebrtiy = await isCelebrtiyTheme();
+
+const PER_PAGE = 12;
+const rawPage = Number.parseInt(Astro.url.searchParams.get('page') ?? '1', 10);
+const pageNum = Number.isFinite(rawPage) && rawPage > 0 ? rawPage : 1;
+
+const tag = slug ? await getTagBySlug(String(slug)) : null;
+if (!tag) {
+  Astro.response.status = 404;
+}
+const { posts, total } = tag
+  ? await getPostsByTag(tag.slug, PER_PAGE, (pageNum - 1) * PER_PAGE)
+  : { posts: [], total: 0 };
+const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+
+const site = celebrtiy ? await getSiteInfo() : null;
+const nav = celebrtiy ? await getNavCategories() : [];
+const footerPages = celebrtiy ? await getFooterPages() : [];
+const picks = celebrtiy ? await getSidebarPicks(4) : [];
+---
+{celebrtiy && site ? (
+  <CelebrtiyLayout
+    title={tag?.name ?? 'Tag not found'}
+    description={tag ? `${total} ${total === 1 ? 'post' : 'posts'} tagged “${tag.name}”` : ''}
+    path={tag?.path ?? `/tag/${slug}`}
+    type="website"
+    noindex={!tag}
+    siteName={site.name}
+    tagline={site.tagline}
+    footerText={site.footerText}
+    navCategories={nav}
+    footerPages={footerPages}
+  >
+    {tag ? (
+      <>
+        <BreadcrumbHero
+          crumbs={[{ label: 'Home', href: '/' }, { label: tag.name }]}
+          title={tag.name}
+        />
+        <div class="celebrtiy-container">
+          <section class="celebrtiy-section">
+            <div class="celebrtiy-card-row">
+              {posts.map((p) => (
+                <PostCard post={p} />
+              ))}
+            </div>
+            {posts.length === 0 ? (
+              <p class="celebrtiy-more-info">No posts with this tag yet.</p>
+            ) : null}
+            <Pagination page={pageNum} totalPages={totalPages} base={tag.path} />
+          </section>
+        </div>
+        <CardRow title="Top Picks For You" posts={picks} />
+      </>
+    ) : (
+      <>
+        <BreadcrumbHero
+          crumbs={[{ label: 'Home', href: '/' }, { label: 'Not Found' }]}
+          title="Tag Not Found"
+        />
+        <div class="celebrtiy-container">
+          <section class="celebrtiy-section">
+            <p class="celebrtiy-more-info">This tag does not exist.</p>
+            <p style="margin-top:1.5rem;">
+              <a class="celebrtiy-btn" href="/">Back to Home</a>
+            </p>
+          </section>
+        </div>
+      </>
+    )}
+  </CelebrtiyLayout>
+) : (
+  <BaseLayout
+    title={tag?.name ?? 'Tag not found'}
+    description={tag ? `${total} posts tagged ${tag.name}` : ''}
+    path={tag?.path ?? `/tag/${slug}`}
+    type="website"
+    noindex={!tag}
+  >
+    <div class="container">
+      <h1 class="post-title">{tag?.name ?? 'Tag not found'}</h1>
+      <div class="prose">
+        {posts.length === 0 ? (
+          <p>No posts with this tag yet.</p>
+        ) : (
+          <ul>
+            {posts.map((p) => (
+              <li>
+                <a href={p.path}>{p.title}</a>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      {totalPages > 1 ? (
+        <p class="post-meta">
+          Page {pageNum} of {totalPages}
+          {pageNum > 1 ? <a href={`${tag?.path}?page=${pageNum - 1}`}> ← Prev</a> : null}
+          {pageNum < totalPages ? <a href={`${tag?.path}?page=${pageNum + 1}`}> Next →</a> : null}
+        </p>
+      ) : null}
+    </div>
+  </BaseLayout>
+)}

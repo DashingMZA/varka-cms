@@ -1,0 +1,139 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CelebrtiyLayout from '../../celebrtiy/layouts/CelebrtiyLayout.astro';
+import {
+  isCelebrtiyTheme,
+  getSiteInfo,
+  getNavCategories,
+  getFooterPages,
+  getAuthorBySlug,
+} from '../../celebrtiy/lib/data';
+import BreadcrumbHero from '../../celebrtiy/components/BreadcrumbHero.astro';
+import PostCard from '../../celebrtiy/components/PostCard.astro';
+
+const { slug } = Astro.params;
+const celebrtiy = await isCelebrtiyTheme();
+
+const PER_PAGE = 12;
+const rawPage = Number.parseInt(Astro.url.searchParams.get('page') ?? '1', 10);
+const pageNum = Number.isFinite(rawPage) && rawPage > 0 ? rawPage : 1;
+
+const result = slug ? await getAuthorBySlug(String(slug), PER_PAGE, (pageNum - 1) * PER_PAGE) : null;
+if (!result) {
+  Astro.response.status = 404;
+}
+const author = result?.author ?? null;
+const posts = result?.posts ?? [];
+const total = result?.total ?? 0;
+const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+
+const site = celebrtiy ? await getSiteInfo() : null;
+const nav = celebrtiy ? await getNavCategories() : [];
+const footerPages = celebrtiy ? await getFooterPages() : [];
+---
+{celebrtiy && site ? (
+  <CelebrtiyLayout
+    title={author?.displayName ?? 'Author not found'}
+    description={author?.bio ?? ''}
+    path={author?.path ?? `/author/${slug}`}
+    type="website"
+    noindex={!author}
+    siteName={site.name}
+    tagline={site.tagline}
+    footerText={site.footerText}
+    navCategories={nav}
+    footerPages={footerPages}
+  >
+    {author ? (
+      <>
+        <BreadcrumbHero
+          crumbs={[{ label: 'Home', href: '/' }, { label: author.displayName }]}
+          title={author.displayName}
+        />
+        <div class="celebrtiy-container">
+          <div class="celebrtiy-author-box">
+            {author.avatarUrl ? (
+              <img
+                class="avatar"
+                src={author.avatarUrl}
+                alt={author.displayName}
+                style="object-fit:cover;"
+              />
+            ) : (
+              <div class="avatar" aria-hidden="true" />
+            )}
+            <div>
+              <p class="author-name">{author.displayName}</p>
+              {author.bio ? <p class="author-bio">{author.bio}</p> : null}
+            </div>
+          </div>
+          <section class="celebrtiy-section">
+            <h2 class="celebrtiy-section-title">
+              {total} {total === 1 ? 'Post' : 'Posts'} by {author.displayName}
+            </h2>
+            <div class="celebrtiy-card-row">
+              {posts.map((p) => (
+                <PostCard post={p} />
+              ))}
+            </div>
+            {posts.length === 0 ? (
+              <p class="celebrtiy-more-info">No published posts by this author yet.</p>
+            ) : null}
+            {totalPages > 1 ? (
+              <p class="celebrtiy-card-meta" style="margin-top:1.5rem;text-align:center;">
+                Page {pageNum} of {totalPages}
+                {pageNum > 1 ? (
+                  <> · <a class="celebrtiy-card-link" href={pageNum - 1 <= 1 ? author.path : `${author.path}?page=${pageNum - 1}`}>← Prev</a></>
+                ) : null}
+                {pageNum < totalPages ? (
+                  <> · <a class="celebrtiy-card-link" href={`${author.path}?page=${pageNum + 1}`}>Next →</a></>
+                ) : null}
+              </p>
+            ) : null}
+          </section>
+        </div>
+      </>
+    ) : (
+      <>
+        <BreadcrumbHero
+          crumbs={[{ label: 'Home', href: '/' }, { label: 'Not Found' }]}
+          title="Author Not Found"
+        />
+        <div class="celebrtiy-container">
+          <section class="celebrtiy-section">
+            <p class="celebrtiy-more-info">This author does not exist.</p>
+            <p style="margin-top:1.5rem;">
+              <a class="celebrtiy-btn" href="/">Back to Home</a>
+            </p>
+          </section>
+        </div>
+      </>
+    )}
+  </CelebrtiyLayout>
+) : (
+  <BaseLayout
+    title={author?.displayName ?? 'Author not found'}
+    description={author?.bio ?? ''}
+    path={author?.path ?? `/author/${slug}`}
+    type="website"
+    noindex={!author}
+  >
+    <div class="container">
+      <h1 class="post-title">{author?.displayName ?? 'Author not found'}</h1>
+      {author?.bio ? <p class="post-meta">{author.bio}</p> : null}
+      <div class="prose">
+        {posts.length === 0 ? (
+          <p>No published posts by this author yet.</p>
+        ) : (
+          <ul>
+            {posts.map((p) => (
+              <li>
+                <a href={p.path}>{p.title}</a>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  </BaseLayout>
+)}

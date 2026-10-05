@@ -35,7 +35,8 @@ export const createPostInput = z.object({
   authorId: z.string().optional(),
 });
 
-export type CreatePostInput = z.infer<typeof createPostInput>;
+/** Input type (what callers pass to parse); output has contentHtml defaulted. */
+export type CreatePostInput = z.input<typeof createPostInput>;
 
 export const updatePostInput = z.object({
   title: z.string().min(1).max(300).optional(),

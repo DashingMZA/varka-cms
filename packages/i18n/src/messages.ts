@@ -16,6 +16,7 @@ export const MESSAGE_NAMESPACES = [
   'navigation',
   'blogs',
   'pages',
+  'posts',
   'users',
   'profile',
   'media',

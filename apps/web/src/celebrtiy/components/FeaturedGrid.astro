@@ -1,0 +1,27 @@
+---
+import PostCard from './PostCard.astro';
+import type { CelebrtiyPostCard } from '../lib/data';
+
+interface Props {
+  posts: CelebrtiyPostCard[];
+}
+
+const { posts } = Astro.props;
+const [main, ...rest] = posts;
+---
+{posts.length > 0 ? (
+  <section class="celebrtiy-section">
+    <div class="celebrtiy-container">
+      <div class="celebrtiy-featured-grid">
+        {main ? (
+          <div class="celebrtiy-featured-main">
+            <PostCard post={main} large />
+          </div>
+        ) : null}
+        {rest.slice(0, 4).map((p) => (
+          <PostCard post={p} />
+        ))}
+      </div>
+    </div>
+  </section>
+) : null}

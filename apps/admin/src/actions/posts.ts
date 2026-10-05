@@ -200,18 +200,22 @@ export async function searchContentAction(q: string): Promise<
     return {
       ok: true,
       data: {
-        posts: posts.map((p) => ({
-          id: p.id,
-          title: p.translations[0]?.title ?? 'Untitled',
-          slug: p.translations[0]?.slug ?? p.id,
-          type: 'post' as const,
-        })),
-        pages: pages.map((p) => ({
-          id: p.id,
-          title: p.translations[0]?.title ?? 'Untitled',
-          slug: p.translations[0]?.slug ?? p.id,
-          type: 'page' as const,
-        })),
+        posts: posts.map(
+          (p: { id: string; translations: { title: string; slug: string }[] }) => ({
+            id: p.id,
+            title: p.translations[0]?.title ?? 'Untitled',
+            slug: p.translations[0]?.slug ?? p.id,
+            type: 'post' as const,
+          }),
+        ),
+        pages: pages.map(
+          (p: { id: string; translations: { title: string; slug: string }[] }) => ({
+            id: p.id,
+            title: p.translations[0]?.title ?? 'Untitled',
+            slug: p.translations[0]?.slug ?? p.id,
+            type: 'page' as const,
+          }),
+        ),
       },
     };
   } catch (e) {
@@ -241,11 +245,12 @@ export async function restoreRevisionAction(
   revisionId: string,
 ): Promise<ActionResult<{ id: string }>> {
   try {
-    const { userId } = await requireServerAuth('posts.write');
+    const { ctx } = await requireServerAuth('posts.write');
+    const userId = ctx.userId;
     const rev = await prisma.revision.findFirst({ where: { id: revisionId, postId } });
     if (!rev) return fail(new Error('Revision not found'));
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: typeof prisma) => {
       const post = await tx.post.findUnique({
         where: { id: postId },
         include: { translations: true },

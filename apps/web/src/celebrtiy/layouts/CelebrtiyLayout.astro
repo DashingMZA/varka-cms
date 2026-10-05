@@ -1,0 +1,151 @@
+---
+import { activeThemeWithCss } from '../../lib/theme';
+import { siteSeo } from '../../lib/seo';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import type { CelebrtiyNavCategory, CelebrtiyFooterPage } from '../lib/data';
+
+interface Props {
+  title?: string;
+  description?: string;
+  path?: string;
+  type?: 'website' | 'article';
+  noindex?: boolean;
+  locale?: string;
+  imageUrl?: string | null;
+  publishedAt?: string | null;
+  siteName: string;
+  tagline?: string;
+  footerText?: string;
+  navCategories: CelebrtiyNavCategory[];
+  footerPages: CelebrtiyFooterPage[];
+}
+
+const theme = await activeThemeWithCss();
+const {
+  title = 'VARKA',
+  description = '',
+  path = Astro.url.pathname,
+  type = 'website',
+  noindex = false,
+  locale = 'en',
+  imageUrl = null,
+  publishedAt = null,
+  siteName,
+  tagline = '',
+  footerText = '',
+  navCategories,
+  footerPages,
+} = Astro.props;
+
+const seo = siteSeo({
+  siteName,
+  title,
+  description,
+  path,
+  type,
+  noindex,
+  locale,
+  imageUrl: imageUrl ?? undefined,
+  publishedAt: publishedAt ?? undefined,
+});
+const themeName = theme.manifest?.name ?? theme.id ?? 'theme-11';
+---
+<!doctype html>
+<html lang={locale}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{seo.title}</title>
+    <meta name="description" content={seo.description} />
+    <meta name="robots" content={seo.robots} />
+    <link rel="canonical" href={seo.canonical} />
+    {Object.entries(seo.openGraph).map(([k, v]) => (
+      <meta property={k} content={v} />
+    ))}
+    {Object.entries(seo.twitter).map(([k, v]) => (
+      <meta name={k} content={v} />
+    ))}
+    <script type="application/ld+json" set:html={JSON.stringify(seo.jsonLd)} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Overpass:ital,wght@0,400;0,600;0,700;0,800;1,800&display=swap"
+      rel="stylesheet"
+    />
+    <style set:html={theme.css}></style>
+  </head>
+  <body data-theme={themeName}>
+    <Header siteName={siteName} tagline={tagline} navCategories={navCategories} />
+    <main>
+      <slot />
+    </main>
+    <Footer siteName={siteName} footerText={footerText} pages={footerPages} />
+    <script is:inline>
+      function celebrtiyScrollCarousel(id, dir) {
+        var el = document.querySelector('[data-carousel="' + id + '"]');
+        if (el) el.scrollBy({ left: dir * 340, behavior: 'smooth' });
+      }
+      document.addEventListener('DOMContentLoaded', function () {
+        /* ---- Search drawer toggle ---- */
+        var drawer = document.querySelector('[data-search-drawer]');
+        var toggles = document.querySelectorAll('[data-search-toggle]');
+        function setDrawer(open) {
+          if (!drawer) return;
+          drawer.classList.toggle('open', open);
+          toggles.forEach(function (t) {
+            t.setAttribute('aria-expanded', String(open));
+          });
+          if (open) {
+            var input = drawer.querySelector('input[name="q"]');
+            if (input) input.focus();
+          }
+        }
+        toggles.forEach(function (t) {
+          t.addEventListener('click', function (e) {
+            e.preventDefault();
+            setDrawer(!drawer.classList.contains('open'));
+          });
+        });
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape') setDrawer(false);
+        });
+
+        /* ---- Tab filtering (cards carry data-cats="slug1 slug2") ---- */
+        document.querySelectorAll('[data-tabs]').forEach(function (tabsEl) {
+          var id = tabsEl.getAttribute('data-tabs');
+          var carousel = document.querySelector('[data-carousel="' + id + '"]');
+          if (!carousel) return;
+          var cards = Array.prototype.slice.call(carousel.querySelectorAll('[data-cats]'));
+          tabsEl.querySelectorAll('[data-tab]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+              tabsEl.querySelectorAll('[data-tab]').forEach(function (b) {
+                b.classList.remove('celebrtiy-tab--active');
+                b.setAttribute('aria-selected', 'false');
+              });
+              btn.classList.add('celebrtiy-tab--active');
+              btn.setAttribute('aria-selected', 'true');
+              var slug = btn.getAttribute('data-tab');
+              cards.forEach(function (card) {
+                var cats = (card.getAttribute('data-cats') || '').split(/\s+/).filter(Boolean);
+                card.style.display = slug === 'all' || cats.indexOf(slug) !== -1 ? '' : 'none';
+              });
+            });
+          });
+        });
+
+        /* ---- Carousel arrows ---- */
+        document.querySelectorAll('[data-carousel-prev]').forEach(function (b) {
+          b.addEventListener('click', function () {
+            celebrtiyScrollCarousel(b.getAttribute('data-carousel-prev'), -1);
+          });
+        });
+        document.querySelectorAll('[data-carousel-next]').forEach(function (b) {
+          b.addEventListener('click', function () {
+            celebrtiyScrollCarousel(b.getAttribute('data-carousel-next'), 1);
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

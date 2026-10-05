@@ -22,12 +22,18 @@ export async function loadAuthContext(userId: string): Promise<AuthContext | nul
   if (!user) return null;
   if (user.disabled) return null;
 
-  const roles = user.roles.map((ur) => ur.role.slug);
-  const permissions = [
-    ...new Set(
-      user.roles.flatMap((ur) => ur.role.permissions.map((rp) => rp.permission.key)),
-    ),
-  ];
+  // prisma client is loosely typed (`any`); annotate shapes explicitly.
+  type RoleWithPermissions = {
+    role: {
+      slug: string;
+      permissions: { permission: { key: string } }[];
+    };
+  };
+  const roles = user.roles.map((ur: RoleWithPermissions) => ur.role.slug);
+  const permissionKeys: string[] = user.roles.flatMap((ur: RoleWithPermissions) =>
+    ur.role.permissions.map((rp: { permission: { key: string } }) => rp.permission.key),
+  );
+  const permissions: string[] = [...new Set(permissionKeys)];
 
   return {
     userId: user.id,

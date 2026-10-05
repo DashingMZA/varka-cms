@@ -143,7 +143,7 @@ export function TiptapEditor(props: {
       const plain = editor.getText().trim();
       const incoming = (props.value || '').replace(/<[^>]+>/g, '').trim();
       if (plain !== incoming) {
-        editor.commands.setContent(props.value || '', { emitUpdate: false });
+        editor.commands.setContent(props.value || '', false);
       }
     }
   }, [props.value, editor, mode]);
@@ -259,7 +259,7 @@ export function TiptapEditor(props: {
       return;
     }
     if (next === 'visual' && mode === 'code') {
-      editor.commands.setContent(code || '', { emitUpdate: true });
+      editor.commands.setContent(code || '', true);
       props.onChange(code || '');
       setMode('visual');
     }

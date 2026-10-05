@@ -1,0 +1,29 @@
+---
+import PostCard from './PostCard.astro';
+import type { CelebrtiyPostCard } from '../lib/data';
+
+interface Props {
+  title: string;
+  posts: CelebrtiyPostCard[];
+  link?: { label: string; href: string };
+}
+
+const { title, posts, link } = Astro.props;
+---
+{posts.length > 0 ? (
+  <section class="celebrtiy-section">
+    <div class="celebrtiy-container">
+      <h2 class="celebrtiy-section-title">{title}</h2>
+      <div class="celebrtiy-card-row">
+        {posts.slice(0, 4).map((p) => (
+          <PostCard post={p} />
+        ))}
+      </div>
+      {link ? (
+        <p style="margin-top:1.5rem;">
+          <a class="celebrtiy-card-link" href={link.href}>{link.label} →</a>
+        </p>
+      ) : null}
+    </div>
+  </section>
+) : null}

@@ -1,8 +1,53 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import CelebrtiyLayout from '../celebrtiy/layouts/CelebrtiyLayout.astro';
+import {
+  isCelebrtiyTheme,
+  getSiteInfo,
+  getNavCategories,
+  getFooterPages,
+} from '../celebrtiy/lib/data';
+import BreadcrumbHero from '../celebrtiy/components/BreadcrumbHero.astro';
+
+const celebrtiy = await isCelebrtiyTheme();
+
+const site = celebrtiy ? await getSiteInfo() : null;
+const nav = celebrtiy ? await getNavCategories() : [];
+const footerPages = celebrtiy ? await getFooterPages() : [];
 ---
-<BaseLayout title="Not found — VARKA">
-  <h1 class="post-title">Page not found</h1>
-  <p class="post-meta">404</p>
-  <p><a href="/">Back home</a></p>
-</BaseLayout>
+{celebrtiy && site ? (
+  <CelebrtiyLayout
+    title="Page Not Found"
+    description="The page you are looking for could not be found."
+    path="/404"
+    type="website"
+    noindex
+    siteName={site.name}
+    tagline={site.tagline}
+    footerText={site.footerText}
+    navCategories={nav}
+    footerPages={footerPages}
+  >
+    <BreadcrumbHero
+      crumbs={[{ label: 'Home', href: '/' }, { label: '404' }]}
+      title="Page Not Found"
+    />
+    <div class="celebrtiy-container">
+      <section class="celebrtiy-section" style="text-align:center;">
+        <p class="celebrtiy-hero-title" style="font-size:72px;">404</p>
+        <p class="celebrtiy-more-info" style="margin:1rem auto;max-width:60ch;">
+          Oops — the page you are looking for does not exist or has been moved.
+        </p>
+        <p style="margin-top:1.5rem;">
+          <a class="celebrtiy-btn" href="/">Back to Home</a>
+        </p>
+      </section>
+    </div>
+  </CelebrtiyLayout>
+) : (
+  <BaseLayout title="Not found — VARKA">
+    <h1 class="post-title">Page not found</h1>
+    <p class="post-meta">404</p>
+    <p><a href="/">Back home</a></p>
+  </BaseLayout>
+)}

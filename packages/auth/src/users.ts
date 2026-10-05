@@ -293,7 +293,7 @@ export async function changeOwnPassword(
   });
   if (account?.password && currentPassword) {
     const { verifyPassword } = await import('./password');
-    const ok = await verifyPassword(account.password, currentPassword);
+    const ok = await verifyPassword({ password: currentPassword, hash: account.password });
     if (!ok) throw new Error('Current password is incorrect');
   }
   const passwordHash = await hashPassword(newPassword);

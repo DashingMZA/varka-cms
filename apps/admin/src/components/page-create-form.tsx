@@ -94,7 +94,7 @@ export function PageCreateForm() {
           <label className="v-muted" style={{ display: 'block', marginBottom: 6, fontWeight: 600 }}>
             Content
           </label>
-          <TiptapEditor value={contentHtml} onChange={setContentHtml} mode="page" />
+          <TiptapEditor value={contentHtml} onChange={setContentHtml} />
         </div>
         <aside className="v-editor__meta">
           <section className="v-panel" style={{ marginTop: 0 }}>

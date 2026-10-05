@@ -1,0 +1,26 @@
+---
+import type { CelebrtiyPostCard } from '../lib/data';
+
+interface Props {
+  picks: CelebrtiyPostCard[];
+}
+
+const { picks } = Astro.props;
+---
+{picks.length > 0 ? (
+  <aside class="celebrtiy-sidebar" aria-label="Top picks for you">
+    <h2 class="celebrtiy-section-title">Top Picks For You</h2>
+    {picks.map((p) => (
+      <div class="celebrtiy-pick">
+        {p.imageUrl ? (
+          <a href={p.path} tabindex="-1" aria-hidden="true">
+            <img src={p.imageUrl} alt="" loading="lazy" decoding="async" />
+          </a>
+        ) : null}
+        <h3 class="celebrtiy-pick-title">
+          <a href={p.path}>{p.title}</a>
+        </h3>
+      </div>
+    ))}
+  </aside>
+) : null}

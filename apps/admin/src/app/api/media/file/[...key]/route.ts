@@ -21,7 +21,8 @@ export async function GET(
     }
     const { key: parts } = await ctx.params;
     const key = parts.join('/');
-    const root = path.resolve(process.env.LOCAL_STORAGE_PATH ?? '.storage');
+    // turbopackIgnore: runtime storage root from env — not a static asset dependency
+    const root = path.resolve(/*turbopackIgnore: true*/ process.env.LOCAL_STORAGE_PATH ?? '.storage');
     const normalized = key.replace(/^\/+/, '').replace(/\.\./g, '');
     const full = path.resolve(root, normalized);
     if (!full.startsWith(root)) {

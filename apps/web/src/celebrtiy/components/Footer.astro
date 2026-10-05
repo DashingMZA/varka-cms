@@ -1,0 +1,34 @@
+---
+import type { CelebrtiyFooterPage } from '../lib/data';
+
+interface Props {
+  siteName: string;
+  footerText: string;
+  pages: CelebrtiyFooterPage[];
+}
+
+const { siteName, footerText, pages } = Astro.props;
+
+const socials = [
+  { label: 'Facebook', abbr: 'Fb' },
+  { label: 'X', abbr: 'X' },
+  { label: 'Instagram', abbr: 'Ig' },
+  { label: 'YouTube', abbr: 'Yt' },
+];
+---
+<footer class="celebrtiy-footer">
+  <div class="celebrtiy-container celebrtiy-footer-inner">
+    <nav class="celebrtiy-footer-nav" aria-label="Footer">
+      <a href="/">Home</a>
+      {pages.map((p) => (
+        <a href={p.path}>{p.title}</a>
+      ))}
+    </nav>
+    <div class="celebrtiy-social">
+      {socials.map((s) => (
+        <a href="#" aria-label={`${siteName} on ${s.label}`}>{s.abbr}</a>
+      ))}
+    </div>
+    <div class="celebrtiy-copyright">{footerText}</div>
+  </div>
+</footer>

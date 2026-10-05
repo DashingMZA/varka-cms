@@ -84,6 +84,7 @@ export function MenuBuilder() {
     const to = items.findIndex((i) => i.id === targetId);
     if (from < 0 || to < 0) return;
     const [moved] = items.splice(from, 1);
+    if (!moved) return;
     items.splice(to, 0, moved);
     updateActiveItems(items);
     setDragId(null);
@@ -96,6 +97,7 @@ export function MenuBuilder() {
     if (idx <= 0) return;
     const prev = items[idx - 1];
     const cur = items[idx];
+    if (!prev || !cur) return;
     const nextDepth = Math.min((cur.depth ?? 0) + 1, (prev.depth ?? 0) + 1, 3);
     items[idx] = { ...cur, depth: nextDepth };
     updateActiveItems(items);

@@ -1,0 +1,37 @@
+---
+import PostCard from './PostCard.astro';
+import type { CelebrtiyPostCard } from '../lib/data';
+
+interface Props {
+  /** Unique id — tabs and carousel are wired together via the layout script. */
+  id: string;
+  tabs?: Array<{ label: string; slug: string }>;
+  posts: CelebrtiyPostCard[];
+}
+
+const { id, tabs = [], posts } = Astro.props;
+---
+{tabs.length > 0 ? (
+  <div class="celebrtiy-tabs" data-tabs={id} role="tablist" aria-label="Filter posts">
+    {tabs.map((t, i) => (
+      <button
+        type="button"
+        class={`celebrtiy-tab${i === 0 ? ' celebrtiy-tab--active' : ''}`}
+        data-tab={t.slug}
+        role="tab"
+        aria-selected={i === 0 ? 'true' : 'false'}
+      >
+        {t.label}
+      </button>
+    ))}
+  </div>
+) : null}
+<div style="display:flex;gap:0.5rem;margin-bottom:1rem;">
+  <button type="button" class="celebrtiy-btn" data-carousel-prev={id} aria-label="Scroll left">‹</button>
+  <button type="button" class="celebrtiy-btn" data-carousel-next={id} aria-label="Scroll right">›</button>
+</div>
+<div class="celebrtiy-carousel" data-carousel={id}>
+  {posts.map((p) => (
+    <PostCard post={p} dataCats={p.categorySlugs.join(' ') || 'uncategorized'} />
+  ))}
+</div>

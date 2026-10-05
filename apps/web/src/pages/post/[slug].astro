@@ -1,7 +1,21 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import CelebrtiyLayout from '../../celebrtiy/layouts/CelebrtiyLayout.astro';
 import { fetchPostBySlug, fetchPublishedPosts } from '../../lib/content-api';
 import { postPath } from '@varka/i18n';
+import {
+  isCelebrtiyTheme,
+  getSiteInfo,
+  getNavCategories,
+  getFooterPages,
+  getPostDetail,
+  getSidebarPicks,
+  type CelebrtiyPostDetail,
+} from '../../celebrtiy/lib/data';
+import BreadcrumbHero from '../../celebrtiy/components/BreadcrumbHero.astro';
+import SidebarTopPicks from '../../celebrtiy/components/SidebarTopPicks.astro';
+import SimilarPosts from '../../celebrtiy/components/SimilarPosts.astro';
+import MoreInfo from '../../celebrtiy/components/MoreInfo.astro';
 
 export async function getStaticPaths() {
   const posts = await fetchPublishedPosts(100);
@@ -13,32 +27,145 @@ export async function getStaticPaths() {
 }
 
 const { slug } = Astro.params;
-const post = slug ? await fetchPostBySlug(String(slug)) : null;
-const title = post?.seoTitle || post?.title || String(slug);
-const description = post?.seoDescription || post?.excerpt || '';
-const path =
-  post?.path ||
-  postPath({ defaultLanguage: true, locale: 'en', urlPrefix: '' }, String(slug));
+const celebrtiy = await isCelebrtiyTheme();
+
+const post = celebrtiy
+  ? null
+  : slug
+    ? await fetchPostBySlug(String(slug))
+    : null;
+const detail: CelebrtiyPostDetail | null = celebrtiy
+  ? slug
+    ? await getPostDetail(String(slug))
+    : null
+  : null;
+
+if (celebrtiy && !detail) {
+  Astro.response.status = 404;
+}
+
+const site = celebrtiy ? await getSiteInfo() : null;
+const nav = celebrtiy ? await getNavCategories() : [];
+const footerPages = celebrtiy ? await getFooterPages() : [];
+const picks = celebrtiy ? await getSidebarPicks(5) : [];
+
+const title = celebrtiy
+  ? detail?.seoTitle || detail?.title || String(slug)
+  : post?.seoTitle || post?.title || String(slug);
+const description = celebrtiy
+  ? detail?.seoDescription || detail?.excerpt || ''
+  : post?.seoDescription || post?.excerpt || '';
+const path = celebrtiy
+  ? detail?.path ||
+    postPath({ defaultLanguage: true, locale: 'en', urlPrefix: '' }, String(slug))
+  : post?.path ||
+    postPath({ defaultLanguage: true, locale: 'en', urlPrefix: '' }, String(slug));
+
+const crumbs: Array<{ label: string; href?: string }> = [{ label: 'Home', href: '/' }];
+if (detail) {
+  const catSlug = detail.categorySlugs[0];
+  if (catSlug) {
+    crumbs.push({ label: detail.categories[0] ?? catSlug, href: `/category/${catSlug}` });
+  }
+  crumbs.push({ label: detail.title });
+} else {
+  crumbs.push({ label: String(slug) });
+}
+
+function formatDate(iso: string | null): string {
+  if (!iso) return '';
+  try {
+    return new Date(iso).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  } catch {
+    return '';
+  }
+}
 ---
-<BaseLayout
-  title={title}
-  description={description}
-  path={path}
-  type="article"
-  locale={post?.locale || 'en'}
->
-  <article>
-    <h1 class="post-title">{post?.title || slug}</h1>
-    <p class="post-meta">
-      {path}
-      {post?.publishedAt ? ` · ${new Date(post.publishedAt).toLocaleDateString()}` : ''}
-    </p>
-    {post ? (
-      <div class="prose" set:html={post.contentHtml} />
+{celebrtiy && site ? (
+  <CelebrtiyLayout
+    title={title}
+    description={description}
+    path={path}
+    type="article"
+    noindex={!detail}
+    locale="en"
+    imageUrl={detail?.imageUrl}
+    publishedAt={detail?.publishedAt}
+    siteName={site.name}
+    tagline={site.tagline}
+    footerText={site.footerText}
+    navCategories={nav}
+    footerPages={footerPages}
+  >
+    {detail ? (
+      <>
+        <BreadcrumbHero crumbs={crumbs} title={detail.title} />
+        <div class="celebrtiy-container">
+          <div class="celebrtiy-article-layout celebrtiy-section" style="padding-top:2rem;">
+            <article class="celebrtiy-article-card">
+              <p class="celebrtiy-card-meta" style="margin-bottom:1rem;">
+                {[detail.authorName, formatDate(detail.publishedAt)].filter(Boolean).join(' · ')}
+              </p>
+              {detail.imageUrl ? (
+                <img
+                  src={detail.imageUrl}
+                  alt={detail.title}
+                  style="width:100%;height:auto;border-radius:6px;margin-bottom:1.5rem;"
+                  decoding="async"
+                />
+              ) : null}
+              <div class="celebrtiy-prose" set:html={detail.contentHtml} />
+            </article>
+            <SidebarTopPicks picks={picks.filter((p) => p.id !== detail.id)} />
+          </div>
+        </div>
+        <SimilarPosts posts={detail.related} />
+        <MoreInfo title={site.moreInfoTitle} html={site.moreInfoHtml} />
+      </>
     ) : (
-      <div class="prose">
-        <p>Post not found. Publish it in admin (shared database).</p>
-      </div>
+      <>
+        <BreadcrumbHero
+          crumbs={[{ label: 'Home', href: '/' }, { label: 'Not Found' }]}
+          title="Post Not Found"
+        />
+        <div class="celebrtiy-container">
+          <section class="celebrtiy-section">
+            <p class="celebrtiy-more-info">
+              The post you are looking for does not exist or is no longer published.
+            </p>
+            <p style="margin-top:1.5rem;">
+              <a class="celebrtiy-btn" href="/">Back to Home</a>
+            </p>
+          </section>
+        </div>
+      </>
     )}
-  </article>
-</BaseLayout>
+  </CelebrtiyLayout>
+) : (
+  <BaseLayout
+    title={title}
+    description={description}
+    path={path}
+    type="article"
+    locale={post?.locale || 'en'}
+  >
+    <article>
+      <h1 class="post-title">{post?.title || slug}</h1>
+      <p class="post-meta">
+        {path}
+        {post?.publishedAt ? ` · ${new Date(post.publishedAt).toLocaleDateString()}` : ''}
+      </p>
+      {post ? (
+        <div class="prose" set:html={post.contentHtml} />
+      ) : (
+        <div class="prose">
+          <p>Post not found. Publish it in admin (shared database).</p>
+        </div>
+      )}
+    </article>
+  </BaseLayout>
+)}

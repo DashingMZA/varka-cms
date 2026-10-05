@@ -197,7 +197,7 @@ export async function forgetPasswordAction(
 ): Promise<AuthActionResult> {
   try {
     const auth = getAuth();
-    await auth.api.forgetPassword({
+    await auth.api.requestPasswordReset({
       body: { email: email.trim().toLowerCase(), redirectTo },
       headers: await hdrs(),
     });

@@ -1,13 +1,18 @@
 import { defineConfig } from 'astro/config';
 import node from '@astrojs/node';
+import vercel from '@astrojs/vercel';
 
 /**
  * Server output so published posts appear without a full rebuild.
- * Dev + Node standalone for production preview.
+ * Adapter is switchable: ADAPTER=vercel on Vercel, otherwise Node standalone
+ * (local dev, Docker/VPS production).
  */
+const adapter =
+  process.env.ADAPTER === 'vercel' ? vercel() : node({ mode: 'standalone' });
+
 export default defineConfig({
   output: 'server',
-  adapter: node({ mode: 'standalone' }),
+  adapter,
   server: { port: 4321 },
   vite: {
     ssr: {

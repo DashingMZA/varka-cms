@@ -29,7 +29,7 @@ const PW_MIN = 12;
 const PW_MAX = 128;
 
 export const emailField = z
-  .string({ required_error: VALIDATION_KEYS.emailRequired })
+  .string({ error: VALIDATION_KEYS.emailRequired })
   .trim()
   .min(1, VALIDATION_KEYS.emailRequired)
   .email(VALIDATION_KEYS.email)
@@ -37,24 +37,24 @@ export const emailField = z
   .transform((v) => v.toLowerCase());
 
 export const passwordField = z
-  .string({ required_error: VALIDATION_KEYS.passwordRequired })
+  .string({ error: VALIDATION_KEYS.passwordRequired })
   .min(PW_MIN, VALIDATION_KEYS.passwordMin)
   .max(PW_MAX, VALIDATION_KEYS.passwordMax)
   .refine((p) => p.trim().length >= PW_MIN, VALIDATION_KEYS.passwordPolicy);
 
 /** Login may accept any length for verify; policy enforced on set/reset */
 export const loginPasswordField = z
-  .string({ required_error: VALIDATION_KEYS.passwordRequired })
+  .string({ error: VALIDATION_KEYS.passwordRequired })
   .min(1, VALIDATION_KEYS.passwordRequired)
   .max(PW_MAX, VALIDATION_KEYS.passwordMax);
 
 export const otpField = z
-  .string({ required_error: VALIDATION_KEYS.otpRequired })
+  .string({ error: VALIDATION_KEYS.otpRequired })
   .trim()
   .regex(/^\d{6}$/, VALIDATION_KEYS.otpLength);
 
 export const nameField = z
-  .string({ required_error: VALIDATION_KEYS.nameRequired })
+  .string({ error: VALIDATION_KEYS.nameRequired })
   .trim()
   .min(1, VALIDATION_KEYS.nameRequired)
   .max(120, VALIDATION_KEYS.nameMax);

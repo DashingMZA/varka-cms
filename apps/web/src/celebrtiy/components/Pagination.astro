@@ -1,0 +1,34 @@
+---
+interface Props {
+  page: number;
+  totalPages: number;
+  /** Base path without query string, e.g. "/category/actors". */
+  base: string;
+}
+
+const { page, totalPages, base } = Astro.props;
+
+function href(p: number): string {
+  return p <= 1 ? base : `${base}?page=${p}`;
+}
+
+const pages: number[] = [];
+for (let p = 1; p <= totalPages; p++) pages.push(p);
+---
+{totalPages > 1 ? (
+  <nav class="celebrtiy-pagination" aria-label="Pagination">
+    {page > 1 ? (
+      <a href={href(page - 1)} aria-label="Previous page">‹</a>
+    ) : null}
+    {pages.map((p) =>
+      p === page ? (
+        <span class="current" aria-current="page">{p}</span>
+      ) : (
+        <a href={href(p)}>{p}</a>
+      ),
+    )}
+    {page < totalPages ? (
+      <a href={href(page + 1)} aria-label="Next page">›</a>
+    ) : null}
+  </nav>
+) : null}
