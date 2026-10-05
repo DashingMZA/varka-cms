@@ -249,6 +249,7 @@ export async function signOutAction(): Promise<AuthActionResult> {
   try {
     const jar = await cookies();
     const raw =
+      jar.get('__Secure-varka.session_token')?.value ??
       jar.get('varka.session_token')?.value ??
       jar.get('better-auth.session_token')?.value;
     if (raw) {
@@ -258,6 +259,11 @@ export async function signOutAction(): Promise<AuthActionResult> {
         .catch(() => {});
     }
     jar.set('varka.session_token', '', { httpOnly: true, path: '/', maxAge: 0 });
+    jar.set('__Secure-varka.session_token', '', {
+      httpOnly: true,
+      path: '/',
+      maxAge: 0,
+    });
     jar.set('better-auth.session_token', '', { httpOnly: true, path: '/', maxAge: 0 });
   } catch {
     /* */

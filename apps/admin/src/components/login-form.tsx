@@ -14,11 +14,24 @@ import { signInEmailAction, verifyTwoFactorAction } from '@/actions/auth';
 
 type Step = 'credentials' | 'twoFactor';
 
-export function LoginForm() {
+const SERVER_ERRORS: Record<string, string> = {
+  invalid: 'invalidCredentials',
+  missing: 'missingCredentials',
+  locked: 'accountLocked',
+  unverified: 'emailNotVerified',
+};
+
+export function LoginForm({
+  serverError,
+  initialStep,
+}: {
+  serverError?: string | null;
+  initialStep?: Step;
+}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
-  const [step, setStep] = useState<Step>('credentials');
+  const [step, setStep] = useState<Step>(initialStep ?? 'credentials');
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -28,6 +41,11 @@ export function LoginForm() {
   function mapKey(key: string): string {
     return t('validation', key) || t('auth', key) || key;
   }
+
+  const serverErrorMessage =
+    serverError && SERVER_ERRORS[serverError]
+      ? t('auth', SERVER_ERRORS[serverError])
+      : null;
 
   async function onSubmitCredentials(e: FormEvent) {
     e.preventDefault();
@@ -95,6 +113,10 @@ export function LoginForm() {
   return (
     <form
       className="v-login-form"
+      // Native POST fallback: if client JS/hydration fails, the browser still
+      // logs in via /api/auth/login instead of a useless GET to /login.
+      action="/api/auth/login"
+      method="post"
       onSubmit={step === 'credentials' ? onSubmitCredentials : onSubmitTwoFactor}
     >
       {step === 'twoFactor' ? (
@@ -127,6 +149,7 @@ export function LoginForm() {
             {t('auth', 'email')}
             <input
               type="email"
+              name="email"
               autoComplete="username"
               required
               value={email}
@@ -139,6 +162,7 @@ export function LoginForm() {
             {t('auth', 'password')}
             <input
               type="password"
+              name="password"
               autoComplete="current-password"
               required
               value={password}
@@ -171,6 +195,9 @@ export function LoginForm() {
       )}
 
       {error ? <p className="v-login-error">{error}</p> : null}
+      {!error && serverErrorMessage ? (
+        <p className="v-login-error">{serverErrorMessage}</p>
+      ) : null}
 
       <button type="submit" className="v-btn v-btn--primary v-login-submit" disabled={loading}>
         {loading
