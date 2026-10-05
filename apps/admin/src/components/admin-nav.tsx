@@ -28,7 +28,15 @@ function L(
 /** Single WP-style menu tree */
 function buildNav(t: (ns: 'nav' | 'common', key: string) => string): NavItem[] {
   return [
-    { href: '/dashboard', label: L(t, 'dashboard', 'Dashboard'), icon: '⌂' },
+    {
+      href: '/dashboard',
+      label: L(t, 'dashboard', 'Dashboard'),
+      icon: '⌂',
+      children: [
+        { href: '/dashboard', label: L(t, 'home', 'Home') },
+        { href: '/dashboard/updates', label: L(t, 'updates', 'Updates') },
+      ],
+    },
     {
       href: '/content',
       label: L(t, 'posts', 'Posts'),

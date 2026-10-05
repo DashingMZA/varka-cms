@@ -34,5 +34,7 @@
   "expand": "Expand",
   "collapse": "Collapse",
   "seoSettings": "SEO Settings",
-  "notFoundMonitor": "404 Monitor"
+  "notFoundMonitor": "404 Monitor",
+  "home": "Home",
+  "updates": "Updates"
 }

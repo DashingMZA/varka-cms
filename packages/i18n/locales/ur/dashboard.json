@@ -25,5 +25,21 @@
   "healthDegraded": "خراب",
   "lastCheck": "آخری جانچ:",
   "networkError": "نیٹ ورک خرابی",
-  "healthStatus": "صحت {status}"
+  "healthStatus": "صحت {status}",
+  "updates": "اپ ڈیٹس",
+  "home": "ہوم",
+  "appVersion": "ایپلیکیشن",
+  "updatesNote": "اپ ڈیٹس git push کے ذریعے ڈیپلائے ہوتی ہیں۔",
+  "packageUpdates": "پیکیج اپ ڈیٹس",
+  "lastChecked": "آخری چیک",
+  "checking": "اپ ڈیٹس چیک ہو رہی ہیں…",
+  "allUpToDate": "تمام پیکیجز اپ ٹو ڈیٹ ہیں۔",
+  "varkaPackages": "VARKA پیکیجز",
+  "dependencies": "ڈیپینڈینسیز",
+  "package": "پیکیج",
+  "current": "موجودہ",
+  "latest": "تازہ ترین",
+  "updateCmd": "اپ ڈیٹ کے لیے چلائیں:",
+  "checkAgain": "دوبارہ چیک کریں",
+  "loading": "لوڈ ہو رہا ہے…"
 }

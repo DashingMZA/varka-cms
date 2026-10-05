@@ -27,5 +27,21 @@
   "networkError": "خطأ في الشبكة",
   "healthStatus": "الحالة {status}",
   "collapseMenu": "طي القائمة",
-  "expandMenu": "توسيع القائمة"
+  "expandMenu": "توسيع القائمة",
+  "updates": "التحديثات",
+  "home": "الرئيسية",
+  "appVersion": "التطبيق",
+  "updatesNote": "يتم نشر التحديثات عبر git push إلى مزود الاستضافة.",
+  "packageUpdates": "تحديثات الحزم",
+  "lastChecked": "آخر فحص",
+  "checking": "جارٍ التحقق من التحديثات…",
+  "allUpToDate": "جميع الحزم محدثة.",
+  "varkaPackages": "حزم VARKA",
+  "dependencies": "التبعيات",
+  "package": "الحزمة",
+  "current": "الحالي",
+  "latest": "الأحدث",
+  "updateCmd": "للتحديث، نفذ:",
+  "checkAgain": "تحقق مرة أخرى",
+  "loading": "جارٍ التحميل…"
 }

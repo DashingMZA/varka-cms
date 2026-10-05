@@ -4,6 +4,7 @@ Newest first. Read this before starting related work so decisions stay consisten
 
 | Date | Task | Summary |
 |------|------|--------|
+| 2026-10-05 | [updates-page](./updates-page.md) | WordPress-style Updates page: /dashboard/updates checks npm registry for outdated @varka/* packages and deps, shows app version + git commit; Dashboard nav submenu (Home, Updates); i18n in 4 locales |
 | 2026-10-05 | [i18n-locale-coverage-100](./i18n-locale-coverage-100.md) | 100% locale key coverage for nav/dashboard/blogs/comments/forms: 239 keys added to ar/es/ur (nav +68, dashboard +24, blogs +66, comments +54, forms +27); key-parity verified; pushed as 2eafa73 |
 | 2026-10-05 | [i18n-batch-3-final](./i18n-batch-3-final.md) | i18n batch 3 FINAL: restored batch-1 stash (page-create/menu/page-editor/user-new), converted 10 components (audit-log, autosave, insert-image-modal, post-create, revision-history, roles-matrix, system-health, theme-picker, list-table, screen-meta) + 10 app pages to client components, deleted dead media-settings.tsx; new keys in 11 namespaces × 4 locales; tsc PASS; final audit = zero hardcoded strings; committed as 0b5f180 |
 | 2026-10-05 | [i18n-batch-2-widgets-media-dashboard](./i18n-batch-2-widgets-media-dashboard.md) | i18n batch 2: widgets-admin fully converted (new `widgets` namespace, 12 keys × 4 locales), media-library SIZE_LABELS → i18n, dashboard ScreenMeta title/help → i18n; users/comments/menus verified already converted; typecheck PASS; pushed as 616e24f |

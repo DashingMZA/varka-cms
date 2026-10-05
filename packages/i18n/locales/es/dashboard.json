@@ -25,5 +25,21 @@
   "healthDegraded": "DEGRADADO",
   "lastCheck": "Última comprobación:",
   "networkError": "Error de red",
-  "healthStatus": "Estado {status}"
+  "healthStatus": "Estado {status}",
+  "updates": "Actualizaciones",
+  "home": "Inicio",
+  "appVersion": "Aplicación",
+  "updatesNote": "Las actualizaciones se despliegan con git push.",
+  "packageUpdates": "Actualizaciones de paquetes",
+  "lastChecked": "Última comprobación",
+  "checking": "Buscando actualizaciones…",
+  "allUpToDate": "Todos los paquetes están actualizados.",
+  "varkaPackages": "Paquetes VARKA",
+  "dependencies": "Dependencias",
+  "package": "Paquete",
+  "current": "Actual",
+  "latest": "Último",
+  "updateCmd": "Para actualizar, ejecuta:",
+  "checkAgain": "Comprobar de nuevo",
+  "loading": "Cargando…"
 }
