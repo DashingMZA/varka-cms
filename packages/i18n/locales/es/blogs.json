@@ -63,5 +63,9 @@
   "deletePermanently": "Eliminar permanentemente",
   "deletePermanentlyConfirm": "¿Eliminar permanentemente? No se puede deshacer.",
   "scheduled": "Programado",
-  "scheduleFor": "Programar para"
+  "scheduleFor": "Programar para",
+  "bulkEdit": "Editar",
+  "bulkEditTitle": "Edición masiva",
+  "noChange": "Sin cambios",
+  "cancel": "Cancelar"
 }

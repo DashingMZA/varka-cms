@@ -66,5 +66,6 @@
   "selectAll": "Seleccionar todo",
   "page": "Página",
   "of": "de",
-  "items": "elementos"
+  "items": "elementos",
+  "noChange": "Sin cambios"
 }

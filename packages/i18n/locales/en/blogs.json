@@ -63,5 +63,9 @@
   "deletePermanently": "Delete Permanently",
   "deletePermanentlyConfirm": "Permanently delete selected items? This cannot be undone.",
   "scheduled": "Scheduled",
-  "scheduleFor": "Schedule for"
+  "scheduleFor": "Schedule for",
+  "bulkEdit": "Edit",
+  "bulkEditTitle": "Bulk Edit",
+  "noChange": "No Change",
+  "cancel": "Cancel"
 }

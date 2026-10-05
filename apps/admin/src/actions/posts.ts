@@ -222,6 +222,40 @@ export async function bulkPostsAction(
   }
 }
 
+export async function bulkEditPostsAction(
+  ids: string[],
+  updates: { status?: 'DRAFT' | 'PUBLISHED' | 'PENDING_REVIEW' },
+): Promise<ActionResult<{ count: number }>> {
+  try {
+    const { siteId } = await requireServerAuth('posts.update');
+    if (!ids.length) return { ok: true, data: { count: 0 } };
+    if (updates.status === 'PUBLISHED') {
+      await requireServerAuth('posts.publish');
+    }
+
+    const data: Record<string, unknown> = {};
+    if (updates.status) {
+      data.status = updates.status;
+      if (updates.status === 'PUBLISHED') {
+        data.publishedAt = new Date();
+      }
+    }
+
+    if (Object.keys(data).length === 0) {
+      return { ok: true, data: { count: 0 } };
+    }
+
+    const result = await prisma.post.updateMany({
+      where: { id: { in: ids }, siteId, deletedAt: null },
+      data,
+    });
+    revalidatePath('/content/posts');
+    return { ok: true, data: { count: result.count } };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
 export async function searchContentAction(q: string): Promise<
   ActionResult<{
     posts: Array<{ id: string; title: string; slug: string; type: 'post' }>;

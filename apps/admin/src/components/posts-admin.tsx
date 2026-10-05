@@ -12,6 +12,7 @@ import {
   restorePostAction,
   deletePostPermanentlyAction,
   bulkPostsAction,
+  bulkEditPostsAction,
   getPostAction,
   updatePostAction,
 } from '@/actions/posts';
@@ -35,6 +36,7 @@ export function PostsAdmin() {
   const [q, setQ] = useState('');
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulk, setBulk] = useState('');
+  const [bulkEditStatus, setBulkEditStatus] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cols, setCols] = useState({ author: true, categories: true, tags: true, date: true });
@@ -194,6 +196,8 @@ export function PostsAdmin() {
 
   async function applyBulk() {
     if (!bulk || selected.size === 0) return;
+    // Bulk edit shows inline form instead of immediate action
+    if (bulk === 'edit') return;
     setLoading(true);
     try {
       const ids = Array.from(selected);
@@ -215,6 +219,30 @@ export function PostsAdmin() {
       await load();
       setSelected(new Set());
       setBulk('');
+    } catch {
+      setError(t('errors', 'saveFailed'));
+    }
+    setLoading(false);
+  }
+
+  async function applyBulkEdit() {
+    if (selected.size === 0) return;
+    setLoading(true);
+    try {
+      const ids = Array.from(selected);
+      const updates: { status?: 'DRAFT' | 'PUBLISHED' | 'PENDING_REVIEW' } = {};
+      if (bulkEditStatus) {
+        updates.status = bulkEditStatus as 'DRAFT' | 'PUBLISHED' | 'PENDING_REVIEW';
+      }
+      const res = await bulkEditPostsAction(ids, updates);
+      if (!res.ok) {
+        setError(res.error);
+      } else {
+        await load();
+        setSelected(new Set());
+        setBulk('');
+        setBulkEditStatus('');
+      }
     } catch {
       setError(t('errors', 'saveFailed'));
     }
@@ -295,6 +323,7 @@ export function PostsAdmin() {
               </>
             ) : (
               <>
+                <option value="edit">{t('blogs', 'bulkEdit') || 'Edit'}</option>
                 <option value="publish">{t('blogs', 'publish')}</option>
                 <option value="draft">{t('blogs', 'draft')}</option>
                 <option value="trash">{t('blogs', 'trash')}</option>
@@ -305,6 +334,45 @@ export function PostsAdmin() {
             {t('common', 'apply') || 'Apply'}
           </button>
         </div>
+        {bulk === 'edit' && selected.size > 0 ? (
+          <div className="v-panel" style={{ marginTop: 12, padding: 12 }}>
+            <h4 style={{ margin: '0 0 8px' }}>
+              {t('blogs', 'bulkEditTitle') || 'Bulk Edit'} ({selected.size})
+            </h4>
+            <label style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              {t('blogs', 'status') || 'Status'}:{' '}
+              <select
+                value={bulkEditStatus}
+                onChange={(e) => setBulkEditStatus(e.target.value)}
+              >
+                <option value="">— {t('common', 'noChange') || 'No Change'} —</option>
+                <option value="DRAFT">{t('blogs', 'draft')}</option>
+                <option value="PENDING_REVIEW">{t('blogs', 'pendingReview')}</option>
+                <option value="PUBLISHED">{t('blogs', 'published')}</option>
+              </select>
+            </label>
+            <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+              <button
+                type="button"
+                className="v-btn v-btn--primary"
+                onClick={() => void applyBulkEdit()}
+                disabled={loading}
+              >
+                {t('common', 'update') || 'Update'}
+              </button>
+              <button
+                type="button"
+                className="v-btn"
+                onClick={() => {
+                  setBulk('');
+                  setBulkEditStatus('');
+                }}
+              >
+                {t('common', 'cancel') || 'Cancel'}
+              </button>
+            </div>
+          </div>
+        ) : null}
         <div className="v-search">
           <input
             value={q}

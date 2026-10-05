@@ -63,5 +63,9 @@
   "deletePermanently": "حذف نهائي",
   "deletePermanentlyConfirm": "حذف العناصر المحددة نهائياً؟ لا يمكن التراجع.",
   "scheduled": "مجدول",
-  "scheduleFor": "جدولة لـ"
+  "scheduleFor": "جدولة لـ",
+  "bulkEdit": "تحرير",
+  "bulkEditTitle": "تحرير جماعي",
+  "noChange": "بدون تغيير",
+  "cancel": "إلغاء"
 }

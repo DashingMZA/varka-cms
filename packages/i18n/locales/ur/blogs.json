@@ -63,5 +63,9 @@
   "deletePermanently": "مستقل حذف کریں",
   "deletePermanentlyConfirm": "منتخب آئٹمز مستقل حذف کریں؟ یہ واپس نہیں ہو سکتا.",
   "scheduled": "شیڈول شدہ",
-  "scheduleFor": "شیڈول کریں"
+  "scheduleFor": "شیڈول کریں",
+  "bulkEdit": "ترمیم",
+  "bulkEditTitle": "بلک ترمیم",
+  "noChange": "کوئی تبدیلی نہیں",
+  "cancel": "منسوخ"
 }

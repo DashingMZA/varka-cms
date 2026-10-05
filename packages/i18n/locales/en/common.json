@@ -66,5 +66,6 @@
   "selectAll": "Select all",
   "page": "Page",
   "of": "of",
-  "items": "items"
+  "items": "items",
+  "noChange": "No Change"
 }
