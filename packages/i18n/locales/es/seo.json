@@ -16,5 +16,18 @@
   "saved": "Guardado",
   "sitemap": "Mapa del sitio",
   "title": "SEO",
-  "titleTemplate": "Plantilla de título"
+  "titleTemplate": "Plantilla de título",
+  "seoSettings": "Ajustes SEO",
+  "notFoundMonitor": "Monitor 404",
+  "notFoundDesc": "URLs que devolvieron errores 404.",
+  "noNotFound": "Sin errores 404 aún.",
+  "clearAll": "Borrar todo",
+  "clearConfirm": "¿Borrar todos los registros 404?",
+  "url": "URL",
+  "hits": "Visitas",
+  "lastSeen": "Visto por última vez",
+  "referrer": "Referente",
+  "actions": "Acciones",
+  "delete": "Eliminar",
+  "loading": "Cargando…"
 }

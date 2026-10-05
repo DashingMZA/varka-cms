@@ -74,7 +74,15 @@ function buildNav(t: (ns: 'nav' | 'common', key: string) => string): NavItem[] {
       ],
     },
     { href: '/languages', label: L(t, 'languages', 'Languages'), icon: '文' },
-    { href: '/seo', label: L(t, 'seo', 'SEO'), icon: '◎' },
+    {
+      href: '/seo',
+      label: L(t, 'seo', 'SEO'),
+      icon: '◎',
+      children: [
+        { href: '/seo', label: L(t, 'seoSettings', 'SEO Settings') },
+        { href: '/seo/404-monitor', label: L(t, 'notFoundMonitor', '404 Monitor') },
+      ],
+    },
     {
       href: '/tools',
       label: L(t, 'tools', 'Tools'),

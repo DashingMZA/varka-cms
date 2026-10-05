@@ -16,5 +16,18 @@
   "saved": "تم الحفظ",
   "sitemap": "خريطة الموقع",
   "title": "تحسين محركات البحث",
-  "titleTemplate": "قالب العنوان"
+  "titleTemplate": "قالب العنوان",
+  "seoSettings": "إعدادات SEO",
+  "notFoundMonitor": "مراقب 404",
+  "notFoundDesc": "الروابط التي أرجعت أخطاء 404.",
+  "noNotFound": "لا توجد أخطاء 404 بعد.",
+  "clearAll": "مسح الكل",
+  "clearConfirm": "مسح جميع سجلات 404؟",
+  "url": "الرابط",
+  "hits": "الزيارات",
+  "lastSeen": "آخر ظهور",
+  "referrer": "المُحيل",
+  "actions": "إجراءات",
+  "delete": "حذف",
+  "loading": "جارٍ التحميل…"
 }

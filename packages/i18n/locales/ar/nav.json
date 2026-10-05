@@ -32,5 +32,7 @@
   "expandMenu": "توسيع القائمة",
   "collapseMenu": "طي القائمة",
   "expand": "توسيع",
-  "collapse": "طي"
+  "collapse": "طي",
+  "seoSettings": "إعدادات SEO",
+  "notFoundMonitor": "مراقب 404"
 }

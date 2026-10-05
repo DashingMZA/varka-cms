@@ -16,5 +16,18 @@
   "saved": "Saved",
   "sitemap": "Sitemap",
   "title": "SEO",
-  "titleTemplate": "Title template"
+  "titleTemplate": "Title template",
+  "seoSettings": "SEO Settings",
+  "notFoundMonitor": "404 Monitor",
+  "notFoundDesc": "URLs that returned 404 errors on your site.",
+  "noNotFound": "No 404 errors logged yet.",
+  "clearAll": "Clear All",
+  "clearConfirm": "Clear all 404 logs?",
+  "url": "URL",
+  "hits": "Hits",
+  "lastSeen": "Last Seen",
+  "referrer": "Referrer",
+  "actions": "Actions",
+  "delete": "Delete",
+  "loading": "Loading…"
 }

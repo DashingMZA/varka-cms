@@ -32,5 +32,7 @@
   "expandMenu": "Expandir menú",
   "collapseMenu": "Contraer menú",
   "expand": "Expandir",
-  "collapse": "Contraer"
+  "collapse": "Contraer",
+  "seoSettings": "Ajustes SEO",
+  "notFoundMonitor": "Monitor 404"
 }

@@ -32,6 +32,7 @@
     "@varka/permissions": "workspace:*",
     "@varka/plugins": "workspace:*",
     "@varka/queue": "workspace:*",
+    "@varka/seo": "workspace:*",
     "@varka/security": "workspace:*",
     "@varka/themes": "workspace:*",
     "@varka/validation": "workspace:*",

@@ -16,5 +16,18 @@
   "saved": "محفوظ ہو گیا",
   "sitemap": "سائٹ میپ",
   "title": "SEO",
-  "titleTemplate": "عنوان سانچہ"
+  "titleTemplate": "عنوان سانچہ",
+  "seoSettings": "SEO سیٹنگز",
+  "notFoundMonitor": "404 مانیٹر",
+  "notFoundDesc": "وہ URLs جن پر 404 ایرر آیا۔",
+  "noNotFound": "ابھی کوئی 404 ایرر نہیں۔",
+  "clearAll": "سب صاف کریں",
+  "clearConfirm": "تمام 404 لاگز صاف کریں؟",
+  "url": "URL",
+  "hits": "ہٹس",
+  "lastSeen": "آخری بار",
+  "referrer": "ریفرر",
+  "actions": "ایکشنز",
+  "delete": "حذف کریں",
+  "loading": "لوڈ ہو رہا ہے…"
 }

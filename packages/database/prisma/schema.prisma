@@ -574,3 +574,19 @@ model FormEntry {
 
   @@index([formId, createdAt])
 }
+
+/// 404 not-found log for SEO monitor.
+model NotFoundLog {
+  id        String   @id @default(cuid())
+  siteId    String
+  site      Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  path      String
+  referrer  String?
+  userAgent String?
+  hits      Int      @default(1)
+  firstSeen DateTime @default(now())
+  lastSeen  DateTime @updatedAt
+
+  @@unique([siteId, path])
+  @@index([siteId, lastSeen])
+}
