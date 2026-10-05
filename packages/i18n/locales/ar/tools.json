@@ -1,0 +1,23 @@
+{
+  "tools": "الأدوات",
+  "toolsDesc": "استيراد وتصدير وصيانة موقعك.",
+  "availableTools": "الأدوات المتاحة",
+  "import": "استيراد",
+  "importDesc": "استيراد المحتوى من ملف JSON.",
+  "export": "تصدير",
+  "exportDesc": "تنزيل المحتوى كملف JSON. يمكنك استيراده لاحقاً.",
+  "siteHealth": "صحة الموقع",
+  "siteHealthDesc": "تحقق من صحة الموقع وحالة النظام.",
+  "chooseContent": "اختر المحتوى للتصدير",
+  "posts": "المقالات",
+  "pages": "الصفحات",
+  "media": "الوسائط",
+  "categories": "التصنيفات",
+  "tags": "الوسوم",
+  "comments": "التعليقات",
+  "selectAtLeastOne": "اختر نوع محتوى واحد على الأقل",
+  "exportFailed": "فشل التصدير",
+  "exportSuccess": "تم التصدير",
+  "exporting": "جارٍ التصدير…",
+  "downloadExport": "تنزيل ملف التصدير"
+}

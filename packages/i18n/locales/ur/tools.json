@@ -1,0 +1,23 @@
+{
+  "tools": "ٹولز",
+  "toolsDesc": "اپنی سائٹ امپورٹ، ایکسپورٹ اور مینٹین کریں۔",
+  "availableTools": "دستیاب ٹولز",
+  "import": "امپورٹ",
+  "importDesc": "JSON فائل سے مواد امپورٹ کریں۔",
+  "export": "ایکسپورٹ",
+  "exportDesc": "اپنا مواد JSON فائل کے طور پر ڈاؤن لوڈ کریں۔",
+  "siteHealth": "سائٹ ہیلتھ",
+  "siteHealthDesc": "اپنی سائٹ کی صحت چیک کریں۔",
+  "chooseContent": "ایکسپورٹ کے لیے مواد منتخب کریں",
+  "posts": "پوسٹس",
+  "pages": "پیجز",
+  "media": "میڈیا",
+  "categories": "کیٹیگریز",
+  "tags": "ٹیگز",
+  "comments": "کمنٹس",
+  "selectAtLeastOne": "کم از کم ایک منتخب کریں",
+  "exportFailed": "ایکسپورٹ ناکام",
+  "exportSuccess": "ایکسپورٹ ہو گیا",
+  "exporting": "ایکسپورٹ ہو رہا ہے…",
+  "downloadExport": "ایکسپورٹ فائل ڈاؤن لوڈ کریں"
+}

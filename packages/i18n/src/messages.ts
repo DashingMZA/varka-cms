@@ -44,6 +44,7 @@ export const MESSAGE_NAMESPACES = [
   'plugins',
   'editor',
   'widgets',
+  'tools',
 ] as const;
 
 export type MessageNamespace = (typeof MESSAGE_NAMESPACES)[number];

@@ -1,0 +1,23 @@
+{
+  "tools": "Tools",
+  "toolsDesc": "Import, export, and maintain your site.",
+  "availableTools": "Available Tools",
+  "import": "Import",
+  "importDesc": "Import content from a JSON file.",
+  "export": "Export",
+  "exportDesc": "Download your content as a JSON file. You can import it back later.",
+  "siteHealth": "Site Health",
+  "siteHealthDesc": "Check your site health and system status.",
+  "chooseContent": "Choose content to export",
+  "posts": "Posts",
+  "pages": "Pages",
+  "media": "Media",
+  "categories": "Categories",
+  "tags": "Tags",
+  "comments": "Comments",
+  "selectAtLeastOne": "Select at least one content type",
+  "exportFailed": "Export failed",
+  "exportSuccess": "Exported",
+  "exporting": "Exporting…",
+  "downloadExport": "Download Export File"
+}

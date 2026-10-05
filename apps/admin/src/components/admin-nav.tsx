@@ -75,7 +75,17 @@ function buildNav(t: (ns: 'nav' | 'common', key: string) => string): NavItem[] {
     },
     { href: '/languages', label: L(t, 'languages', 'Languages'), icon: '文' },
     { href: '/seo', label: L(t, 'seo', 'SEO'), icon: '◎' },
-    { href: '/system', label: L(t, 'tools', 'Tools'), icon: '⚒' },
+    {
+      href: '/tools',
+      label: L(t, 'tools', 'Tools'),
+      icon: '⚒',
+      children: [
+        { href: '/tools', label: L(t, 'availableTools', 'Available Tools') },
+        { href: '/tools/import', label: L(t, 'import', 'Import') },
+        { href: '/tools/export', label: L(t, 'export', 'Export') },
+        { href: '/system', label: L(t, 'siteHealth', 'Site Health') },
+      ],
+    },
     { href: '/plugins', label: L(t, 'plugins', 'Plugins'), icon: '⚡' },
     {
       href: '/settings',

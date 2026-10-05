@@ -1,0 +1,23 @@
+{
+  "tools": "Herramientas",
+  "toolsDesc": "Importa, exporta y mantén tu sitio.",
+  "availableTools": "Herramientas disponibles",
+  "import": "Importar",
+  "importDesc": "Importar contenido desde un archivo JSON.",
+  "export": "Exportar",
+  "exportDesc": "Descarga tu contenido como archivo JSON.",
+  "siteHealth": "Salud del sitio",
+  "siteHealthDesc": "Revisa la salud de tu sitio.",
+  "chooseContent": "Elige contenido para exportar",
+  "posts": "Entradas",
+  "pages": "Páginas",
+  "media": "Medios",
+  "categories": "Categorías",
+  "tags": "Etiquetas",
+  "comments": "Comentarios",
+  "selectAtLeastOne": "Selecciona al menos un tipo",
+  "exportFailed": "Falló la exportación",
+  "exportSuccess": "Exportado",
+  "exporting": "Exportando…",
+  "downloadExport": "Descargar archivo"
+}

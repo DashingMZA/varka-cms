@@ -41,6 +41,8 @@ export const PERMISSIONS = [
   'forms.update',
   'forms.delete',
   'forms.entries',
+  'tools.export',
+  'tools.import',
   'seo.read',
   'seo.update',
   'settings.read',
