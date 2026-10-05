@@ -148,6 +148,7 @@ export async function updateMyProfileAction(body: {
   name?: string;
   newPassword?: string;
   currentPassword?: string;
+  adminColorScheme?: string;
 }): Promise<ActionResult<unknown>> {
   try {
     const ctx = await getServerAuth();
@@ -166,6 +167,7 @@ export async function updateMyProfileAction(body: {
       bio: body.bio,
       email: body.email,
       name: body.name,
+      adminColorScheme: body.adminColorScheme,
     });
     revalidatePath('/users');
     return { ok: true, data: JSON.parse(JSON.stringify(user)) };
