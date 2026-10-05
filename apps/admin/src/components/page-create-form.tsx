@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { slugify } from '@/lib/slugify';
 import { TiptapEditor } from '@/components/tiptap-editor';
 import { useMessages } from '@/lib/i18n';
+import { createPageAction } from '@/actions/pages';
 
 /** Label with hard fallback so missing i18n never shows raw keys */
 function L(
@@ -42,36 +43,21 @@ export function PageCreateForm() {
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch('/api/pages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          title: title.trim(),
-          slug: slug.trim() || undefined,
-          contentHtml,
-          template,
-        }),
+      const result = await createPageAction(title.trim(), {
+        slug: slug.trim() || undefined,
+        contentHtml,
+        template,
+        status: publish ? 'PUBLISHED' : 'DRAFT',
       });
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!result.ok) {
         setError(
-          body.error ??
-            L(t, 'createFailed', 'Create failed ({status})').replace('{status}', String(res.status)),
+          result.error ??
+            L(t, 'createFailed', 'Create failed'),
         );
         setBusy(false);
         return;
       }
-      const page = (await res.json()) as { id: string };
-      if (publish) {
-        await fetch(`/api/pages/${page.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ status: 'PUBLISHED', title: title.trim() }),
-        }).catch(() => null);
-      }
-      router.push(`/content/pages/${page.id}`);
+      router.push(`/content/pages/${result.data.id}`);
     } catch {
       setError(L(t, 'networkError', 'Network error'));
       setBusy(false);

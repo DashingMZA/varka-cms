@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useMessages } from '@/lib/i18n';
+import { getMenusAction, saveMenusAction } from '@/actions/settings';
 
 type MenuItem = {
   id: string;
@@ -34,14 +35,14 @@ export function MenuBuilder() {
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
-    const res = await fetch('/api/menus', { credentials: 'include' });
-    if (!res.ok) {
-      setError(t('errors', 'loadFailed') + ` (${res.status})`);
+    const result = await getMenusAction();
+    if (!result.ok) {
+      setError(t('errors', 'loadFailed') + `: ${result.error}`);
       return;
     }
-    const data = (await res.json()) as { menus: MenuRecord[] };
-    setMenus(data.menus ?? []);
-    if (!activeId && data.menus?.[0]) setActiveId(data.menus[0].id);
+    const menus = (result.data.menus as MenuRecord[]) ?? [];
+    setMenus(menus);
+    if (!activeId && menus[0]) setActiveId(menus[0].id);
   }, [activeId, t]);
 
   useEffect(() => {
@@ -117,13 +118,8 @@ export function MenuBuilder() {
     setMessage(null);
     setError(null);
     try {
-      const res = await fetch('/api/menus', {
-        method: 'PUT',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ menus }),
-      });
-      if (!res.ok) throw new Error(t('errors', 'saveFailed') + ` (${res.status})`);
+      const result = await saveMenusAction(menus as unknown[]);
+      if (!result.ok) throw new Error(t('errors', 'saveFailed') + `: ${result.error}`);
       setMessage(t('appearance', 'menusSaved'));
     } catch (e) {
       setError(e instanceof Error ? e.message : t('errors', 'saveFailed'));

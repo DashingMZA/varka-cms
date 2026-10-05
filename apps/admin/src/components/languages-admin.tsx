@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useMessages } from '@/lib/i18n';
+import { listLanguagesAction, createLanguageAction, updateLanguageAction } from '@/actions/languages';
 
 /** Label with hard fallback so missing i18n never shows raw keys */
 function L(
@@ -34,13 +35,12 @@ export function LanguagesAdmin() {
   const [message, setMessage] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const res = await fetch('/api/languages', { credentials: 'include' });
-    if (!res.ok) {
-      setError(L(t, 'loadFailed', 'Load failed ({status})').replace('{status}', String(res.status)));
+    const result = await listLanguagesAction();
+    if (!result.ok) {
+      setError(L(t, 'loadFailed', 'Load failed: {error}').replace('{error}', result.error));
       return;
     }
-    const data = (await res.json()) as { items: Lang[] };
-    setItems(data.items ?? []);
+    setItems((result.data.items as Lang[]) ?? []);
   }, [t]);
 
   useEffect(() => {
@@ -49,14 +49,9 @@ export function LanguagesAdmin() {
 
   async function toggleEnabled(lang: Lang) {
     setError(null);
-    const res = await fetch(`/api/languages/${lang.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ enabled: !lang.enabled }),
-    });
-    if (!res.ok) {
-      setError(L(t, 'updateFailed', 'Update failed ({status})').replace('{status}', String(res.status)));
+    const result = await updateLanguageAction(lang.id, { enabled: !lang.enabled });
+    if (!result.ok) {
+      setError(L(t, 'updateFailed', 'Update failed: {error}').replace('{error}', result.error));
       return;
     }
     setMessage(
@@ -71,28 +66,19 @@ export function LanguagesAdmin() {
   async function addPunjabi() {
     setError(null);
     setMessage(null);
-    const res = await fetch('/api/languages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({
-        name: 'Punjabi',
-        nativeName: 'پنجابی',
-        locale: 'pa',
-        languageCode: 'pa',
-        script: 'Arab',
-        direction: 'rtl',
-        urlPrefix: 'pa',
-        enabled: true,
-        defaultLanguage: false,
-      }),
+    const result = await createLanguageAction({
+      name: 'Punjabi',
+      nativeName: 'پنجابی',
+      locale: 'pa',
+      languageCode: 'pa',
+      script: 'Arab',
+      direction: 'rtl',
+      urlPrefix: 'pa',
+      enabled: true,
+      defaultLanguage: false,
     });
-    if (!res.ok) {
-      const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(
-        body.error ??
-          L(t, 'createFailed', 'Create failed ({status})').replace('{status}', String(res.status)),
-      );
+    if (!result.ok) {
+      setError(result.error ?? L(t, 'createFailed', 'Create failed'));
       return;
     }
     setMessage(L(t, 'punjabiAdded', 'Punjabi (pa) added — one language row + script field'));
