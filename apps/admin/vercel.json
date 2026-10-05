@@ -1,6 +1,1 @@
-{
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "nextjs",
-  "installCommand": "cd ../.. && corepack enable && pnpm install",
-  "buildCommand": "cd ../.. && pnpm db:generate && pnpm --filter @varka/admin build"
-}
+{"$schema":"https://openapi.vercel.sh/vercel.json","buildCommand":"cd ../.. && pnpm db:generate && pnpm --filter @varka/admin build","framework":"nextjs","installCommand":"cd ../.. && corepack enable && pnpm install --no-frozen-lockfile"}
