@@ -30,7 +30,7 @@
   "permalinksTitle": "Permalink Settings",
   "permalinksDesc": "Select the permalink structure for your website. Including the post name makes links easier to understand and can help SEO.",
   "privacyTitle": "Privacy Settings",
-  "privacyDesc": "Privacy policy page and related options.",
+  "privacyDesc": "Privacy policy page and personal data request options.",
   "siteUrl": "Site Address (URL)",
   "homeUrl": "Home URL",
   "homeUrlHint": "Usually same as Site Address unless installed in a subdirectory.",
@@ -131,5 +131,13 @@
   "optional": "Optional",
   "optionalDesc": "Custom bases for category and tag URLs. Leave blank for defaults.",
   "categoryBase": "Category base",
-  "tagBase": "Tag base"
+  "tagBase": "Tag base",
+  "privacyPolicyPage": "Privacy Policy page",
+  "privacyPolicyHint": "Slug of the page used as the privacy policy.",
+  "footerLink": "Footer link",
+  "showPrivacyFooter": "Show privacy policy link in footer",
+  "dataExport": "Personal data export",
+  "allowDataExport": "Allow personal data export requests",
+  "dataErasure": "Personal data erasure",
+  "allowDataErasure": "Allow personal data erasure requests"
 }
