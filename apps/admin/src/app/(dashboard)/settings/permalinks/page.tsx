@@ -16,6 +16,19 @@ const DEFAULTS = {
   tagBase: '',
 };
 
+const AVAILABLE_TAGS = [
+  '%year%',
+  '%monthnum%',
+  '%day%',
+  '%hour%',
+  '%minute%',
+  '%second%',
+  '%post_id%',
+  '%postname%',
+  '%category%',
+  '%author%',
+];
+
 
 export default function PermalinksSettingsPage() {
   const { t } = useMessages();
@@ -71,7 +84,40 @@ export default function PermalinksSettingsPage() {
                 style={{ ...inputStyle, maxWidth: 480, fontFamily: 'monospace' }}
                 value={String(v.customStructure ?? '')}
                 onChange={(e) => set('customStructure', e.target.value)}
+                id="custom-structure-input"
               />
+              <p style={{ margin: '8px 0 4px', fontSize: 13 }}>
+                {L(t, 'availableTags', 'Available tags:')}
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {AVAILABLE_TAGS.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    className="v-btn"
+                    style={{ fontSize: 12, fontFamily: 'monospace' }}
+                    onClick={() => {
+                      const input = document.getElementById('custom-structure-input') as HTMLInputElement | null;
+                      const current = String(v.customStructure ?? '');
+                      if (input && input.selectionStart !== null) {
+                        const start = input.selectionStart;
+                        const end = input.selectionEnd ?? start;
+                        const next = current.slice(0, start) + tag + current.slice(end);
+                        set('customStructure', next);
+                        requestAnimationFrame(() => {
+                          input.focus();
+                          const pos = start + tag.length;
+                          input.setSelectionRange(pos, pos);
+                        });
+                      } else {
+                        set('customStructure', current + tag);
+                      }
+                    }}
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
             </Field>
           ) : null}
           <h2 style={{ fontSize: 15, margin: '8px 0 0' }}>{L(t, 'optional', 'Optional')}</h2>
