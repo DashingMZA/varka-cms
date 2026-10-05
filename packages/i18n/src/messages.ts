@@ -41,6 +41,7 @@ export const MESSAGE_NAMESPACES = [
   'admins',
   'brands',
   'emptyStates',
+  'plugins',
 ] as const;
 
 export type MessageNamespace = (typeof MESSAGE_NAMESPACES)[number];
