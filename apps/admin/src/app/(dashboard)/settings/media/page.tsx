@@ -32,7 +32,7 @@ export default function MediaSettingsPage() {
     <SettingsForm
       group="media"
       title={L(t, 'mediaTitle', 'Media Settings')}
-      description={L(t, 'mediaDesc', 'Image size limits and upload folder organization (WordPress-style).')}
+      description={L(t, 'mediaDesc', 'The sizes listed below determine the maximum dimensions in pixels to use when adding an image to the Media Library.')}
       defaults={DEFAULTS}
     >
       {(v, set) => (
@@ -68,7 +68,7 @@ export default function MediaSettingsPage() {
                 checked={Boolean(v.thumbnailCrop)}
                 onChange={(e) => set('thumbnailCrop', e.target.checked)}
               />
-              {L(t, 'cropThumbnail', 'Crop thumbnail to exact dimensions')}
+              {L(t, 'cropThumbnail', 'Crop thumbnail to exact dimensions (normally thumbnails are proportional)')}
             </label>
           </Field>
           <Field label={L(t, 'mediumSize', 'Medium size')}>
