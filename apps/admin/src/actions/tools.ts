@@ -12,6 +12,151 @@ function fail(e: unknown): ActionResult<never> {
 
 export type ExportContentType = 'posts' | 'pages' | 'media' | 'categories' | 'tags' | 'comments';
 
+export async function importContentAction(
+  json: string,
+): Promise<ActionResult<{ imported: Record<string, number>; errors: string[] }>> {
+  try {
+    const { siteId } = await requireServerAuth('tools.import');
+    const errors: string[] = [];
+    const imported: Record<string, number> = {};
+
+    let payload: { version?: string; generator?: string; data?: Record<string, unknown[]> };
+    try {
+      payload = JSON.parse(json);
+    } catch {
+      return { ok: false, error: 'Invalid JSON file' };
+    }
+
+    if (!payload.data || typeof payload.data !== 'object') {
+      return { ok: false, error: 'Invalid export file format' };
+    }
+
+    const data = payload.data;
+
+    // Import categories first (posts may reference them)
+    if (Array.isArray(data.categories)) {
+      let count = 0;
+      for (const cat of data.categories as Array<{ name: string; slug: string; description?: string }>) {
+        try {
+          if (!cat.name || !cat.slug) continue;
+          await prisma.category.upsert({
+            where: { siteId_slug: { siteId, slug: cat.slug } },
+            update: { name: cat.name, description: cat.description ?? null },
+            create: { siteId, name: cat.name, slug: cat.slug, description: cat.description ?? null },
+          });
+          count++;
+        } catch (e) {
+          errors.push(`Category ${cat.slug}: ${e instanceof Error ? e.message : 'failed'}`);
+        }
+      }
+      imported.categories = count;
+    }
+
+    // Import tags
+    if (Array.isArray(data.tags)) {
+      let count = 0;
+      for (const tag of data.tags as Array<{ name: string; slug: string; description?: string }>) {
+        try {
+          if (!tag.name || !tag.slug) continue;
+          await prisma.tag.upsert({
+            where: { siteId_slug: { siteId, slug: tag.slug } },
+            update: { name: tag.name, description: tag.description ?? null },
+            create: { siteId, name: tag.name, slug: tag.slug, description: tag.description ?? null },
+          });
+          count++;
+        } catch (e) {
+          errors.push(`Tag ${tag.slug}: ${e instanceof Error ? e.message : 'failed'}`);
+        }
+      }
+      imported.tags = count;
+    }
+
+    // Import posts
+    if (Array.isArray(data.posts)) {
+      let count = 0;
+      for (const post of data.posts as Array<{
+        status?: string;
+        translations?: Array<{ languageId: string; title: string; slug: string; contentHtml?: string; excerpt?: string }>;
+      }>) {
+        try {
+          const tr = post.translations?.[0];
+          if (!tr?.title || !tr?.slug) continue;
+          // Check if post with same slug exists
+          const existing = await prisma.post.findFirst({
+            where: { siteId, translations: { some: { slug: tr.slug } } },
+          });
+          if (existing) {
+            errors.push(`Post ${tr.slug}: already exists, skipped`);
+            continue;
+          }
+          await prisma.post.create({
+            data: {
+              siteId,
+              status: (post.status as 'DRAFT' | 'PUBLISHED') ?? 'DRAFT',
+              translations: {
+                create: {
+                  languageId: tr.languageId,
+                  title: tr.title,
+                  slug: tr.slug,
+                  contentHtml: tr.contentHtml ?? '',
+                  excerpt: tr.excerpt ?? null,
+                },
+              },
+            },
+          });
+          count++;
+        } catch (e) {
+          errors.push(`Post: ${e instanceof Error ? e.message : 'failed'}`);
+        }
+      }
+      imported.posts = count;
+    }
+
+    // Import pages
+    if (Array.isArray(data.pages)) {
+      let count = 0;
+      for (const page of data.pages as Array<{
+        status?: string;
+        translations?: Array<{ languageId: string; title: string; slug: string; contentHtml?: string }>;
+      }>) {
+        try {
+          const tr = page.translations?.[0];
+          if (!tr?.title || !tr?.slug) continue;
+          const existing = await prisma.page.findFirst({
+            where: { siteId, translations: { some: { slug: tr.slug } } },
+          });
+          if (existing) {
+            errors.push(`Page ${tr.slug}: already exists, skipped`);
+            continue;
+          }
+          await prisma.page.create({
+            data: {
+              siteId,
+              status: (page.status as 'DRAFT' | 'PUBLISHED') ?? 'DRAFT',
+              translations: {
+                create: {
+                  languageId: tr.languageId,
+                  title: tr.title,
+                  slug: tr.slug,
+                  contentHtml: tr.contentHtml ?? '',
+                },
+              },
+            },
+          });
+          count++;
+        } catch (e) {
+          errors.push(`Page: ${e instanceof Error ? e.message : 'failed'}`);
+        }
+      }
+      imported.pages = count;
+    }
+
+    return { ok: true, data: { imported, errors } };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
 export async function exportContentAction(
   types: ExportContentType[],
 ): Promise<ActionResult<{ filename: string; json: string; counts: Record<string, number> }>> {

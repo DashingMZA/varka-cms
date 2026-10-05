@@ -19,5 +19,11 @@
   "exportFailed": "Falló la exportación",
   "exportSuccess": "Exportado",
   "exporting": "Exportando…",
-  "downloadExport": "Descargar archivo"
+  "downloadExport": "Descargar archivo",
+  "importDescLong": "Sube un archivo JSON de exportación. Los elementos existentes se omitirán.",
+  "importFailed": "Falló la importación",
+  "importComplete": "Importación completa",
+  "warnings": "advertencias",
+  "uploadFile": "Subir archivo",
+  "importing": "Importando…"
 }

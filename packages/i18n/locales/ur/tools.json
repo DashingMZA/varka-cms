@@ -19,5 +19,11 @@
   "exportFailed": "ایکسپورٹ ناکام",
   "exportSuccess": "ایکسپورٹ ہو گیا",
   "exporting": "ایکسپورٹ ہو رہا ہے…",
-  "downloadExport": "ایکسپورٹ فائل ڈاؤن لوڈ کریں"
+  "downloadExport": "ایکسپورٹ فائل ڈاؤن لوڈ کریں",
+  "importDescLong": "مواد امپورٹ کرنے کے لیے JSON فائل اپ لوڈ کریں۔ موجودہ آئٹمز چھوڑ دیے جائیں گے۔",
+  "importFailed": "امپورٹ ناکام",
+  "importComplete": "امپورٹ مکمل",
+  "warnings": "تنبیہات",
+  "uploadFile": "فائل اپ لوڈ کریں",
+  "importing": "امپورٹ ہو رہا ہے…"
 }

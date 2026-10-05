@@ -19,5 +19,11 @@
   "exportFailed": "Export failed",
   "exportSuccess": "Exported",
   "exporting": "Exporting…",
-  "downloadExport": "Download Export File"
+  "downloadExport": "Download Export File",
+  "importDescLong": "Upload a VARKA export JSON file to import content. Existing items with the same slug will be skipped.",
+  "importFailed": "Import failed",
+  "importComplete": "Import complete",
+  "warnings": "warnings",
+  "uploadFile": "Upload file",
+  "importing": "Importing…"
 }

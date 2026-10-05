@@ -19,5 +19,11 @@
   "exportFailed": "فشل التصدير",
   "exportSuccess": "تم التصدير",
   "exporting": "جارٍ التصدير…",
-  "downloadExport": "تنزيل ملف التصدير"
+  "downloadExport": "تنزيل ملف التصدير",
+  "importDescLong": "ارفع ملف JSON للاستيراد. سيتم تخطي العناصر الموجودة بنفس الرابط.",
+  "importFailed": "فشل الاستيراد",
+  "importComplete": "اكتمل الاستيراد",
+  "warnings": "تحذيرات",
+  "uploadFile": "ارفع ملف",
+  "importing": "جارٍ الاستيراد…"
 }
