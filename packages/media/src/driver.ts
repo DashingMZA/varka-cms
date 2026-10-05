@@ -13,7 +13,8 @@ export function resolveStorageDriver(): StorageDriverName {
 
 /**
  * Build adapter from env.
- * - local: LOCAL_STORAGE_PATH (default .storage), served via /api/media/file/*
+ * - local: LOCAL_STORAGE_PATH (default ./public/uploads — served statically
+ *   by Next.js at /uploads/<key>), MEDIA_PUBLIC_URL overrides the public base
  * - s3/r2: needs S3_BUCKET + credentials; optional @aws-sdk/client-s3 (not bundled for local)
  */
 export function createStorageAdapterFromEnv(): StorageAdapter {
@@ -21,8 +22,8 @@ export function createStorageAdapterFromEnv(): StorageAdapter {
 
   if (driver === 'local') {
     return createLocalAdapter({
-      rootDir: process.env.LOCAL_STORAGE_PATH ?? '.storage',
-      publicBaseUrl: process.env.MEDIA_PUBLIC_URL ?? '/api/media/file',
+      rootDir: process.env.LOCAL_STORAGE_PATH ?? './public/uploads',
+      publicBaseUrl: process.env.MEDIA_PUBLIC_URL ?? '/uploads',
     });
   }
 

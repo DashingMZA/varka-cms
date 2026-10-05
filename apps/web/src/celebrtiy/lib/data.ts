@@ -70,12 +70,13 @@ async function siteId(): Promise<string | null> {
 /* ------------------------------------------------------------------ */
 /* Media → public image URL                                            */
 /*                                                                     */
-/* Convention (see apps/admin/src/components/featured-image-panel.tsx  */
-/* and packages/media/src/driver.ts): local assets are served by the   */
-/* admin app at /api/media/file/<key>; MEDIA_PUBLIC_URL overrides the  */
-/* base; S3/R2 keys that are already absolute URLs are used as-is.     */
-/* The Astro web app is a separate origin from the admin app, so local */
-/* keys resolve to an absolute URL on the admin (PUBLIC_API_URL).      */
+/* Convention (see apps/admin/public/uploads and packages/media/src/   */
+/* driver.ts): local assets are saved to ./public/uploads and served   */
+/* statically by the admin app at /uploads/<key>; MEDIA_PUBLIC_URL     */
+/* overrides the base; S3/R2 keys that are already absolute URLs are  */
+/* used as-is. The Astro web app is a separate origin from the admin   */
+/* app, so local keys resolve to an absolute URL on the admin          */
+/* (PUBLIC_API_URL).                                                   */
 /* ------------------------------------------------------------------ */
 function mediaPublicUrl(
   asset: { storage: string; key: string } | null | undefined,
@@ -89,7 +90,7 @@ function mediaPublicUrl(
     (import.meta.env.PUBLIC_API_URL as string | undefined) ??
     'http://localhost:3000'
   ).replace(/\/+$/, '');
-  return `${adminBase}/api/media/file/${key}`;
+  return `${adminBase}/uploads/${key}`;
 }
 
 /* ------------------------------------------------------------------ */

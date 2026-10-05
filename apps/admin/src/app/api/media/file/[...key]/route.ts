@@ -7,6 +7,8 @@ import { resolveStorageDriver } from '@varka/media';
 /**
  * Serve local-storage objects with strong browser caching.
  * Path traversal protected.
+ * (Fallback for keys outside public/uploads; new uploads go to
+ * ./public/uploads and are served statically at /uploads/<key>.)
  */
 export async function GET(
   req: Request,
@@ -22,7 +24,7 @@ export async function GET(
     const { key: parts } = await ctx.params;
     const key = parts.join('/');
     // turbopackIgnore: runtime storage root from env — not a static asset dependency
-    const root = path.resolve(/*turbopackIgnore: true*/ process.env.LOCAL_STORAGE_PATH ?? '.storage');
+    const root = path.resolve(/*turbopackIgnore: true*/ process.env.LOCAL_STORAGE_PATH ?? './public/uploads');
     const normalized = key.replace(/^\/+/, '').replace(/\.\./g, '');
     const full = path.resolve(root, normalized);
     if (!full.startsWith(root)) {

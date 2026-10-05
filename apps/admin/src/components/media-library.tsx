@@ -54,7 +54,7 @@ type Props = {
 
 function previewUrl(a: MediaAsset, size: MediaSizeKey = 'thumbnail'): string {
   const k = a.sizes?.[size]?.key ?? a.sizes?.medium?.key ?? a.key;
-  return `/api/media/file/${k}`;
+  return `/uploads/${k}`;
 }
 
 function formatBytes(n: number): string {

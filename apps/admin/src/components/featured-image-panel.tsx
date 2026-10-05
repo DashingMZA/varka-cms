@@ -12,8 +12,9 @@ export type FeaturedMedia = {
 };
 
 function mediaUrl(a: FeaturedMedia): string {
-  if (a.storage === 'local') return `/api/media/file/${a.key}`;
-  return a.key.startsWith('http') ? a.key : `/api/media/file/${a.key}`;
+  // Local uploads live in apps/admin/public/uploads, served statically at /uploads
+  if (a.storage === 'local') return `/uploads/${a.key}`;
+  return a.key.startsWith('http') ? a.key : `/uploads/${a.key}`;
 }
 
 type Props = {

@@ -32,7 +32,7 @@ export type InsertImageResult = {
 
 function urlForKey(key: string) {
   if (key.startsWith('http')) return key;
-  return `/api/media/file/${key}`;
+  return `/uploads/${key}`;
 }
 
 export function InsertImageModal({

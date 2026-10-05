@@ -18,7 +18,8 @@
  *  - Downloads featured images + every celebrtiy.com image referenced inside content
  *    HTML into local storage (same key/URL scheme as the @varka/media local adapter:
  *    files under LOCAL_STORAGE_PATH, served as <MEDIA_PUBLIC_URL>/<key>, default
- *    "/api/media/file" which apps/admin serves at /api/media/file/[...key]).
+ *    "./apps/admin/public/uploads" which Next.js serves statically at
+ *    /uploads/<key>.
  *    MediaAsset rows are created with storage='local'. NO hotlinking: celebrtiy.com
  *    image URLs in contentHtml are rewritten to the local public URLs.
  *  - Upserts SiteSetting rows: theme.active='theme-11',
@@ -42,10 +43,11 @@
  *                           IMPORT_ALLOW_REMOTE_DB=1 is set (the script refuses
  *                           non-localhost hosts otherwise).
  *   LOCAL_STORAGE_PATH      where downloaded media files are written (default
- *                           ".storage" under the repo root). Should match the
+ *                           "./apps/admin/public/uploads" under the repo root,
+ *                           served statically at /uploads). Should match the
  *                           value used by apps/admin.
  *   MEDIA_PUBLIC_URL        public URL prefix for stored media (default
- *                           "/api/media/file"). Should match apps/admin.
+ *                           "/uploads"). Should match apps/admin.
  *   WP_BASE_URL             override the WP REST base (default
  *                           https://celebrtiy.com/wp-json/wp/v2).
  *   IMPORT_SITE_SLUG        target site slug (default "varka").
@@ -132,8 +134,8 @@ if (!DATABASE_URL) {
   }
 }
 
-const STORAGE_ROOT = path.resolve(REPO_ROOT, process.env.LOCAL_STORAGE_PATH ?? '.storage');
-const MEDIA_PUBLIC_BASE = (process.env.MEDIA_PUBLIC_URL ?? '/api/media/file').replace(/\/$/, '');
+const STORAGE_ROOT = path.resolve(REPO_ROOT, process.env.LOCAL_STORAGE_PATH ?? './apps/admin/public/uploads');
+const MEDIA_PUBLIC_BASE = (process.env.MEDIA_PUBLIC_URL ?? '/uploads').replace(/\/$/, '');
 const TMP_DIR = path.join('/tmp', `wp-import-celebrtiy-${process.pid}`);
 
 // ---------------------------------------------------------------------------
