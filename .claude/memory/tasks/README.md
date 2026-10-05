@@ -4,6 +4,9 @@ Newest first. Read this before starting related work so decisions stay consisten
 
 | Date | Task | Summary |
 |------|------|--------|
+| 2026-10-05 | [i18n-batch-2-widgets-media-dashboard](./i18n-batch-2-widgets-media-dashboard.md) | i18n batch 2: widgets-admin fully converted (new `widgets` namespace, 12 keys × 4 locales), media-library SIZE_LABELS → i18n, dashboard ScreenMeta title/help → i18n; users/comments/menus verified already converted; typecheck PASS; pushed as 616e24f |
+| 2026-10-05 | [vercel-plugin-files-fix](./vercel-plugin-files-fix.md) | Vercel function bundles were missing `apps/admin/plugins/` (file tracing skips them) → plugin "Files missing", WP Import page 404. Fixed with `outputFileTracingIncludes` in admin next.config; typecheck PASS; committed locally as 583d72c but GitHub push approval timed out — not yet on origin |
+| 2026-10-05 | [plugin-zip-decompressed-cap](./plugin-zip-decompressed-cap.md) | Zip-bomb guard in `@varka/plugins` installer: 250 MB total + 50 MB/file decompressed caps (declared-size pre-check + inflated-buffer ground truth); typecheck + 3 functional ZIP tests PASS |
 | 2026-10-04 | [admin-build-fix](./admin-build-fix.md) | Fixed 51 pre-existing TS errors blocking `@varka/admin` build (auth/i18n/content/admin type fixes, ActionResult dedup, zod direct dep); build + typecheck PASS, lint down to 2 pre-existing eqeqeq |
 | 2026-10-04 | [celebrtiy-web-templates](./celebrtiy-web-templates.md) | Celebrtiy theme-11 Astro templates: `src/celebrtiy/` data layer, 14 components, CelebrtiyLayout, routes (home/post/page/category/tag/author/search/404) branching on active theme; fixed pre-existing `@varka/content` bad re-exports; web build PASS |
 | 2026-10-04 | [theme-11-celebrtiy](./theme-11-celebrtiy.md) | New theme-11 "Celebrtiy Kadence" in `@varka/themes`: manifest + full celebrtiy.com CSS (Kadence palette, Overpass), registry/index/test wired; tests 5/5, typecheck clean |
