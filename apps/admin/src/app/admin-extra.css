@@ -443,12 +443,12 @@ p.description {
   gap: 8px;
 }
 .v-news-list a {
-  color: #2271b1;
+  color: var(--accent);
   text-decoration: none;
   font-size: 13px;
 }
 .v-news-list a:hover {
-  color: #135e96;
+  color: var(--accent-hover);
   text-decoration: underline;
 }
 
