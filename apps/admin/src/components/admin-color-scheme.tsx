@@ -5,15 +5,16 @@ import { getMyProfileAction, updateColorSchemeAction } from '@/actions/users';
 import { useMessages } from '@/lib/i18n';
 
 const COLOR_SCHEMES = [
-  { id: 'default', name: 'Default', colors: ['#1d2327', '#2271b1', '#72aee6'] },
+  { id: 'default', name: 'Default', colors: ['#1d2327', '#0073aa', '#00a0d2'] },
   { id: 'fresh', name: 'Fresh', colors: ['#1d2327', '#0073aa', '#00a0d2'] },
-  { id: 'light', name: 'Light', colors: ['#e5e5e5', '#888888', '#d64e07', '#04a4cc'] },
-  { id: 'blue', name: 'Blue', colors: ['#52accc', '#096484', '#e1a948'] },
-  { id: 'coffee', name: 'Coffee', colors: ['#59524c', '#c7a589', '#9ea476'] },
-  { id: 'ectoplasm', name: 'Ectoplasm', colors: ['#523f6d', '#a3b745', '#d46f15'] },
-  { id: 'midnight', name: 'Midnight', colors: ['#25282b', '#363b3f', '#69a8bb', '#e14d43'] },
-  { id: 'ocean', name: 'Ocean', colors: ['#738e96', '#9ebaa0', '#aa9d88'] },
-  { id: 'sunrise', name: 'Sunrise', colors: ['#cf4944', '#dd823b', '#ccaf0b'] },
+  { id: 'light', name: 'Light', colors: ['#e5e5e5', '#007cba', '#999999'] },
+  { id: 'modern', name: 'Modern', colors: ['#1e1e1e', '#3858e9', '#7b90ff'] },
+  { id: 'blue', name: 'Blue', colors: ['#245278', '#437aa8', '#e1a948'] },
+  { id: 'coffee', name: 'Coffee', colors: ['#5c4c40', '#916745', '#9ea476'] },
+  { id: 'ectoplasm', name: 'Ectoplasm', colors: ['#4a3369', '#646c3e', '#d46f15'] },
+  { id: 'midnight', name: 'Midnight', colors: ['#333c42', '#cf4339', '#69a8bb'] },
+  { id: 'ocean', name: 'Ocean', colors: ['#39535a', '#567958', '#aa9d88'] },
+  { id: 'sunrise', name: 'Sunrise', colors: ['#8a312d', '#ad631e', '#ccaf0b'] },
 ];
 
 function applyScheme(scheme: string) {
