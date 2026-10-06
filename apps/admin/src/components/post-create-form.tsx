@@ -23,7 +23,7 @@ export function PostCreateForm() {
   useEffect(() => {
     void (async () => {
       const result = await createPostAction('Untitled');
-      if (result.ok) router.replace(`/content/posts/${result.data.id}`);
+      if (result.ok) router.replace(`/content/posts/${result.data.slug || result.data.id}`);
     })();
   }, [router]);
   return <p className="v-muted">{L(t, 'creatingDraft', 'Creating draft…')}</p>;
