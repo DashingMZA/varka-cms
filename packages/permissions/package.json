@@ -5,7 +5,9 @@
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
-  "exports": { ".": "./src/index.ts" },
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "lint": "echo lint:@varka/permissions",
@@ -13,8 +15,8 @@
     "test": "node --import tsx --test src/require.test.ts"
   },
   "devDependencies": {
-    "@types/node": "^24.13.4",
-    "tsx": "^4.23.3",
+    "@types/node": "^24.19.1",
+    "tsx": "^4.23.15",
     "typescript": "7.0.2"
   }
 }
