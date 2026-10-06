@@ -139,7 +139,6 @@ export function UsersAdmin() {
             <option value="">{t('common', 'bulkActions', 'Bulk actions')}</option>
             <option value="disable">{t('users', 'disable', 'Disable')}</option>
             <option value="enable">{t('users', 'enable', 'Enable')}</option>
-            <option value="delete">{t('common', 'delete', 'Delete')}</option>
           </select>
           <button type="button" className="v-btn" onClick={() => void applyBulk()} disabled={!bulkAction || selected.size === 0}>
             {t('common', 'apply', 'Apply')}
@@ -155,7 +154,7 @@ export function UsersAdmin() {
           <button type="button" className="v-btn" onClick={() => void applyChangeRole()} disabled={!changeRole || selected.size === 0}>
             {t('common', 'change', 'Change')}
           </button>
-          <span className="v-muted" style={{ marginLeft: 'auto' }}>
+          <span className="v-muted" style={{ marginInlineStart: 'auto' }}>
             {items.length} {t('common', 'items', 'items')}
           </span>
         </div>
@@ -281,7 +280,7 @@ export function UsersAdmin() {
                   <td>{roleNames}</td>
                   <td>
                     {u.postCount ? (
-                      <Link href={`/posts?author=${u.id}`}>{u.postCount}</Link>
+                      <Link href={`/content/posts?author=${u.id}`}>{u.postCount}</Link>
                     ) : (
                       '0'
                     )}
@@ -299,7 +298,6 @@ export function UsersAdmin() {
             <option value="">{t('common', 'bulkActions', 'Bulk actions')}</option>
             <option value="disable">{t('users', 'disable', 'Disable')}</option>
             <option value="enable">{t('users', 'enable', 'Enable')}</option>
-            <option value="delete">{t('common', 'delete', 'Delete')}</option>
           </select>
           <button type="button" className="v-btn" onClick={() => void applyBulk()} disabled={!bulkAction || selected.size === 0}>
             {t('common', 'apply', 'Apply')}
