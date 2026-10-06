@@ -1,13 +1,14 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useMessages } from '@/lib/i18n';
 import { MediaLibrary, type MediaInsertPayload } from './media-library';
 import { TiptapEditor } from '@/components/tiptap-editor';
 import { ScreenMeta } from '@/components/screen-meta/screen-meta';
 import { slugify } from '@/lib/slugify';
 import { useAutosave } from '@/hooks/use-autosave';
-import { getPostAction, updatePostAction } from '@/actions/posts';
+import { createPostAction, getPostAction, updatePostAction } from '@/actions/posts';
 import { listCategoriesAction, listTagsAction } from '@/actions/taxonomy';
 
 type Translation = {
@@ -44,8 +45,10 @@ function escapeHtml(s: string) {
   return s.replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>');
 }
 
-export function PostEditor({ postId }: { postId: string }) {
+export function PostEditor({ postId: initialPostId }: { postId: string | null }) {
   const { t } = useMessages();
+  const router = useRouter();
+  const [postId, setPostId] = useState<string | null>(initialPostId);
   const [post, setPost] = useState<Post | null>(null);
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
@@ -87,6 +90,12 @@ export function PostEditor({ postId }: { postId: string }) {
   }, []);
 
   useEffect(() => {
+    if (!postId) {
+      // New post mode: no database record yet. The draft is created only
+      // when the user types a title/content (auto-draft) or clicks Save.
+      setPost(null);
+      return;
+    }
     void (async () => {
       const result = await getPostAction(postId);
       if (!result.ok) {
@@ -126,6 +135,46 @@ export function PostEditor({ postId }: { postId: string }) {
     })();
   }, []);
 
+  /**
+   * WordPress-style auto-draft: when the user types a title or content for the
+   * first time (no postId yet), create the draft in the database, then update
+   * the URL to the slug-based edit URL.
+   */
+  const [creating, setCreating] = useState(false);
+  const ensureDraft = useCallback(async (): Promise<string | null> => {
+    if (postId) return postId;
+    if (creating) return null;
+    const hasContent = title.trim() || contentHtml.replace(/<[^>]*>/g, '').trim();
+    if (!hasContent) return null;
+    setCreating(true);
+    try {
+      const result = await createPostAction(title.trim() || 'Untitled');
+      if (!result.ok) {
+        setError(result.error || 'Create failed');
+        return null;
+      }
+      const newId = result.data.id;
+      const newSlug = result.data.slug;
+      setPostId(newId);
+      // Update URL to slug-based edit URL without a full navigation.
+      router.replace(`/content/posts/${newSlug}`);
+      return newId;
+    } finally {
+      setCreating(false);
+    }
+  }, [postId, creating, title, contentHtml, router]);
+
+  // Auto-draft on first meaningful input (debounced via title/content change).
+  useEffect(() => {
+    if (postId || creating) return;
+    const hasContent = title.trim() || contentHtml.replace(/<[^>]*>/g, '').trim();
+    if (!hasContent) return;
+    const timer = setTimeout(() => {
+      void ensureDraft();
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [title, contentHtml, postId, creating, ensureDraft]);
+
   function onTitleChange(v: string) {
     setTitle(v);
     if (!slugTouched) setSlug(slugify(v));
@@ -145,7 +194,26 @@ export function PostEditor({ postId }: { postId: string }) {
 
   const save = useCallback(
     async (publish = false, silent = false) => {
-      if (!post) return;
+      // New post mode: create the draft first if it doesn't exist yet.
+      let activePostId = postId;
+      let activePost = post;
+      if (!activePostId) {
+        const newId = await ensureDraft();
+        if (!newId) {
+          if (!silent && !title.trim()) {
+            setError(t('blogs', 'titleRequired', 'Title is required before save'));
+          }
+          return;
+        }
+        activePostId = newId;
+        // Fetch the newly created post for the save below.
+        const loaded = await getPostAction(newId);
+        if (loaded.ok) {
+          activePost = loaded.data as Post;
+          setPost(activePost);
+        }
+      }
+      if (!activePost) return;
       if (!title.trim()) {
         if (!silent) setError(t('blogs', 'titleRequired', 'Title is required before save'));
         return;
@@ -155,20 +223,20 @@ export function PostEditor({ postId }: { postId: string }) {
         setError(null);
       }
       setSaving(true);
-      const tr = post.translations[0];
+      const tr = activePost.translations[0];
       if (!tr) {
         setError('No translation');
         setSaving(false);
         return;
       }
-      const result = await updatePostAction(postId, {
+      const result = await updatePostAction(activePostId, {
         title,
         slug: slug || slugify(title),
         contentHtml,
         excerpt: excerpt || null,
         seoTitle: seoTitle || null,
         seoDescription: seoDescription || null,
-        version: post.version,
+        version: activePost.version,
         languageId: tr.languageId,
         categoryIds,
         tagIds,
@@ -214,6 +282,7 @@ export function PostEditor({ postId }: { postId: string }) {
       categoryIds,
       tagIds,
       t,
+      ensureDraft,
     ],
   );
 
@@ -387,10 +456,10 @@ export function PostEditor({ postId }: { postId: string }) {
                       void save(false);
                       // Open preview in new tab after save
                       setTimeout(() => {
-                        window.open(`/api/preview/post/${postId}`, '_blank');
+                        if (postId) window.open(`/api/preview/post/${postId}`, '_blank');
                       }, 500);
                     }}
-                    disabled={saving}
+                    disabled={saving || (!postId && !title.trim())}
                   >
                     {t('blogs', 'preview', 'Preview')}
                   </button>
@@ -403,6 +472,7 @@ export function PostEditor({ postId }: { postId: string }) {
                     {isPublished ? t('blogs', 'update') : t('blogs', 'publish')}
                   </button>
                 </div>
+                {postId ? (
                 <p style={{ margin: '8px 0 0' }}>
                   <button
                     type="button"
@@ -422,6 +492,7 @@ export function PostEditor({ postId }: { postId: string }) {
                     {t('blogs', 'moveToTrash', 'Move to Trash')}
                   </button>
                 </p>
+                ) : null}
               </div>
             </div>
           ) : null}
