@@ -159,7 +159,7 @@ export function WidgetsAdmin() {
                     gap: 8,
                     alignItems: 'center',
                     padding: '8px 0',
-                    borderBottom: '1px solid var(--wp-border)',
+                    borderBottom: '1px solid var(--border)',
                     cursor: 'grab',
                     fontSize: 13,
                   }}
