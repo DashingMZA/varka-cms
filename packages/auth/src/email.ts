@@ -289,6 +289,7 @@ async function sendViaSmtp(
   config: DbSmtpConfig,
   mail: { to: string; subject: string; text: string },
 ): Promise<void> {
+  // @ts-expect-error nodemailer types resolved after pnpm install
   const nodemailer = await import('nodemailer');
   const transporter = nodemailer.createTransport({
     host: config.host,
