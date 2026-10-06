@@ -1,6 +1,6 @@
-export { buildSeo, type SeoInput, type SeoTags } from './meta.js';
-export { buildSitemapXml, buildRobotsTxt, type SitemapUrl } from './sitemap.js';
-export { logNotFound, listNotFoundLogs, clearNotFoundLogs, type NotFoundDb } from './notfound.js';
+export { buildSeo, type SeoInput, type SeoTags } from './meta';
+export { buildSitemapXml, buildRobotsTxt, type SitemapUrl } from './sitemap';
+export { logNotFound, listNotFoundLogs, clearNotFoundLogs, type NotFoundDb } from './notfound';
 
 // BMS-CMS ports
 export {
@@ -13,16 +13,16 @@ export {
   DEFAULT_ROBOTS_TXT,
   servedRobotsTxt,
   type SeoVars,
-} from './templates.js';
-export { buildPageMeta, renderMetaHtml, type PageMetaInput, type BuiltMeta } from './page-meta.js';
+} from './templates';
+export { buildPageMeta, renderMetaHtml, type PageMetaInput, type BuiltMeta } from './page-meta';
 export {
   analyzeSeo,
   type SeoFinding,
   type SeoAnalysis,
   type SeoInput as SeoAnalysisInput,
   type Severity,
-} from './analysis.js';
-export { buildRssFeed, RSS_CONTENT_TYPE, type FeedPost, type FeedOptions } from './feed.js';
+} from './analysis';
+export { buildRssFeed, RSS_CONTENT_TYPE, type FeedPost, type FeedOptions } from './feed';
 export {
   renderUrlset,
   renderSitemapIndex,
@@ -32,7 +32,7 @@ export {
   SITEMAP_CONTENT_TYPE,
   type SitemapKind,
   type SitemapUrl as SitemapRenderUrl,
-} from './sitemap-render.js';
+} from './sitemap-render';
 export {
   SCHEMA_TYPE_DEFS,
   SCHEMA_TYPE_BY_ID,
@@ -50,11 +50,11 @@ export {
   type SchemaEntry,
   type BuildContext,
   type SchemaTypeDef,
-} from './schemas.js';
+} from './schemas';
 export {
   normalisePath,
   buildRedirectMap,
   findRedirect,
   validateRedirect,
   type RedirectRule,
-} from './redirects.js';
+} from './redirects';
