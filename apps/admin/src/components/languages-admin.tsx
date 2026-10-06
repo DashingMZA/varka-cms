@@ -88,7 +88,7 @@ export function LanguagesAdmin() {
   const hasPa = items.some((l) => l.locale === 'pa' || l.languageCode === 'pa');
 
   return (
-    <div style={{ display: 'grid', gap: 16, marginTop: 16 }}>
+    <div className="v-card" style={{ display: 'grid', gap: 16, marginTop: 16 }}>
       <p style={{ margin: 0, color: 'var(--muted)', fontSize: 14, maxWidth: 560 }}>
         {L(
           t,
