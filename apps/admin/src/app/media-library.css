@@ -98,7 +98,7 @@
 }
 
 .v-media-card__icon[data-kind='video'] {
-  color: #2271b1;
+  color: var(--accent);
 }
 
 .v-media-card__meta {
