@@ -1,6 +1,6 @@
 {
   "name": "@varka/auth",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
   "type": "module",
   "main": "./src/index.ts",
@@ -23,12 +23,12 @@
     "@varka/config": "workspace:*",
     "@varka/cache": "workspace:*",
     "@varka/security": "workspace:*",
-    "better-auth": "1.7.7",
+    "better-auth": "^1.7.7",
     "zod": "^4.6.5",
     "@node-rs/argon2": "^2.2.2"
   },
   "devDependencies": {
     "tsx": "^4.23.15",
-    "typescript": "7.0.2"
+    "typescript": "^7.0.2"
   }
 }
