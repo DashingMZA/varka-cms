@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { getMyProfileAction, updateMyProfileAction } from '@/actions/users';
 import { useMessages } from '@/lib/i18n';
+import { PasswordInput } from '@/components/password-input';
 
 function L(t: (ns: 'profile' | 'common', key: string) => string, key: string, fallback: string): string {
   const v = t('profile', key);
@@ -199,23 +200,21 @@ export function UserProfileForm() {
       <h2 style={{ margin: '12px 0 0', fontSize: 16 }}>{L(t, 'changePassword', 'Change password')}</h2>
       <div className="v-field">
         <label htmlFor="pf-curpass">{L(t, 'currentPassword', 'Current password')}</label>
-        <input
+        <PasswordInput
           id="pf-curpass"
-          type="password"
           autoComplete="current-password"
           value={currentPassword}
           onChange={(e) => setCurrentPassword(e.target.value)}
-          />
+        />
       </div>
       <div className="v-field">
         <label htmlFor="pf-newpass">{L(t, 'newPassword', 'New password')}</label>
-        <input
+        <PasswordInput
           id="pf-newpass"
-          type="password"
           autoComplete="new-password"
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
-          />
+        />
       </div>
 
       <button type="submit" className="v-btn v-btn--primary" disabled={loading}>
@@ -244,9 +243,8 @@ export function UserProfileForm() {
           </p>
           <div className="v-field">
             <label htmlFor="pf-confirm">Password</label>
-            <input
+            <PasswordInput
               id="pf-confirm"
-              type="password"
               autoComplete="current-password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
