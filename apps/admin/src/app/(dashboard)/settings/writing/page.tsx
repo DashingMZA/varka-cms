@@ -1,5 +1,6 @@
 'use client';
 
+import { PasswordInput } from '@/components/password-input';
 import { Field, SettingsForm, inputStyle, selectStyle } from '@/components/settings/settings-form';
 import { useMessages } from '@/lib/i18n';
 
@@ -127,8 +128,8 @@ export default function WritingSettingsPage() {
             />
           </Field>
           <Field label={L(t, 'mailPassword', 'Password')}>
-            <input
-              type="password"
+            <PasswordInput
+              id="mail-password"
               style={inputStyle}
               value={String(v.mailPassword ?? '')}
               onChange={(e) => set('mailPassword', e.target.value)}
