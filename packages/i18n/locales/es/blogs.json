@@ -67,5 +67,14 @@
   "bulkEdit": "Editar",
   "bulkEditTitle": "Edición masiva",
   "noChange": "Sin cambios",
-  "cancel": "Cancelar"
+  "cancel": "Cancelar",
+  "addNewPost": "Añadir nueva entrada",
+  "allCategories": "Todas las categorías",
+  "allDates": "Todas las fechas",
+  "comments": "Comentarios",
+  "filterByCategory": "Filtrar por categoría",
+  "filterByDate": "Filtrar por fecha",
+  "helpBody": "Filtra por estado, busca y usa acciones en lote.",
+  "quickEdit": "Edición rápida",
+  "seoDetails": "Detalles de SEO"
 }
