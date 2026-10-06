@@ -61,7 +61,7 @@ export function SeoSettings() {
   }
 
   return (
-    <div style={{ display: 'grid', gap: 12, maxWidth: 520, marginTop: 16 }}>
+    <div className="v-card" style={{ display: 'grid', gap: 12, maxWidth: 560, marginTop: 16 }}>
       <label style={{ display: 'grid', gap: 4, fontSize: 13 }}>
         {L(t, 'titleTemplate', 'Title template')}
         <input
