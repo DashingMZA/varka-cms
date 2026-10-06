@@ -325,3 +325,248 @@
   font-size: 13px;
   max-width: 100%;
 }
+
+/* Modern login (ElevenLabs-style) */
+.v-login-screen-modern {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background:
+    radial-gradient(1200px 600px at 50% -10%, #f3f6fb 0%, transparent 60%),
+    radial-gradient(900px 500px at 85% 110%, #eef2f9 0%, transparent 55%),
+    #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: #111827;
+}
+.v-login-modern {
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+}
+.v-login-brand {
+  margin: 0 0 28px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-align: center;
+  color: #111827;
+}
+.v-login-title {
+  margin: 0 0 8px;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-align: center;
+  color: #111827;
+}
+.v-login-subtitle {
+  margin: 0 0 28px;
+  font-size: 14px;
+  text-align: center;
+  color: #6b7280;
+}
+.v-login-form-modern {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.v-login-field { display: block; }
+.v-login-field-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 6px;
+}
+.v-login-field-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.v-login-field-row .v-login-field-label { margin-bottom: 0; }
+.v-login-forgot {
+  font-size: 13px;
+  color: #6b7280;
+  text-decoration: none;
+}
+.v-login-forgot:hover { color: #111827; text-decoration: underline; }
+.v-login-form-modern input[type="email"],
+.v-login-form-modern input[type="password"],
+.v-login-form-modern input[type="text"] {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  font-size: 15px;
+  color: #111827;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-sizing: border-box;
+}
+.v-login-form-modern input::placeholder { color: #9ca3af; }
+.v-login-form-modern input:focus {
+  border-color: #111827;
+  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08);
+}
+/* Password wrapper + eye toggle (RTL-aware: flips to the other corner) */
+.v-login-password-wrap { position: relative; }
+.v-login-password-wrap input { padding-inline-end: 44px; }
+.v-login-eye {
+  position: absolute;
+  inset-inline-end: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+}
+.v-login-eye:hover { color: #111827; background: #f3f4f6; }
+.v-login-eye:focus-visible { outline: 2px solid #111827; outline-offset: 1px; }
+.v-login-remember {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  user-select: none;
+}
+.v-login-remember input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #111827;
+  cursor: pointer;
+  margin: 0;
+}
+.v-login-submit-modern {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 6px;
+  padding: 10px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  background: #111827;
+  border: 1px solid #111827;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+.v-login-submit-modern:hover:not(:disabled) { background: #1f2937; }
+.v-login-submit-modern:disabled {
+  background: #9ca3af;
+  border-color: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+.v-login-back-btn {
+  width: 100%;
+  min-height: 40px;
+  font-size: 14px;
+  color: #374151;
+  background: transparent;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.v-login-back-btn:hover { background: #f9fafb; }
+.v-login-error-modern {
+  margin: 0;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #991b1b;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+}
+.v-login-form-modern .v-field-error {
+  display: block;
+  color: #dc2626;
+  font-size: 12px;
+  margin-top: 6px;
+}
+.v-login-2fa-title { margin: 0 0 8px; font-size: 20px; font-weight: 700; text-align: center; }
+.v-login-2fa-hint { margin: 0 0 8px; font-size: 14px; color: #6b7280; text-align: center; }
+.v-login-footer {
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.v-login-lang {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #6b7280;
+}
+.v-login-lang select {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+  background: #fff;
+  color: #374151;
+  cursor: pointer;
+}
+.v-login-back-link { margin: 0; font-size: 13px; }
+.v-login-back-link a { color: #6b7280; text-decoration: none; }
+.v-login-back-link a:hover { color: #111827; }
+
+/* Dark-mode polish */
+@media (prefers-color-scheme: dark) {
+  .v-login-screen-modern {
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #17202e 0%, transparent 60%),
+      radial-gradient(900px 500px at 85% 110%, #141b28 0%, transparent 55%),
+      #0b0f16;
+    color: #f3f4f6;
+  }
+  .v-login-brand, .v-login-title { color: #f9fafb; }
+  .v-login-subtitle { color: #9ca3af; }
+  .v-login-field-label { color: #d1d5db; }
+  .v-login-forgot { color: #9ca3af; }
+  .v-login-forgot:hover { color: #f9fafb; }
+  .v-login-form-modern input[type="email"],
+  .v-login-form-modern input[type="password"],
+  .v-login-form-modern input[type="text"] {
+    background: #131a26;
+    border-color: #2b3547;
+    color: #f3f4f6;
+  }
+  .v-login-form-modern input::placeholder { color: #6b7280; }
+  .v-login-form-modern input:focus {
+    border-color: #f3f4f6;
+    box-shadow: 0 0 0 3px rgba(243, 244, 246, 0.12);
+  }
+  .v-login-eye { color: #9ca3af; }
+  .v-login-eye:hover { color: #f9fafb; background: #1c2534; }
+  .v-login-remember { color: #d1d5db; }
+  .v-login-submit-modern { background: #f9fafb; border-color: #f9fafb; color: #111827; }
+  .v-login-submit-modern:hover:not(:disabled) { background: #e5e7eb; }
+  .v-login-submit-modern:disabled { background: #4b5563; border-color: #4b5563; }
+  .v-login-back-btn { color: #d1d5db; border-color: #2b3547; }
+  .v-login-back-btn:hover { background: #131a26; }
+  .v-login-error-modern { background: #2a1215; border-color: #7f1d1d; color: #fecaca; }
+  .v-login-lang { color: #9ca3af; }
+  .v-login-lang select { background: #131a26; border-color: #2b3547; color: #d1d5db; }
+  .v-login-back-link a { color: #9ca3af; }
+  .v-login-back-link a:hover { color: #f9fafb; }
+}
+
+/* RTL: nothing extra needed — inset-inline-end / padding-inline-end mirror automatically. */
