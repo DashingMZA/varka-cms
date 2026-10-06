@@ -3,6 +3,7 @@ export type { PluginManifest } from './manifest';
 export { resolvePluginDir, pluginPath, pluginManifestPath } from './paths';
 export {
   discoverInstalledPlugins,
+  invalidatePluginDiscoveryCache,
   readInstalledManifest,
 } from './registry';
 export type { DiscoveredPlugin } from './registry';
