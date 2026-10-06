@@ -248,7 +248,7 @@ export function LoginForm({
         {error ? <p className="v-login-error-modern">{error}</p> : null}
         {showVerifyLink ? (
           <p style={{ textAlign: 'center', marginTop: 8 }}>
-            <a href="/verify-email" className="v-link">Verify your email</a>
+            <a href="/verify-email" className="v-link">{t('auth', 'verifyYourEmailLink')}</a>
           </p>
         ) : null}
         {!error && serverErrorMessage ? (
