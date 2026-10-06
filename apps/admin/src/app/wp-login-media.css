@@ -347,23 +347,24 @@
   flex-direction: column;
   position: relative;
 }
-/* Login header row: brand centered, language selector top-right */
+/* Login header row: brand truly centered, language selector pinned to the side (no overlap) */
 .v-login-header-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
   margin-bottom: 28px;
-  position: relative;
 }
 .v-login-header-row .v-login-brand {
   margin: 0;
-  flex: 1;
+  grid-column: 2;
   text-align: center;
+  white-space: nowrap;
 }
 .v-login-lang--top {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
+  grid-column: 3;
+  justify-self: end;
+  position: static;
+  transform: none;
 }
 .v-login-lang--top select {
   max-width: 130px;
