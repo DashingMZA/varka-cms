@@ -146,12 +146,12 @@ export function UserProfileForm({ userId }: { userId?: string }) {
       return;
     }
     setOtpSent(true);
-    setMessage('Verification code sent to your email');
+    setMessage(t('auth', 'verificationCodeSent'));
   }
 
   async function onVerifyOtp() {
     if (!otpCode.trim()) {
-      setError('Please enter the verification code');
+      setError(t('auth', 'enterSixDigit'));
       return;
     }
     setLoading(true);
@@ -387,7 +387,7 @@ export function UserProfileForm({ userId }: { userId?: string }) {
           style={{ maxWidth: 400, width: '90%', padding: 24, background: '#fff' }}
           onClick={(e) => e.stopPropagation()}
         >
-          <h3 style={{ margin: '0 0 8px', fontSize: 16 }}>Verify with code</h3>
+          <h3 style={{ margin: '0 0 8px', fontSize: 16 }}>{t('auth', 'verifyWithCode')}</h3>
           <p className="v-muted" style={{ fontSize: 13, marginBottom: 16 }}>
             {otpAction === 'email-change'
               ? `Enter the 6-digit code sent to ${email}`
@@ -401,7 +401,7 @@ export function UserProfileForm({ userId }: { userId?: string }) {
               disabled={loading}
               style={{ width: '100%' }}
             >
-              {loading ? 'Sending…' : 'Send verification code'}
+              {loading ? t('auth', 'sending') || 'Sending…' : t('auth', 'sendVerificationCode')}
             </button>
           ) : (
             <>
@@ -410,7 +410,7 @@ export function UserProfileForm({ userId }: { userId?: string }) {
                   htmlFor="pf-otp"
                   style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#374151', marginBottom: 6 }}
                 >
-                  Verification code
+                  {t('auth', 'verifyCode')}
                 </label>
                 <input
                   id="pf-otp"
