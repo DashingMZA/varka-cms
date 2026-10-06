@@ -25,7 +25,7 @@ export function Subsubsub(props: {
     <ul className="v-subsubsub" style={{ display: 'flex', flexWrap: 'wrap', gap: 0, listStyle: 'none', padding: 0, margin: '0 0 12px', fontSize: 13 }}>
       {props.items.map((item, i) => (
         <li key={item.id} style={{ margin: 0 }}>
-          {i > 0 ? <span style={{ color: 'var(--wp-muted)', margin: '0 6px' }}>|</span> : null}
+          {i > 0 ? <span style={{ color: 'var(--muted)', margin: '0 6px' }}>|</span> : null}
           <button
             type="button"
             onClick={() => props.onChange(item.id)}
@@ -34,7 +34,7 @@ export function Subsubsub(props: {
               border: 'none',
               padding: 0,
               cursor: 'pointer',
-              color: props.active === item.id ? 'var(--wp-ink)' : 'var(--wp-accent)',
+              color: props.active === item.id ? 'var(--ink)' : 'var(--accent)',
               fontWeight: props.active === item.id ? 600 : 400,
               textDecoration: props.active === item.id ? 'none' : 'underline',
             }}
