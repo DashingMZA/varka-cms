@@ -37,10 +37,18 @@ export default function MediaSettingsPage() {
     >
       {(v, set) => (
         <>
-          <h2 style={{ fontSize: 15, margin: 0 }}>{L(t, 'imageSizes', 'Image sizes')}</h2>
-          <p style={{ margin: 0, fontSize: 13, color: 'var(--muted)' }}>
-            {L(t, 'imageSizesDesc', 'Maximum dimensions in pixels when adding an image to the Media Library. Original file is kept; derivatives follow these sizes.')}
-          </p>
+          <tr>
+            <td colSpan={2}>
+              <h2 style={{ fontSize: 15, margin: 0 }}>{L(t, 'imageSizes', 'Image sizes')}</h2>
+            </td>
+          </tr>
+          <tr>
+            <td colSpan={2}>
+              <p style={{ margin: 0, fontSize: 13, color: 'var(--muted)' }}>
+                {L(t, 'imageSizesDesc', 'Maximum dimensions in pixels when adding an image to the Media Library. Original file is kept; derivatives follow these sizes.')}
+              </p>
+            </td>
+          </tr>
           <Field label={L(t, 'thumbnailSize', 'Thumbnail size')}>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               <label style={{ fontSize: 13 }}>
@@ -115,7 +123,11 @@ export default function MediaSettingsPage() {
               </label>
             </div>
           </Field>
-          <h2 style={{ fontSize: 15, margin: '8px 0 0' }}>{L(t, 'uploadingFiles', 'Uploading Files')}</h2>
+          <tr>
+            <td colSpan={2}>
+              <h2 style={{ fontSize: 15, margin: '8px 0 0' }}>{L(t, 'uploadingFiles', 'Uploading Files')}</h2>
+            </td>
+          </tr>
           <label style={{ display: 'flex', gap: 8, fontSize: 14 }}>
             <input
               type="checkbox"
@@ -124,10 +136,18 @@ export default function MediaSettingsPage() {
             />
             {L(t, 'organizeUploads', 'Organize my uploads into month- and year-based folders')}
           </label>
-          <h2 style={{ fontSize: 15, margin: '8px 0 0' }}>{L(t, 'storageDriver', 'Storage Driver')}</h2>
-          <p style={{ margin: 0, fontSize: 13, color: 'var(--muted)' }}>
-            {L(t, 'storageDriverDesc', 'Where uploaded media is stored. Credentials stay in .env (S3_* / R2_* / GITHUB_*) — this only picks which driver is active.')}
-          </p>
+          <tr>
+            <td colSpan={2}>
+              <h2 style={{ fontSize: 15, margin: '8px 0 0' }}>{L(t, 'storageDriver', 'Storage Driver')}</h2>
+            </td>
+          </tr>
+          <tr>
+            <td colSpan={2}>
+              <p style={{ margin: 0, fontSize: 13, color: 'var(--muted)' }}>
+                {L(t, 'storageDriverDesc', 'Where uploaded media is stored. Credentials stay in .env (S3_* / R2_* / GITHUB_*) — this only picks which driver is active.')}
+              </p>
+            </td>
+          </tr>
           <Field label={L(t, 'activeStorage', 'Active storage')}>
             <select
               style={{ ...inputStyle, width: '100%', maxWidth: 320 }}
