@@ -233,7 +233,7 @@ export function PostsAdmin({
         setLoading(false);
         return;
       }
-      window.location.href = `/content/posts/${result.data.id}`;
+      window.location.href = `/content/posts/${result.data.slug || result.data.id}`;
     } catch {
       setError(t('errors', 'networkError'));
       setLoading(false);
@@ -565,7 +565,7 @@ export function PostsAdmin({
                   </th>
                   <td>
                     <strong>
-                      <Link href={`/content/posts/${p.id}`} className="row-title">
+                      <Link href={`/content/posts/${p.translations?.[0]?.slug || p.id}`} className="row-title">
                         {title}
                       </Link>
                     </strong>
@@ -608,7 +608,7 @@ export function PostsAdmin({
                       ) : (
                         <>
                           <span>
-                            <Link href={`/content/posts/${p.id}`}>{t('common', 'edit') || 'Edit'}</Link>
+                            <Link href={`/content/posts/${p.translations?.[0]?.slug || p.id}`}>{t('common', 'edit') || 'Edit'}</Link>
                           </span>
                           {' | '}
                           <span>
