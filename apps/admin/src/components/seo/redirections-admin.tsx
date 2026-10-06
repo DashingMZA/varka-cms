@@ -130,6 +130,7 @@ export function RedirectionsAdmin() {
         ) : items.length === 0 ? (
           <p className="v-muted">No redirections yet.</p>
         ) : (
+          <div className="v-table-wrap">
           <table className="v-table">
             <thead>
               <tr>
@@ -168,6 +169,7 @@ export function RedirectionsAdmin() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>
