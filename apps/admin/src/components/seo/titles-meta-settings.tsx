@@ -56,13 +56,14 @@ export function TitlesMetaSettings() {
   ];
 
   return (
-    <div className="v-card" style={{ maxWidth: 720 }}>
+    <div className="v-card">
       {message ? <p className="v-alert v-alert--ok">{message}</p> : null}
-      <p className="v-muted" style={{ marginTop: 0 }}>
+      <p className="v-muted v-seo-full" style={{ marginTop: 0 }}>
         Use variables: %title%, %sitename%, %sep%, %term%, %excerpt%
       </p>
+      <div className="v-seo-grid">
       {fields.map(([key, label]) => (
-        <label key={key} style={{ display: 'block', marginBottom: 12 }}>
+        <label key={key} style={{ display: 'block', marginBottom: 0 }}>
           <span style={{ display: 'block', fontWeight: 600, marginBottom: 4 }}>{label}</span>
           <input
             value={(settings as Record<string, string>)[key] || ''}
@@ -71,7 +72,7 @@ export function TitlesMetaSettings() {
           />
         </label>
       ))}
-      <label style={{ display: 'block', marginBottom: 12 }}>
+      <label style={{ display: 'block', marginBottom: 0 }}>
         <span style={{ display: 'block', fontWeight: 600, marginBottom: 4 }}>Title Separator</span>
         <select
           value={settings.separator}
@@ -83,9 +84,12 @@ export function TitlesMetaSettings() {
           <option value="»">»</option>
         </select>
       </label>
+      </div>
+      <div style={{ marginTop: 16 }}>
       <button type="button" className="v-btn v-btn--primary" onClick={() => void save()} disabled={saving}>
         {saving ? 'Saving…' : 'Save Changes'}
       </button>
+      </div>
     </div>
   );
 }
