@@ -68,5 +68,13 @@
   "bulkEditTitle": "بلک ترمیم",
   "noChange": "کوئی تبدیلی نہیں",
   "cancel": "منسوخ",
-  "addNewPost": "نیا پوسٹ شامل کریں"
+  "addNewPost": "نیا پوسٹ شامل کریں",
+  "allCategories": "تمام زمرے",
+  "allDates": "تمام تاریخیں",
+  "comments": "تبصرے",
+  "filterByCategory": "زمرے کے حساب سے فلٹر کریں",
+  "filterByDate": "تاریخ کے حساب سے فلٹر کریں",
+  "helpBody": "حیثیت کے حساب سے فلٹر کریں، تلاش کریں اور بلک ایکشن استعمال کریں۔",
+  "quickEdit": "فوری ترمیم",
+  "seoDetails": "SEO تفصیلات"
 }
