@@ -128,7 +128,7 @@ input, select, textarea { font: inherit; color: var(--ink); }
 .v-nav__sub {
   list-style: none; margin: 0; padding: 6px 0 8px;
   display: flex; flex-direction: column;
-  background: #14181c;
+  background: var(--submenu-bg);
   border-top: 1px solid rgba(0,0,0,0.2);
   border-bottom: 1px solid rgba(0,0,0,0.15);
 }
@@ -137,13 +137,13 @@ input, select, textarea { font: inherit; color: var(--ink); }
 .v-nav a.v-nav__link--sub,
 .v-nav__link--sub {
   padding: 6px 12px 6px 34px !important; font-size: 13px !important;
-  border-left: 4px solid transparent !important; color: #c3c4c7 !important;
+  border-left: 4px solid transparent !important; color: var(--sidebar-muted) !important;
   min-height: 28px; font-weight: 400 !important; background: transparent !important;
 }
 .v-sidebar a.v-nav__link--sub:hover,
 .v-nav a.v-nav__link--sub:hover,
 .v-nav__link--sub:hover {
-  color: #72aee6 !important; background: transparent !important; text-decoration: none !important;
+  color: var(--sidebar-text) !important; background: transparent !important; text-decoration: none !important;
 }
 .v-sidebar a.v-nav__link--sub.is-active,
 .v-nav a.v-nav__link--sub.is-active,
