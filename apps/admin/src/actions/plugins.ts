@@ -3,6 +3,7 @@
 import {
   discoverInstalledPlugins,
   installPluginFromZip,
+  invalidatePluginDiscoveryCache,
   uninstallPluginFiles,
 } from '@varka/plugins';
 import { prisma, requireServerAuth } from '@/lib/server-db';
@@ -208,6 +209,7 @@ export async function installPluginAction(
     });
 
     revalidatePath('/plugins');
+    invalidatePluginDiscoveryCache();
     return { ok: true, data: { slug: manifest.slug, name: manifest.name, replaced } };
   } catch (e) {
     return fail(e);
@@ -251,6 +253,7 @@ export async function deletePluginAction(
     await uninstallPluginFiles(slug);
     await prisma.plugin.deleteMany({ where: { slug } });
     revalidatePath('/plugins');
+    invalidatePluginDiscoveryCache();
     return { ok: true, data: { slug } };
   } catch (e) {
     return fail(e);
