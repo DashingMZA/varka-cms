@@ -24,6 +24,22 @@ const LOCALE_LABELS: Record<string, string> = {
   ko: '한국어',
 };
 
+async function signOut() {
+  try {
+    await signOutAction();
+  } catch {
+    /* ignore */
+  }
+  document.cookie.split(';').forEach((c) => {
+    const name = c.split('=')[0]?.trim();
+    if (!name) return;
+    if (/session|token|auth|better-auth/i.test(name)) {
+      document.cookie = `${name}=;path=/;max-age=0`;
+    }
+  });
+  window.location.href = '/login';
+}
+
 export function AdminTopbar(props: { locale?: AppLocale | string } = {}) {
   const initial = (props.locale as AppLocale) || 'en';
   const [locale, setLocale] = useState<AppLocale>(initial);
@@ -33,22 +49,6 @@ export function AdminTopbar(props: { locale?: AppLocale | string } = {}) {
     setStoredLocale(next);
     setLocale(next);
     window.location.reload();
-  }
-
-  async function signOut() {
-    try {
-      await signOutAction();
-    } catch {
-      /* ignore */
-    }
-    document.cookie.split(';').forEach((c) => {
-      const name = c.split('=')[0]?.trim();
-      if (!name) return;
-      if (/session|token|auth|better-auth/i.test(name)) {
-        document.cookie = `${name}=;path=/;max-age=0`;
-      }
-    });
-    window.location.href = '/login';
   }
 
   return (
@@ -66,7 +66,7 @@ export function AdminTopbar(props: { locale?: AppLocale | string } = {}) {
       <Link href="/content/posts" className="v-topbar__link">
         + {t('nav', 'addNew')}
       </Link>
-      <Link href="/media" className="v-topbar__link">
+      <Link href="/media" className="v-topbar__link v-topbar__media-link">
         {t('nav', 'media')}
       </Link>
       <span className="v-topbar__spacer" />
@@ -97,7 +97,7 @@ export function AdminTopbar(props: { locale?: AppLocale | string } = {}) {
       </label>
       <a
         href={process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:4321'}
-        className="v-topbar__link"
+        className="v-topbar__link v-topbar__view-site"
         target="_blank"
         rel="noreferrer"
       >
