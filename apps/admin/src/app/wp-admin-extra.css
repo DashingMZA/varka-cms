@@ -424,3 +424,22 @@ p.description {
   font-size: 12px;
   color: #646970;
 }
+
+/* Form table: stack label above input on mobile (WordPress style) */
+@media (max-width: 782px) {
+  .v-form-table,
+  .v-form-table tbody,
+  .v-form-table tr,
+  .v-form-table th,
+  .v-form-table td {
+    display: block;
+    width: 100%;
+  }
+  .v-form-table th {
+    padding-bottom: 4px;
+  }
+  .v-form-table td {
+    padding-top: 0;
+    padding-bottom: 16px;
+  }
+}
