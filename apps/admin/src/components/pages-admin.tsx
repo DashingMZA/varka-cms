@@ -51,7 +51,8 @@ export function PagesAdmin() {
       let list = (result.data.items as PageRow[]) ?? [];
       const allItems = list;
       if (status !== 'all') {
-        list = list.filter((p) => p.status === status.toUpperCase());
+        const dbStatus = status === 'trash' ? 'TRASHED' : status.toUpperCase();
+        list = list.filter((p) => p.status === dbStatus);
       }
       setItems(list);
       setTotal(result.data.total ?? 0);
@@ -72,15 +73,10 @@ export function PagesAdmin() {
     void load();
   }, [load]);
 
-  async function createPage() {
-    setLoading(true);
-    const result = await createPageAction('Untitled');
-    if (!result.ok) {
-      setError(result.error);
-      setLoading(false);
-      return;
-    }
-    window.location.href = `/content/pages/${result.data.id}`;
+  function createPage() {
+    // Don't create a draft on click — navigate to blank editor like WordPress.
+    // The draft is created only when the user types a title/content or saves.
+    window.location.href = '/content/pages/new';
   }
 
   async function trashSelected() {
