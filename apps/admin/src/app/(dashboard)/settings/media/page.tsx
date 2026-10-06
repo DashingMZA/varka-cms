@@ -50,9 +50,9 @@ export default function MediaSettingsPage() {
             </td>
           </tr>
           <Field label={L(t, 'thumbnailSize', 'Thumbnail size')}>
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              <label style={{ fontSize: 13 }}>
-                {L(t, 'width', 'Width')}{' '}
+            <div className="v-size-fields">
+              <label>
+                <span>{L(t, 'width', 'Width')}</span>
                 <input
                   type="number"
                   style={{ ...inputStyle, maxWidth: 90 }}
@@ -60,8 +60,8 @@ export default function MediaSettingsPage() {
                   onChange={(e) => set('thumbnailWidth', Number(e.target.value))}
                 />
               </label>
-              <label style={{ fontSize: 13 }}>
-                {L(t, 'height', 'Height')}{' '}
+              <label>
+                <span>{L(t, 'height', 'Height')}</span>
                 <input
                   type="number"
                   style={{ ...inputStyle, maxWidth: 90 }}
@@ -80,9 +80,9 @@ export default function MediaSettingsPage() {
             </label>
           </Field>
           <Field label={L(t, 'mediumSize', 'Medium size')}>
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              <label style={{ fontSize: 13 }}>
-                {L(t, 'maxWidth', 'Max Width')}{' '}
+            <div className="v-size-fields">
+              <label>
+                <span>{L(t, 'maxWidth', 'Max Width')}</span>
                 <input
                   type="number"
                   style={{ ...inputStyle, maxWidth: 90 }}
@@ -90,8 +90,8 @@ export default function MediaSettingsPage() {
                   onChange={(e) => set('mediumWidth', Number(e.target.value))}
                 />
               </label>
-              <label style={{ fontSize: 13 }}>
-                {L(t, 'maxHeight', 'Max Height')}{' '}
+              <label>
+                <span>{L(t, 'maxHeight', 'Max Height')}</span>
                 <input
                   type="number"
                   style={{ ...inputStyle, maxWidth: 90 }}
@@ -102,9 +102,9 @@ export default function MediaSettingsPage() {
             </div>
           </Field>
           <Field label={L(t, 'largeSize', 'Large size')}>
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              <label style={{ fontSize: 13 }}>
-                {L(t, 'maxWidth', 'Max Width')}{' '}
+            <div className="v-size-fields">
+              <label>
+                <span>{L(t, 'maxWidth', 'Max Width')}</span>
                 <input
                   type="number"
                   style={{ ...inputStyle, maxWidth: 90 }}
@@ -112,8 +112,8 @@ export default function MediaSettingsPage() {
                   onChange={(e) => set('largeWidth', Number(e.target.value))}
                 />
               </label>
-              <label style={{ fontSize: 13 }}>
-                {L(t, 'maxHeight', 'Max Height')}{' '}
+              <label>
+                <span>{L(t, 'maxHeight', 'Max Height')}</span>
                 <input
                   type="number"
                   style={{ ...inputStyle, maxWidth: 90 }}
