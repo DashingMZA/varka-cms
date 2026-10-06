@@ -41,5 +41,12 @@
   "latest": "تازہ ترین",
   "updateCmd": "اپ ڈیٹ کے لیے چلائیں:",
   "checkAgain": "دوبارہ چیک کریں",
-  "loading": "لوڈ ہو رہا ہے…"
+  "loading": "لوڈ ہو رہا ہے…",
+  "news": "خبریں",
+  "newsDesc": "VARKA کی تازہ ترین اپڈیٹس۔",
+  "newsReleases": "VARKA ریلیز",
+  "newsGithub": "GitHub پر VARKA",
+  "newsUpdates": "اپڈیٹس چیک کریں",
+  "quickDraftContent": "آپ کے ذہن میں کیا ہے؟",
+  "recentlyPublished": "حال ہی میں شائع شدہ"
 }
