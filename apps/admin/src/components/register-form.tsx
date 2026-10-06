@@ -103,6 +103,16 @@ export function RegisterForm() {
     setLocale(next);
   }
 
+  // Localized language names via Intl.DisplayNames
+  function langName(code: string): string {
+    try {
+      const dn = new Intl.DisplayNames([locale], { type: 'language' });
+      return dn.of(code) ?? code;
+    } catch {
+      return code;
+    }
+  }
+
   if (done) {
     return (
       <div className="v-login-modern">
@@ -118,6 +128,22 @@ export function RegisterForm() {
 
   return (
     <div className="v-login-modern">
+      <div className="v-login-topbar">
+        <label className="v-login-lang v-login-lang--top">
+          <span className="v-sr-only">{t('common', 'language')}</span>
+          <select
+            value={locale}
+            onChange={(e) => onLocale(e.target.value as AppLocale)}
+            aria-label={t('common', 'language')}
+          >
+            {SUPPORTED_LOCALES.map((l) => (
+              <option key={l} value={l}>
+                {langName(l)}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
       <h1 className="v-login-brand">VARKA</h1>
       <h2 className="v-login-title">{t('auth', 'registerTitle')}</h2>
       <p className="v-login-subtitle">{t('auth', 'registerSubtitle')}</p>
@@ -201,23 +227,6 @@ export function RegisterForm() {
         {' '}{t('common', 'and')}{' '}
         <a href="/privacy">{t('auth', 'privacyPolicy')}</a>.
       </p>
-
-      <div className="v-login-footer">
-        <label className="v-login-lang">
-          <span>{t('common', 'language')}</span>
-          <select
-            value={locale}
-            onChange={(e) => onLocale(e.target.value as AppLocale)}
-            aria-label={t('common', 'language')}
-          >
-            {SUPPORTED_LOCALES.map((l) => (
-              <option key={l} value={l}>
-                {l}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
     </div>
   );
 }
