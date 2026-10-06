@@ -28,8 +28,23 @@ export async function readInstalledManifest(
 /**
  * List every valid installed plugin by scanning the plugin directory.
  * Invalid directories (no/invalid plugin.json) are skipped.
+ *
+ * Cached in memory for 30s — the scan reads every manifest from disk, and
+ * the admin layout calls this on every request for the sidebar plugin menu.
+ * Plugin install/activate/deactivate flows should call
+ * `invalidatePluginDiscoveryCache()` after changing the plugin directory.
  */
+let discoveryCache: { at: number; plugins: DiscoveredPlugin[] } | null = null;
+const DISCOVERY_TTL_MS = 30_000;
+
+export function invalidatePluginDiscoveryCache(): void {
+  discoveryCache = null;
+}
+
 export async function discoverInstalledPlugins(): Promise<DiscoveredPlugin[]> {
+  if (discoveryCache && Date.now() - discoveryCache.at < DISCOVERY_TTL_MS) {
+    return discoveryCache.plugins;
+  }
   const dir = resolvePluginDir();
   if (!existsSync(dir)) return [];
   let entries: string[] = [];
@@ -50,5 +65,6 @@ export async function discoverInstalledPlugins(): Promise<DiscoveredPlugin[]> {
     });
   }
   out.sort((a, b) => a.manifest.name.localeCompare(b.manifest.name));
+  discoveryCache = { at: Date.now(), plugins: out };
   return out;
 }
