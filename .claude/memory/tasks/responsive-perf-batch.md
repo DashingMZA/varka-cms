@@ -68,6 +68,11 @@ tested so the user can pull and verify.
 - `errors.networkError` was filled as "Upload failed" but is used in generic contexts
   (comments/pages/posts error states) — corrected to "Network error. Try again." in
   all 4 locales, committed as 1cf8177 and pushed.
+- Posts Trash view empty: `listPostsAction` always applied `deletedAt: null`, hiding
+  trashed posts (trash sets deletedAt). Trash view now uses `deletedAt: { not: null }`;
+  trash count fixed too. Dashboard At-a-Glance counts now exclude trashed posts.
+  Committed as f36048b and pushed. Note: user's dev log showed old `status: "TRASH"`
+  code — they must `git pull` before retesting.
 
 ## Skills used
 - `.claude/skills/wp-admin-dashboard/SKILL.md` (required admin skill)
