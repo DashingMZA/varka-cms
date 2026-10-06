@@ -131,6 +131,7 @@ function buildNav(t: (ns: 'nav' | 'common', key: string) => string): NavItem[] {
       icon: '⚙',
       children: [
         { href: '/settings/general', label: L(t, 'settingsGeneral', 'General') },
+        { href: '/settings/users', label: 'Users' },
         { href: '/settings/writing', label: L(t, 'settingsWriting', 'Writing') },
         { href: '/settings/reading', label: L(t, 'settingsReading', 'Reading') },
         { href: '/settings/discussion', label: L(t, 'settingsDiscussion', 'Discussion') },
