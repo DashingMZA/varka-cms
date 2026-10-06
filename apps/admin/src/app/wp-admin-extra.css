@@ -100,12 +100,13 @@ table.form-table {
 }
 .v-form-table th,
 table.form-table th {
-  width: 200px;
+  width: 240px;
+  min-width: 200px;
   padding: 20px 10px 20px 0;
   text-align: start;
   font-weight: 600;
   vertical-align: top;
-  line-height: 1.3;
+  line-height: 1.5;
 }
 .v-form-table td,
 table.form-table td {
