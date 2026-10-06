@@ -55,7 +55,7 @@ input, select, textarea { font: inherit; color: var(--wp-ink); }
 
 .v-admin {
   display: grid;
-  grid-template-columns: var(--wp-sidebar-w) 1fr;
+  grid-template-columns: var(--wp-sidebar-w) minmax(0, 1fr);
   grid-template-rows: var(--wp-topbar-h) 1fr;
   min-height: 100vh;
 }
@@ -67,6 +67,7 @@ input, select, textarea { font: inherit; color: var(--wp-ink); }
 .v-topbar a {
   color: var(--wp-sidebar-text); text-decoration: none; height: 100%;
   display: inline-flex; align-items: center; padding: 0 10px; opacity: 0.9;
+  white-space: nowrap; flex-shrink: 0;
 }
 .v-topbar a:hover { color: #fff; opacity: 1; background: rgba(255,255,255,0.06); text-decoration: none; }
 .v-topbar__brand { font-weight: 600; letter-spacing: 0.04em; min-width: var(--wp-sidebar-w); padding-left: 12px !important; box-sizing: border-box; }
@@ -196,7 +197,8 @@ button.v-nav__link { color: var(--wp-sidebar-text); }
 .v-alert--error { border-left-color: var(--wp-danger); color: var(--wp-danger); }
 .v-alert--ok, .v-alert--success { border-left-color: var(--wp-success); color: var(--wp-success); }
 
-.v-dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 12px; }
+.v-dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 16px; margin-top: 12px; }
+.v-dash-grid > * { min-width: 0; }
 .v-glance { list-style: none; margin: 0; padding: 0; }
 .v-glance li { padding: 6px 0; border-bottom: 1px solid #eee; }
 .v-activity { list-style: none; margin: 0 0 12px; padding: 0; }
@@ -241,12 +243,13 @@ html[data-admin-scheme="light"] .v-topbar a { color: #333; }
 
 @media (max-width: 782px) {
   .v-admin { grid-template-columns: 1fr; }
+  .v-main { grid-column: 1; grid-row: 2; padding: 12px 12px 40px; }
   .v-sidebar {
     display: none;
     position: fixed;
     top: var(--wp-topbar-h);
     bottom: 0;
-    left: 0;
+    inset-inline-start: 0;
     width: 200px;
     z-index: 100;
     overflow-y: auto;
@@ -267,6 +270,14 @@ html[data-admin-scheme="light"] .v-topbar a { color: #333; }
   /* Responsive tables: horizontal scroll */
   .v-table-wrapper, .v-card { overflow-x: auto; }
   .v-table { min-width: 600px; }
+  /* Topbar: keep essential actions, hide the rest on small screens */
+  .v-topbar { overflow: hidden; }
+  .v-topbar__brand { min-width: 0; font-size: 13px; padding: 0 8px; }
+  .v-topbar__media-link,
+  .v-topbar__view-site,
+  .v-topbar__locale > span { display: none; }
+  .v-topbar__locale select { max-width: 110px; }
+  .v-topbar__link { padding: 0 6px; font-size: 12px; }
 }
 .v-topbar__menu-toggle { display: none; }
 
