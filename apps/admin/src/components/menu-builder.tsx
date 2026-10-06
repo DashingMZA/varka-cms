@@ -135,9 +135,6 @@ export function MenuBuilder() {
 
   return (
     <div style={{ display: 'grid', gap: 16, maxWidth: 720 }}>
-      <h1 className="v-page-title" style={{ margin: 0 }}>
-        {t('appearance', 'menus')}
-      </h1>
       {message ? <p className="v-alert v-alert--ok">{message}</p> : null}
       {error ? <p className="v-alert v-alert--error">{error}</p> : null}
 
@@ -220,7 +217,7 @@ export function MenuBuilder() {
               <span className="v-muted" style={{ fontSize: 12 }}>
                 {item.url}
               </span>
-              <span style={{ marginLeft: 'auto', display: 'flex', gap: 4 }}>
+              <span style={{ marginInlineStart: 'auto', display: 'flex', gap: 4 }}>
                 <button type="button" className="v-btn" title={t('appearance', 'outdent')} onClick={() => outdentItem(item.id)}>
                   ⇤
                 </button>
