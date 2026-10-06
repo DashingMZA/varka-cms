@@ -58,7 +58,8 @@ export function ScheduledActions() {
         <p className="v-muted">{L(t, 'noScheduled', 'No scheduled posts.')}</p>
       ) : (
         <div className="v-table-wrap">
-        <table className="v-table">
+                <div className="v-card" style={{ padding: 0, overflow: "hidden" }}>
+          <table className="v-table">
           <thead>
             <tr>
               <th>{L(t, 'title', 'Title')}</th>
@@ -82,6 +83,7 @@ export function ScheduledActions() {
             ))}
           </tbody>
         </table>
+        </div>
         </div>
       )}
     </div>
