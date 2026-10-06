@@ -54,9 +54,11 @@ function EyeIcon({ off }: { off?: boolean }) {
 export function LoginForm({
   serverError,
   initialStep,
+  registrationEnabled,
 }: {
   serverError?: string | null;
   initialStep?: Step;
+  registrationEnabled?: boolean;
 }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -268,6 +270,12 @@ export function LoginForm({
       </form>
 
       <div className="v-login-footer">
+        {registrationEnabled ? (
+          <p className="v-login-back-link">
+            {t('auth', 'dontHaveAccount')}{' '}
+            <Link href="/register">{t('auth', 'register')}</Link>
+          </p>
+        ) : null}
         <label className="v-login-lang">
           <span>{t('common', 'language')}</span>
           <select
