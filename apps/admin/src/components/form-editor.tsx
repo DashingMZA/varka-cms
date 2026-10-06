@@ -266,7 +266,7 @@ export function FormEditor({ formId, initialTab }: Props) {
           </section>
 
           <section className="v-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
               <h2 style={{ margin: 0 }}>{t('forms', 'fields') || 'Fields'} ({fields.length})</h2>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 <select id="v-add-field-type" defaultValue="text">
@@ -381,7 +381,7 @@ export function FormEditor({ formId, initialTab }: Props) {
 
       {tab === 'entries' ? (
         <section className="v-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
             <h2 style={{ margin: 0 }}>
               {t('forms', 'tabEntries') || 'Entries'} ({entriesTotal})
             </h2>
