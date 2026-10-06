@@ -378,8 +378,15 @@ async function isRegistrationEnabled(): Promise<boolean> {
     const site = await prisma.site.findFirst({ orderBy: { createdAt: 'asc' } });
     if (!site) return false;
     const setting = await prisma.siteSetting.findUnique({
-      where: { siteId_key: { siteId: site.id, key: 'general.membership' } },
+      where: { siteId_key: { siteId: site.id, key: 'users.anyoneCanRegister' } },
     });
+    // Fallback to old key for backwards compat
+    if (!setting) {
+      const legacy = await prisma.siteSetting.findUnique({
+        where: { siteId_key: { siteId: site.id, key: 'general.membership' } },
+      });
+      return legacy?.value === true;
+    }
     return setting?.value === true;
   } catch {
     return false;
@@ -438,9 +445,15 @@ export async function signUpEmailAction(
         // Assign default role
         const site = await prisma.site.findFirst({ orderBy: { createdAt: 'asc' } });
         if (site) {
-          const roleSetting = await prisma.siteSetting.findUnique({
-            where: { siteId_key: { siteId: site.id, key: 'general.defaultRole' } },
+          let roleSetting = await prisma.siteSetting.findUnique({
+            where: { siteId_key: { siteId: site.id, key: 'users.defaultRole' } },
           });
+          // Fallback to old key for backwards compat
+          if (!roleSetting) {
+            roleSetting = await prisma.siteSetting.findUnique({
+              where: { siteId_key: { siteId: site.id, key: 'general.defaultRole' } },
+            });
+          }
           const roleName = typeof roleSetting?.value === 'string' ? roleSetting.value : 'subscriber';
           const role = await prisma.role.findFirst({ where: { name: roleName } });
           if (role) {
