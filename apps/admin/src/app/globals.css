@@ -172,8 +172,8 @@ button.v-nav__link { color: var(--wp-sidebar-text); }
 }
 .v-btn:hover { background: #f9fafb; border-color: #9ca3af; color: #111827; text-decoration: none; }
 .v-btn:focus-visible { outline: none; border-color: #111827; box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08); }
-.v-btn--primary { background: #111827; border-color: #111827; color: #fff; box-shadow: none; }
-.v-btn--primary:hover { background: #1f2937; border-color: #1f2937; color: #fff; }
+.v-btn--primary { background: var(--wp-accent); border-color: var(--wp-accent); color: #fff; box-shadow: none; }
+.v-btn--primary:hover { background: var(--wp-accent-hover); border-color: var(--wp-accent-hover); color: #fff; }
 .v-btn--success { background: #00a32a; border-color: #00a32a; color: #fff; box-shadow: none; }
 .v-btn--success:hover { background: #008a23; border-color: #008a23; color: #fff; }
 .v-btn--danger { color: #d63638; border-color: #d1d5db; background: #fff; }
@@ -253,6 +253,7 @@ html.folded .v-topbar__brand, body.folded .v-topbar__brand { min-width: 36px; pa
 .v-media-modal__bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--wp-border); background: #fcfcfc; }
 .v-media-modal__body { overflow: auto; padding: 12px 16px 20px; flex: 1; }
 
+html[data-admin-scheme="fresh"] { --wp-sidebar: #1d2327; --wp-sidebar-hover: #2c3338; --wp-sidebar-current: #0073aa; --wp-sidebar-text: #f0f0f1; --wp-sidebar-muted: #a7aaad; --wp-submenu-bg: #2c3338; --wp-topbar: #1d2327; --wp-accent: #0073aa; --wp-accent-hover: #005a87; }
 html[data-admin-scheme="light"] { --wp-sidebar: #e5e5e5; --wp-sidebar-hover: #fff; --wp-sidebar-current: #04a4cc; --wp-sidebar-text: #333; --wp-sidebar-muted: #666; --wp-submenu-bg: #fff; --wp-topbar: #e5e5e5; --wp-accent: #04a4cc; --wp-accent-hover: #037c9a; }
 html[data-admin-scheme="blue"] { --wp-sidebar: #52accc; --wp-sidebar-hover: #4796b3; --wp-sidebar-current: #096484; --wp-sidebar-text: #fff; --wp-sidebar-muted: #e1eef5; --wp-submenu-bg: #4796b3; --wp-topbar: #52accc; --wp-accent: #096484; --wp-accent-hover: #074b63; }
 html[data-admin-scheme="coffee"] { --wp-sidebar: #46403c; --wp-sidebar-hover: #59524c; --wp-sidebar-current: #c7a589; --wp-sidebar-text: #fff; --wp-sidebar-muted: #cdcbc9; --wp-submenu-bg: #59524c; --wp-topbar: #46403c; --wp-accent: #c7a589; --wp-accent-hover: #a8896c; }
