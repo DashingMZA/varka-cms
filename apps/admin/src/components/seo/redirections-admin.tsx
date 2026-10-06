@@ -7,6 +7,7 @@ import {
   deleteRedirectionAction,
   toggleRedirectionAction,
 } from '@/actions/seo-tools';
+import { validateRedirect, normalisePath } from '@varka/seo';
 
 type Redirection = {
   id: string;
@@ -55,11 +56,21 @@ export function RedirectionsAdmin({ searchParams }: { searchParams?: Promise<{ s
       setError('Source and target are required.');
       return;
     }
+    // BMS validation: checks type, same source/target, etc.
+    const validationError = validateRedirect({
+      source: source.trim(),
+      destination: target.trim(),
+      type: Number(code),
+    });
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
       const result = await createRedirectionAction({
-        source: source.trim(),
+        source: normalisePath(source.trim()),
         target: target.trim(),
         code: Number(code),
       });
