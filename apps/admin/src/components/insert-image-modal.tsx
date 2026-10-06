@@ -142,7 +142,7 @@ export function InsertImageModal({
                 }}
                 style={{
                   border:
-                    selected?.id === a.id ? '2px solid var(--wp-primary)' : '1px solid var(--wp-border)',
+                    selected?.id === a.id ? '2px solid var(--primary)' : '1px solid var(--border)',
                   borderRadius: 4,
                   padding: 0,
                   background: '#fff',
