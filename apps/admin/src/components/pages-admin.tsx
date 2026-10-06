@@ -153,117 +153,119 @@ export function PagesAdmin() {
       </div>
 
       <div className="v-list-table-wrap">
-        <table className="v-list-table">
-          <thead>
-            <tr>
-              <td className="check-col">
-                <input
-                  type="checkbox"
-                  checked={items.length > 0 && selected.size === items.length}
-                  onChange={(e) => {
-                    if (e.target.checked) setSelected(new Set(items.map((p) => p.id)));
-                    else setSelected(new Set());
-                  }}
-                />
-              </td>
-              <th>{t('pages', 'titleCol') || 'Title'}</th>
-              <th>{t('pages', 'author') || 'Author'}</th>
-              <th>{t('pages', 'status') || 'Status'}</th>
-              <th>{t('pages', 'date') || 'Date'}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading && items.length === 0 ? (
+                <div className="v-card" style={{ padding: 0, overflow: "hidden" }}>
+  <table className="v-list-table">
+            <thead>
               <tr>
-                <td colSpan={5} className="v-muted" style={{ padding: 16 }}>
-                  {t('common', 'loading')}
+                <td className="check-col">
+                  <input
+                    type="checkbox"
+                    checked={items.length > 0 && selected.size === items.length}
+                    onChange={(e) => {
+                      if (e.target.checked) setSelected(new Set(items.map((p) => p.id)));
+                      else setSelected(new Set());
+                    }}
+                  />
                 </td>
+                <th>{t('pages', 'titleCol') || 'Title'}</th>
+                <th>{t('pages', 'author') || 'Author'}</th>
+                <th>{t('pages', 'status') || 'Status'}</th>
+                <th>{t('pages', 'date') || 'Date'}</th>
               </tr>
-            ) : items.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="v-muted" style={{ padding: 16 }}>
-                  {t('pages', 'noPages') || 'No pages found.'}
-                </td>
-              </tr>
-            ) : (
-              items.map((p) => {
-                const tr = p.translations?.[0];
-                return (
-                  <tr key={p.id}>
-                    <td className="check-col">
-                      <input
-                        type="checkbox"
-                        checked={selected.has(p.id)}
-                        onChange={(e) => {
-                          setSelected((prev) => {
-                            const n = new Set(prev);
-                            if (e.target.checked) n.add(p.id);
-                            else n.delete(p.id);
-                            return n;
-                          });
-                        }}
-                      />
-                    </td>
-                    <td>
-                      <Link href={`/content/pages/${p.id}`} className="row-title">
-                        {tr?.title || t('pages', 'untitled') || 'Untitled'}
-                      </Link>
-                      <div className="row-actions">
-                        <Link href={`/content/pages/${p.id}`}>{t('common', 'edit') || 'Edit'}</Link>
-                        {' | '}
-                        <a
-                          href="#"
-                          className="trash"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            void (async () => {
-                              await trashPageAction(p.id);
-                              await load();
-                            })();
+            </thead>
+            <tbody>
+              {loading && items.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="v-muted" style={{ padding: 16 }}>
+                    {t('common', 'loading')}
+                  </td>
+                </tr>
+              ) : items.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="v-muted" style={{ padding: 16 }}>
+                    {t('pages', 'noPages') || 'No pages found.'}
+                  </td>
+                </tr>
+              ) : (
+                items.map((p) => {
+                  const tr = p.translations?.[0];
+                  return (
+                    <tr key={p.id}>
+                      <td className="check-col">
+                        <input
+                          type="checkbox"
+                          checked={selected.has(p.id)}
+                          onChange={(e) => {
+                            setSelected((prev) => {
+                              const n = new Set(prev);
+                              if (e.target.checked) n.add(p.id);
+                              else n.delete(p.id);
+                              return n;
+                            });
                           }}
-                        >
-                          {t('common', 'trash') || 'Trash'}
-                        </a>
-                        <span className="v-muted" style={{ fontSize: 12 }}>
-                          {' '}/{tr?.slug}
+                        />
+                      </td>
+                      <td>
+                        <Link href={`/content/pages/${p.id}`} className="row-title">
+                          {tr?.title || t('pages', 'untitled') || 'Untitled'}
+                        </Link>
+                        <div className="row-actions">
+                          <Link href={`/content/pages/${p.id}`}>{t('common', 'edit') || 'Edit'}</Link>
+                          {' | '}
+                          <a
+                            href="#"
+                            className="trash"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              void (async () => {
+                                await trashPageAction(p.id);
+                                await load();
+                              })();
+                            }}
+                          >
+                            {t('common', 'trash') || 'Trash'}
+                          </a>
+                          <span className="v-muted" style={{ fontSize: 12 }}>
+                            {' '}/{tr?.slug}
+                          </span>
+                        </div>
+                      </td>
+                      <td>{p.author?.name || p.author?.email || '—'}</td>
+                      <td>
+                        <span className={`v-status v-status--${p.status.toLowerCase()}`}>
+                          {p.status.replaceAll('_', ' ').toLowerCase()}
                         </span>
-                      </div>
-                    </td>
-                    <td>{p.author?.name || p.author?.email || '—'}</td>
-                    <td>
-                      <span className={`v-status v-status--${p.status.toLowerCase()}`}>
-                        {p.status.replaceAll('_', ' ').toLowerCase()}
-                      </span>
-                    </td>
-                    <td style={{ fontSize: 12 }}>{new Date(p.updatedAt).toLocaleString()}</td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-        {total > perPage ? (
-          <div className="v-pagination" style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, justifyContent: 'center' }}>
-            <button
-              className="v-btn v-btn--small"
-              disabled={page <= 1 || loading}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-            >
-              ← {t('common', 'previous')}
-            </button>
-            <span className="v-muted" style={{ fontSize: 13 }}>
-              {t('common', 'page')} {page} {t('common', 'of')} {Math.ceil(total / perPage)} ({total} {t('common', 'items')})
-            </span>
-            <button
-              className="v-btn v-btn--small"
-              disabled={page >= Math.ceil(total / perPage) || loading}
-              onClick={() => setPage((p) => p + 1)}
-            >
-              {t('common', 'next')} →
-            </button>
+                      </td>
+                      <td style={{ fontSize: 12 }}>{new Date(p.updatedAt).toLocaleString()}</td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
           </div>
-        ) : null}
+          {total > perPage ? (
+            <div className="v-pagination" style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, justifyContent: 'center' }}>
+              <button
+                className="v-btn v-btn--small"
+                disabled={page <= 1 || loading}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+              >
+                ← {t('common', 'previous')}
+              </button>
+              <span className="v-muted" style={{ fontSize: 13 }}>
+                {t('common', 'page')} {page} {t('common', 'of')} {Math.ceil(total / perPage)} ({total} {t('common', 'items')})
+              </span>
+              <button
+                className="v-btn v-btn--small"
+                disabled={page >= Math.ceil(total / perPage) || loading}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                {t('common', 'next')} →
+              </button>
+            </div>
+          ) : null}
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
