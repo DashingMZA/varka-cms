@@ -5,7 +5,7 @@ import { useMessages } from '@/lib/i18n';
 import { PasswordInput } from '@/components/password-input';
 import { requestOtpAction, verifyOtpAction } from '@/actions/otp';
 import { createPortal } from 'react-dom';
-import { loginPasswordField, otpField, zodErrorKeys } from '@varka/validation';
+import { otpField, zodErrorKeys } from '@varka/validation';
 import { z } from 'zod';
 import {
   enableTwoFactorAction,
@@ -34,7 +34,6 @@ function secretFromTotpUri(uri: string): string | null {
 export function TwoFactorSettings({ enabled: initial }: Props) {
   const { t } = useMessages();
   const [enabled, setEnabled] = useState(initial);
-  const [password, setPassword] = useState('');
   const [code, setCode] = useState('');
   const [totpUri, setTotpUri] = useState<string | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
@@ -49,6 +48,10 @@ export function TwoFactorSettings({ enabled: initial }: Props) {
   const [otpAction, setOtpAction] = useState<'2fa-enable' | '2fa-disable' | null>(null);
   const [otpSent, setOtpSent] = useState(false);
   const [pendingPassword, setPendingPassword] = useState('');
+  // Password confirmation popup (like Update Profile)
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [pendingAction, setPendingAction] = useState<'enable' | 'disable' | null>(null);
 
   function mapKey(key: string): string {
     return t('validation', key) || key;
@@ -90,14 +93,22 @@ export function TwoFactorSettings({ enabled: initial }: Props) {
     e.preventDefault();
     setError(null);
     setMessage(null);
-    const parsed = z.object({ password: loginPasswordField }).safeParse({ password });
-    if (!parsed.success) {
-      setError(mapKey(zodErrorKeys(parsed.error).password || 'passwordRequired'));
+    // Show password confirmation popup first (like Update Profile)
+    setPendingAction('enable');
+    setConfirmPassword('');
+    setShowPasswordConfirm(true);
+  }
+
+  async function onPasswordConfirm() {
+    if (!confirmPassword) {
+      setError('Please enter your password');
       return;
     }
-    // Require OTP verification before enabling 2FA
-    setPendingPassword(parsed.data.password);
-    setOtpAction('2fa-enable');
+    setShowPasswordConfirm(false);
+    setPendingPassword(confirmPassword);
+    setConfirmPassword('');
+    // Require OTP verification before 2FA action
+    setOtpAction(pendingAction === 'enable' ? '2fa-enable' : '2fa-disable');
     setOtpSent(false);
     setOtpCode('');
     setShowOtp(true);
@@ -144,7 +155,6 @@ export function TwoFactorSettings({ enabled: initial }: Props) {
       }
       setEnabled(true);
       setPendingEnable(false);
-      setPassword('');
       setCode('');
       setTotpUri(null);
       setQrDataUrl(null);
@@ -161,17 +171,10 @@ export function TwoFactorSettings({ enabled: initial }: Props) {
     e.preventDefault();
     setError(null);
     setMessage(null);
-    const parsed = z.object({ password: loginPasswordField }).safeParse({ password });
-    if (!parsed.success) {
-      setError(mapKey(zodErrorKeys(parsed.error).password || 'passwordRequired'));
-      return;
-    }
-    // Require OTP verification before disabling 2FA
-    setPendingPassword(parsed.data.password);
-    setOtpAction('2fa-disable');
-    setOtpSent(false);
-    setOtpCode('');
-    setShowOtp(true);
+    // Show password confirmation popup first (like Update Profile)
+    setPendingAction('disable');
+    setConfirmPassword('');
+    setShowPasswordConfirm(true);
   }
 
   async function doDisableWithOtp() {
@@ -187,7 +190,6 @@ export function TwoFactorSettings({ enabled: initial }: Props) {
       setTotpUri(null);
       setQrDataUrl(null);
       setBackupCodes([]);
-      setPassword('');
       setMessage(t('auth', 'twoFactorDisabled'));
       setShowOtp(false);
       setPendingPassword('');
@@ -242,16 +244,6 @@ export function TwoFactorSettings({ enabled: initial }: Props) {
 
       {!enabled && !pendingEnable ? (
         <form onSubmit={startEnable} style={{ display: 'grid', gap: 8 }}>
-          <label style={{ display: 'grid', gap: 4, fontSize: 13 }}>
-            {t('auth', 'password')}
-            <PasswordInput
-              id="2fa-password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </label>
           <button type="submit" className="v-btn v-btn--primary" disabled={loading}>
             {t('auth', 'twoFactorEnable')}
           </button>
@@ -320,16 +312,6 @@ export function TwoFactorSettings({ enabled: initial }: Props) {
 
       {enabled ? (
         <form onSubmit={disable} style={{ display: 'grid', gap: 8 }}>
-          <label style={{ display: 'grid', gap: 4, fontSize: 13 }}>
-            {t('auth', 'password')}
-            <PasswordInput
-              id="2fa-password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </label>
           <button type="submit" className="v-btn" disabled={loading}>
             {t('auth', 'twoFactorDisable')}
           </button>
@@ -338,6 +320,58 @@ export function TwoFactorSettings({ enabled: initial }: Props) {
 
       {error ? <p className="v-alert v-alert--error">{error}</p> : null}
       {message ? <p className="v-alert v-alert--success">{message}</p> : null}
+
+      {showPasswordConfirm && typeof document !== 'undefined' ? createPortal(
+        <div
+          className="v-admin"
+          data-admin-scheme={document.querySelector('.v-admin')?.getAttribute('data-admin-scheme') || 'default'}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999,
+          }}
+          onClick={() => setShowPasswordConfirm(false)}
+        >
+          <div
+            className="v-card"
+            style={{ maxWidth: 400, width: '90%', padding: 24, background: '#fff' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ margin: '0 0 8px', fontSize: 16 }}>Confirm with password</h3>
+            <p className="v-muted" style={{ fontSize: 13, marginBottom: 16 }}>
+              Enter your current password to {pendingAction === 'enable' ? 'enable' : 'disable'} two-factor authentication.
+            </p>
+            <div className="v-field">
+              <label htmlFor="2fa-confirm">Password</label>
+              <PasswordInput
+                id="2fa-confirm"
+                autoComplete="current-password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') void onPasswordConfirm(); }}
+                autoFocus
+              />
+            </div>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16 }}>
+              <button
+                type="button"
+                className="v-btn"
+                onClick={() => { setShowPasswordConfirm(false); setConfirmPassword(''); }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="v-btn v-btn--primary"
+                onClick={() => void onPasswordConfirm()}
+                disabled={loading || !confirmPassword}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      ) : null}
 
       {showOtp && typeof document !== 'undefined' ? createPortal(
         <div
