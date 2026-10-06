@@ -16,5 +16,6 @@
   "submittedOn": "Enviado el",
   "bulkActions": "Acciones en lote",
   "searchComments": "Buscar comentarios",
-  "noComments": "Aún no hay comentarios."
+  "noComments": "Aún no hay comentarios.",
+  "delete": "Eliminar permanentemente"
 }
