@@ -176,7 +176,8 @@ export function PluginsAdmin() {
         </div>
       </div>
 
-      <table className="v-list-table">
+            <div className="v-card" style={{ padding: 0, overflow: "hidden" }}>
+        <table className="v-list-table">
         <thead>
           <tr>
             <th style={{ width: 36 }}>
@@ -292,6 +293,7 @@ export function PluginsAdmin() {
           )}
         </tbody>
       </table>
+      </div>
 
       {filtered.length > 0 ? (
         <div className="v-list-table-bottom">
