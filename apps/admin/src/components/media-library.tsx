@@ -331,7 +331,7 @@ export function MediaLibrary({ onInsert, onClose, imagesOnly }: Props) {
           <button
             type="button"
             className="v-btn v-btn--small"
-            style={{ color: 'var(--wp-danger)' }}
+            style={{ color: 'var(--danger)' }}
             disabled={bulkDeleting}
             onClick={() => void bulkDelete()}
           >
@@ -341,7 +341,7 @@ export function MediaLibrary({ onInsert, onClose, imagesOnly }: Props) {
           </button>
         ) : null}
         {error ? (
-          <span className="v-muted" style={{ color: 'var(--wp-danger)' }}>
+          <span className="v-muted" style={{ color: 'var(--danger)' }}>
             {error}
           </span>
         ) : null}
@@ -569,7 +569,7 @@ export function MediaLibrary({ onInsert, onClose, imagesOnly }: Props) {
                 <button
                   type="button"
                   className="v-btn"
-                  style={{ color: 'var(--wp-danger)' }}
+                  style={{ color: 'var(--danger)' }}
                   onClick={() => void removeSelected()}
                 >
                   {t('common', 'delete') || 'Delete'}
