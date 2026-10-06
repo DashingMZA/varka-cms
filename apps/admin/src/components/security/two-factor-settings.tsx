@@ -3,6 +3,8 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useMessages } from '@/lib/i18n';
 import { PasswordInput } from '@/components/password-input';
+import { requestOtpAction, verifyOtpAction } from '@/actions/otp';
+import { createPortal } from 'react-dom';
 import { loginPasswordField, otpField, zodErrorKeys } from '@varka/validation';
 import { z } from 'zod';
 import {
@@ -41,6 +43,12 @@ export function TwoFactorSettings({ enabled: initial }: Props) {
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [pendingEnable, setPendingEnable] = useState(false);
+  // OTP verification for sensitive 2FA actions
+  const [showOtp, setShowOtp] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpAction, setOtpAction] = useState<'2fa-enable' | '2fa-disable' | null>(null);
+  const [otpSent, setOtpSent] = useState(false);
+  const [pendingPassword, setPendingPassword] = useState('');
 
   function mapKey(key: string): string {
     return t('validation', key) || key;
@@ -87,9 +95,18 @@ export function TwoFactorSettings({ enabled: initial }: Props) {
       setError(mapKey(zodErrorKeys(parsed.error).password || 'passwordRequired'));
       return;
     }
+    // Require OTP verification before enabling 2FA
+    setPendingPassword(parsed.data.password);
+    setOtpAction('2fa-enable');
+    setOtpSent(false);
+    setOtpCode('');
+    setShowOtp(true);
+  }
+
+  async function doEnableWithOtp() {
     setLoading(true);
     try {
-      const result = await enableTwoFactorAction(parsed.data.password);
+      const result = await enableTwoFactorAction(pendingPassword);
       if (!result.ok) {
         setError(result.error ?? t('auth', 'invalidCredentials'));
         setLoading(false);
@@ -100,6 +117,8 @@ export function TwoFactorSettings({ enabled: initial }: Props) {
       setBackupCodes(Array.isArray(data.backupCodes) ? data.backupCodes : []);
       setPendingEnable(true);
       setMessage(t('auth', 'twoFactorScanQr'));
+      setShowOtp(false);
+      setPendingPassword('');
     } catch {
       setError(t('auth', 'networkError'));
     } finally {
@@ -147,9 +166,18 @@ export function TwoFactorSettings({ enabled: initial }: Props) {
       setError(mapKey(zodErrorKeys(parsed.error).password || 'passwordRequired'));
       return;
     }
+    // Require OTP verification before disabling 2FA
+    setPendingPassword(parsed.data.password);
+    setOtpAction('2fa-disable');
+    setOtpSent(false);
+    setOtpCode('');
+    setShowOtp(true);
+  }
+
+  async function doDisableWithOtp() {
     setLoading(true);
     try {
-      const result = await disableTwoFactorAction(parsed.data.password);
+      const result = await disableTwoFactorAction(pendingPassword);
       if (!result.ok) {
         setError(result.error ?? t('auth', 'invalidCredentials'));
         setLoading(false);
@@ -161,10 +189,45 @@ export function TwoFactorSettings({ enabled: initial }: Props) {
       setBackupCodes([]);
       setPassword('');
       setMessage(t('auth', 'twoFactorDisabled'));
+      setShowOtp(false);
+      setPendingPassword('');
     } catch {
       setError(t('auth', 'networkError'));
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function onSendOtp() {
+    setLoading(true);
+    const res = await requestOtpAction(otpAction!);
+    setLoading(false);
+    if (!res.ok) {
+      setError(res.error);
+      return;
+    }
+    setOtpSent(true);
+  }
+
+  async function onVerifyOtp() {
+    if (otpCode.trim().length !== 6) {
+      setError('Enter the 6-digit code');
+      return;
+    }
+    setLoading(true);
+    const res = await verifyOtpAction(otpAction!, otpCode.trim());
+    setLoading(false);
+    if (!res.ok) {
+      setError(res.error);
+      return;
+    }
+    // OTP verified — proceed with the 2FA action
+    setOtpCode('');
+    setOtpSent(false);
+    if (otpAction === '2fa-enable') {
+      await doEnableWithOtp();
+    } else {
+      await doDisableWithOtp();
     }
   }
 
@@ -275,6 +338,84 @@ export function TwoFactorSettings({ enabled: initial }: Props) {
 
       {error ? <p className="v-alert v-alert--error">{error}</p> : null}
       {message ? <p className="v-alert v-alert--success">{message}</p> : null}
+
+      {showOtp && typeof document !== 'undefined' ? createPortal(
+        <div
+          className="v-admin"
+          data-admin-scheme={document.querySelector('.v-admin')?.getAttribute('data-admin-scheme') || 'default'}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999,
+          }}
+          onClick={() => setShowOtp(false)}
+        >
+          <div
+            className="v-card"
+            style={{ maxWidth: 400, width: '90%', padding: 24, background: '#fff' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ margin: '0 0 8px', fontSize: 16 }}>Verify with code</h3>
+            <p className="v-muted" style={{ fontSize: 13, marginBottom: 16 }}>
+              Enter the 6-digit code sent to your email to {otpAction === '2fa-enable' ? 'enable' : 'disable'} two-factor authentication.
+            </p>
+            {!otpSent ? (
+              <button
+                type="button"
+                className="v-btn v-btn--primary"
+                onClick={() => void onSendOtp()}
+                disabled={loading}
+                style={{ width: '100%' }}
+              >
+                {loading ? 'Sending…' : 'Send verification code'}
+              </button>
+            ) : (
+              <>
+                <div className="v-field">
+                  <label htmlFor="2fa-otp">Verification code</label>
+                  <input
+                    id="2fa-otp"
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    placeholder="000000"
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                    onKeyDown={(e) => { if (e.key === 'Enter') void onVerifyOtp(); }}
+                    autoFocus
+                    style={{ fontSize: 20, letterSpacing: 8, textAlign: 'center' }}
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16 }}>
+                  <button
+                    type="button"
+                    className="v-btn"
+                    onClick={() => { setShowOtp(false); setOtpCode(''); setOtpSent(false); }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="v-btn"
+                    onClick={() => void onSendOtp()}
+                    disabled={loading}
+                  >
+                    Resend
+                  </button>
+                  <button
+                    type="button"
+                    className="v-btn v-btn--primary"
+                    onClick={() => void onVerifyOtp()}
+                    disabled={loading || otpCode.length !== 6}
+                  >
+                    Verify
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>,
+        document.body
+      ) : null}
     </div>
   );
 }
