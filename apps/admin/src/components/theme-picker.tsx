@@ -118,10 +118,10 @@ export function ThemePicker({
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder={L(t, 'searchThemes', 'Search themes…')}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') e.preventDefault();
+            }}
           />
-          <button type="button" className="v-btn" onClick={() => {}}>
-            {L(t, 'search', 'Search')}
-          </button>
         </div>
       </div>
 
@@ -214,9 +214,9 @@ export function ThemePicker({
                     {busy === th.id ? '…' : L(t, 'activate', 'Activate')}
                   </button>
                 ) : (
-                  <Link href="/appearance/customize" className="v-btn">
+                  <span className="v-btn v-btn--disabled" aria-disabled="true" title="Coming soon">
                     {L(t, 'customize', 'Customize')}
-                  </Link>
+                  </span>
                 )}
               </div>
             </div>
