@@ -205,8 +205,7 @@ export function createAuth() {
         path: '/',
       },
       database: {
-        // User.id is Int autoincrement — use serial ID generation
-        generateId: "serial",
+        // User.id is String @default(cuid()) — Better Auth native
       },
     },
     trustedOrigins,
