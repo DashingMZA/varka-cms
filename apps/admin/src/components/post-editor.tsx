@@ -310,7 +310,9 @@ export function PostEditor({ postId: initialPostId }: { postId: string | null })
     setMediaOpen(false);
   }
 
-  if (!post && !error) return <p className="v-muted">{t('blogs', 'loading', 'Loading…')}</p>;
+  // New-post mode (postId === null) has no database record to load — render
+  // the blank editor immediately instead of waiting on `post`.
+  if (postId && !post && !error) return <p className="v-muted">{t('blogs', 'loading', 'Loading…')}</p>;
   const isPublished = status === 'PUBLISHED';
 
   return (
