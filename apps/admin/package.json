@@ -1,6 +1,6 @@
 {
   "name": "@varka/admin",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,17 +11,17 @@
     "lint": "echo lint:@varka/admin"
   },
   "dependencies": {
-    "@tiptap/extension-color": "^2.27.3",
-    "@tiptap/extension-highlight": "^2.27.3",
-    "@tiptap/extension-image": "^2.27.3",
-    "@tiptap/extension-link": "^2.27.3",
-    "@tiptap/extension-placeholder": "^2.27.3",
-    "@tiptap/extension-text-align": "^2.27.3",
-    "@tiptap/extension-text-style": "^2.27.3",
-    "@tiptap/extension-underline": "^2.27.3",
-    "@tiptap/pm": "^2.27.3",
-    "@tiptap/react": "^2.27.3",
-    "@tiptap/starter-kit": "^2.27.3",
+    "@tiptap/extension-color": "^3.31.4",
+    "@tiptap/extension-highlight": "^3.31.4",
+    "@tiptap/extension-image": "^3.31.4",
+    "@tiptap/extension-link": "^3.31.4",
+    "@tiptap/extension-placeholder": "^3.31.4",
+    "@tiptap/extension-text-align": "^3.31.4",
+    "@tiptap/extension-text-style": "^3.31.4",
+    "@tiptap/extension-underline": "^3.31.4",
+    "@tiptap/pm": "^3.31.4",
+    "@tiptap/react": "^3.31.4",
+    "@tiptap/starter-kit": "^3.31.4",
     "@varka/auth": "workspace:*",
     "@varka/cache": "workspace:*",
     "@varka/config": "workspace:*",
@@ -36,8 +36,8 @@
     "@varka/security": "workspace:*",
     "@varka/themes": "workspace:*",
     "@varka/validation": "workspace:*",
-    "better-auth": "1.7.7",
-    "next": "16.3.8",
+    "better-auth": "^1.7.7",
+    "next": "^16.3.8",
     "qrcode": "^1.5.4",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
@@ -45,9 +45,9 @@
   },
   "devDependencies": {
     "@types/node": "^24.19.1",
-    "@types/qrcode": "^1.5.5",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "typescript": "7.0.2"
+    "typescript": "^7.0.2"
   }
 }
