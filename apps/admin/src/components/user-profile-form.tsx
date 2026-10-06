@@ -3,6 +3,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { getMyProfileAction, updateMyProfileAction, getUserProfileAction, updateUserProfileAction } from '@/actions/users';
+import { requestOtpAction, verifyOtpAction } from '@/actions/otp';
 import { useMessages } from '@/lib/i18n';
 import { PasswordInput } from '@/components/password-input';
 
@@ -75,6 +76,7 @@ export function UserProfileForm({ userId }: { userId?: string }) {
       setWebsite(p.website ?? '');
       setBio(p.bio ?? '');
       setEmail(p.email ?? '');
+      setOriginalEmail(p.email ?? '');
       setName(p.name ?? '');
       setDisplayNameAs(p.displayNameAs ?? 'full_name');
       setSocials({
@@ -91,6 +93,11 @@ export function UserProfileForm({ userId }: { userId?: string }) {
 
   const [showConfirm, setShowConfirm] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showOtp, setShowOtp] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpAction, setOtpAction] = useState<'email-change' | 'password-change' | null>(null);
+  const [otpSent, setOtpSent] = useState(false);
+  const [originalEmail, setOriginalEmail] = useState('');
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -106,7 +113,65 @@ export function UserProfileForm({ userId }: { userId?: string }) {
       await onAdminSubmit();
       return;
     }
-    // Show password confirmation modal first
+    const emailChanged = email.trim().toLowerCase() !== originalEmail.toLowerCase();
+    const passwordChanged = Boolean(newPassword);
+    // Sensitive changes require OTP verification
+    if (emailChanged) {
+      setOtpAction('email-change');
+      setOtpSent(false);
+      setOtpCode('');
+      setShowOtp(true);
+      return;
+    }
+    if (passwordChanged) {
+      setOtpAction('password-change');
+      setOtpSent(false);
+      setOtpCode('');
+      setShowOtp(true);
+      return;
+    }
+    // Show password confirmation modal for other changes
+    setShowConfirm(true);
+  }
+
+  async function onSendOtp() {
+    setLoading(true);
+    const res = await requestOtpAction(
+      otpAction!,
+      otpAction === 'email-change' ? email.trim() : undefined
+    );
+    setLoading(false);
+    if (!res.ok) {
+      setError(res.error);
+      return;
+    }
+    setOtpSent(true);
+    setMessage('Verification code sent to your email');
+  }
+
+  async function onVerifyOtp() {
+    if (!otpCode.trim()) {
+      setError('Please enter the verification code');
+      return;
+    }
+    setLoading(true);
+    const res = await verifyOtpAction(otpAction!, otpCode.trim());
+    setLoading(false);
+    if (!res.ok) {
+      setError(res.error);
+      return;
+    }
+    // OTP verified — proceed with the update
+    setShowOtp(false);
+    setOtpCode('');
+    setOtpSent(false);
+    // If both email and password changed, check if password also needs OTP
+    if (otpAction === 'email-change' && newPassword) {
+      setOtpAction('password-change');
+      setShowOtp(true);
+      return;
+    }
+    // Proceed to password confirmation for final save
     setShowConfirm(true);
   }
 
@@ -303,6 +368,85 @@ export function UserProfileForm({ userId }: { userId?: string }) {
               Confirm & Save
             </button>
           </div>
+        </div>
+      </div>,
+      document.body
+    ) : null}
+    {showOtp && typeof document !== 'undefined' ? createPortal(
+      <div
+        className="v-admin"
+        data-admin-scheme={document.querySelector('.v-admin')?.getAttribute('data-admin-scheme') || 'default'}
+        style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999,
+        }}
+        onClick={() => setShowOtp(false)}
+      >
+        <div
+          className="v-card"
+          style={{ maxWidth: 400, width: '90%', padding: 24, background: '#fff' }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <h3 style={{ margin: '0 0 8px', fontSize: 16 }}>Verify with code</h3>
+          <p className="v-muted" style={{ fontSize: 13, marginBottom: 16 }}>
+            {otpAction === 'email-change'
+              ? `Enter the 6-digit code sent to ${email}`
+              : 'Enter the 6-digit code sent to your email'}
+          </p>
+          {!otpSent ? (
+            <button
+              type="button"
+              className="v-btn v-btn--primary"
+              onClick={() => void onSendOtp()}
+              disabled={loading}
+              style={{ width: '100%' }}
+            >
+              {loading ? 'Sending…' : 'Send verification code'}
+            </button>
+          ) : (
+            <>
+              <div className="v-field">
+                <label htmlFor="pf-otp">Verification code</label>
+                <input
+                  id="pf-otp"
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  placeholder="000000"
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                  onKeyDown={(e) => { if (e.key === 'Enter') void onVerifyOtp(); }}
+                  autoFocus
+                  style={{ fontSize: 20, letterSpacing: 8, textAlign: 'center' }}
+                />
+              </div>
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16 }}>
+                <button
+                  type="button"
+                  className="v-btn"
+                  onClick={() => { setShowOtp(false); setOtpCode(''); setOtpSent(false); }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="v-btn"
+                  onClick={() => void onSendOtp()}
+                  disabled={loading}
+                >
+                  Resend
+                </button>
+                <button
+                  type="button"
+                  className="v-btn v-btn--primary"
+                  onClick={() => void onVerifyOtp()}
+                  disabled={loading || otpCode.length !== 6}
+                >
+                  Verify
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>,
       document.body
