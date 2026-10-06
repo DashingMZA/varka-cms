@@ -107,6 +107,7 @@ export function LanguagesAdmin() {
           {L(t, 'addPunjabi', 'Add Punjabi (pa · Arab script)')}
         </button>
       ) : null}
+      <div className="v-table-wrap">
       <table style={{ width: '100%', borderCollapse: 'collapse', background: 'var(--card)' }}>
         <thead>
           <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--border)' }}>
@@ -151,6 +152,7 @@ export function LanguagesAdmin() {
           )}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }
