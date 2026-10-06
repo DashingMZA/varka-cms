@@ -64,6 +64,11 @@ tested so the user can pull and verify.
   (includes new-post Loading fix 5ff936d) and live-test /content/posts/new.
 - Route-by-route responsive audit continues (celebrtiy line-by-line parity).
 
+## Follow-up fix (same day)
+- `errors.networkError` was filled as "Upload failed" but is used in generic contexts
+  (comments/pages/posts error states) — corrected to "Network error. Try again." in
+  all 4 locales, committed as 1cf8177 and pushed.
+
 ## Skills used
 - `.claude/skills/wp-admin-dashboard/SKILL.md` (required admin skill)
 - references/design-system.md (checked pre-compaction)
