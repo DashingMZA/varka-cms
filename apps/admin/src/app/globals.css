@@ -181,7 +181,7 @@ button.v-nav__link { color: var(--sidebar-text); }
   white-space: nowrap;
 }
 .v-btn:hover { background: #f9fafb; border-color: #9ca3af; color: #111827; text-decoration: none; }
-.v-btn:focus-visible { outline: none; border-color: #111827; box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08); }
+.v-btn:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent); }
 .v-btn--primary { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: none; }
 .v-btn--primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: #fff; }
 .v-btn--success { background: #00a32a; border-color: #00a32a; color: #fff; box-shadow: none; }
@@ -424,8 +424,8 @@ html.folded .v-topbar__brand, body.folded .v-topbar__brand { min-width: 36px; pa
 .v-form .v-field input:focus,
 .v-form .v-field select:focus,
 .v-form .v-field textarea:focus {
-  border-color: #111827;
-  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
 }
 .v-form .v-field input::placeholder,
 .v-form .v-field textarea::placeholder { color: #9ca3af; }
