@@ -9,12 +9,31 @@ function fail(e: unknown): ActionResult<never> {
 }
 
 export async function listNotFoundLogsAction(): Promise<
-  ActionResult<Array<{ id: string; path: string; hits: number; lastSeen: string; referrer: string | null }>>
+  ActionResult<Array<{ id: string; path: string; hits: number; firstSeen: string; lastSeen: string; referrer: string | null }>>
 > {
   try {
     const { siteId } = await requireServerAuth('seo.read');
-    const logs = await listNotFoundLogs(prisma as never, siteId);
-    return { ok: true, data: JSON.parse(JSON.stringify(logs)) };
+    const [logs, excludeRow] = await Promise.all([
+      listNotFoundLogs(prisma as never, siteId),
+      prisma.siteSetting.findUnique({
+        where: { siteId_key: { siteId, key: 'seo.notFoundExclude' } },
+      }),
+    ]);
+    let exclude: string[] = [];
+    if (excludeRow?.value) {
+      try {
+        const parsed: unknown = JSON.parse(excludeRow.value);
+        if (typeof parsed === 'string') {
+          exclude = parsed.split('\n').map((s) => s.trim()).filter(Boolean);
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    const filtered = exclude.length
+      ? logs.filter((l) => !exclude.some((p) => l.path.includes(p)))
+      : logs;
+    return { ok: true, data: JSON.parse(JSON.stringify(filtered)) };
   } catch (e) {
     return fail(e);
   }
@@ -127,6 +146,53 @@ export async function deleteRedirectionAction(id: string): Promise<ActionResult<
     const { siteId } = await requireServerAuth('seo.update');
     await prisma.redirection.deleteMany({ where: { id, siteId } });
     return { ok: true, data: { id } };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+/** Update redirection */
+export async function updateRedirectionAction(
+  id: string,
+  input: { source: string; target: string; code: number }
+): Promise<ActionResult<unknown>> {
+  try {
+    const { siteId } = await requireServerAuth('seo.update');
+    const item = await prisma.redirection.updateMany({
+      where: { id, siteId },
+      data: { source: input.source, target: input.target, code: input.code },
+    });
+    return { ok: true, data: { id, count: item.count } };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+/** Bulk delete redirections */
+export async function bulkDeleteRedirectionsAction(
+  ids: string[]
+): Promise<ActionResult<{ count: number }>> {
+  try {
+    const { siteId } = await requireServerAuth('seo.update');
+    const result = await prisma.redirection.deleteMany({
+      where: { id: { in: ids }, siteId },
+    });
+    return { ok: true, data: { count: result.count } };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+/** Bulk delete 404 log entries */
+export async function bulkDeleteNotFoundLogsAction(
+  ids: string[]
+): Promise<ActionResult<{ count: number }>> {
+  try {
+    const { siteId } = await requireServerAuth('seo.update');
+    const result = await prisma.notFoundLog.deleteMany({
+      where: { id: { in: ids }, siteId },
+    });
+    return { ok: true, data: { count: result.count } };
   } catch (e) {
     return fail(e);
   }

@@ -21,7 +21,7 @@ export type NotFoundDb = {
       orderBy?: Record<string, string>;
       take?: number;
     }) => Promise<
-      Array<{ id: string; path: string; hits: number; lastSeen: Date; referrer: string | null }>
+      Array<{ id: string; path: string; hits: number; firstSeen: Date; lastSeen: Date; referrer: string | null }>
     >;
     deleteMany: (args: { where: { siteId: string } }) => Promise<{ count: number }>;
     delete: (args: { where: { id: string } }) => Promise<unknown>;
@@ -36,11 +36,17 @@ export async function logNotFound(
   db: NotFoundDb,
   siteId: string,
   path: string,
-  opts?: { referrer?: string | null; userAgent?: string | null },
+  opts?: {
+    referrer?: string | null;
+    userAgent?: string | null;
+    /** Path prefixes/substrings to skip logging (from SEO settings "exclude paths"). */
+    exclude?: string[];
+  },
 ): Promise<void> {
   // Normalize path: strip query string, limit length
   const cleanPath = path.split('?')[0]?.slice(0, 500) ?? '';
   if (!cleanPath || cleanPath === '/') return;
+  if (opts?.exclude?.some((p) => p && cleanPath.includes(p))) return;
 
   await db.notFoundLog.upsert({
     where: { siteId_path: { siteId, path: cleanPath } },
@@ -65,10 +71,10 @@ export async function listNotFoundLogs(
   db: NotFoundDb,
   siteId: string,
   limit = 100,
-): Promise<Array<{ id: string; path: string; hits: number; lastSeen: Date; referrer: string | null }>> {
+): Promise<Array<{ id: string; path: string; hits: number; firstSeen: Date; lastSeen: Date; referrer: string | null }>> {
   return db.notFoundLog.findMany({
     where: { siteId },
-    select: { id: true, path: true, hits: true, lastSeen: true, referrer: true },
+    select: { id: true, path: true, hits: true, firstSeen: true, lastSeen: true, referrer: true },
     orderBy: { hits: 'desc' },
     take: Math.min(limit, 500),
   });

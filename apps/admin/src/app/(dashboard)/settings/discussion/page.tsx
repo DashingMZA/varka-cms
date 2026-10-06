@@ -31,9 +31,22 @@ const DEFAULTS = {
   commentOrder: 'asc',
   emailOnComment: true,
   emailOnModeration: true,
+  commentManualApproval: false,
+  commentPrevApproved: true,
+  moderationMaxLinks: 2,
   moderationKeys: '',
   blacklistKeys: '',
-  commentModeration: true,
+  showAvatars: true,
+  avatarRating: 'G',
+  avatarDefault: 'mystery',
+};
+
+const textareaStyle: React.CSSProperties = {
+  width: '100%',
+  maxWidth: '100%',
+  minHeight: 90,
+  fontFamily: 'monospace',
+  fontSize: 13,
 };
 
 export default function DiscussionSettingsPage() {
@@ -134,7 +147,7 @@ export default function DiscussionSettingsPage() {
                   value={Number(v.closeCommentsDays ?? 14)}
                   onChange={(e) => set('closeCommentsDays', Number(e.target.value))}
                 />
-                <span>days</span>
+                <span>{L(t, 'days', 'days')}</span>
               </label>
             </td>
           </tr>
@@ -231,6 +244,136 @@ export default function DiscussionSettingsPage() {
               </label>
             </td>
           </tr>
+
+          <tr>
+            <td colSpan={2}>
+              <h2 style={{ fontSize: 15, margin: '8px 0 0' }}>{L(t, 'beforeCommentAppears', 'Before a comment appears')}</h2>
+            </td>
+          </tr>
+          <tr>
+            <td colSpan={2}>
+              <label style={check}>
+                <input
+                  type="checkbox"
+                  checked={Boolean(v.commentManualApproval)}
+                  onChange={(e) => set('commentManualApproval', e.target.checked)}
+                />
+                {L(t, 'commentManualApproval', 'Comment must be manually approved')}
+              </label>
+            </td>
+          </tr>
+          <tr>
+            <td colSpan={2}>
+              <label style={check}>
+                <input
+                  type="checkbox"
+                  checked={Boolean(v.commentPrevApproved)}
+                  onChange={(e) => set('commentPrevApproved', e.target.checked)}
+                />
+                {L(t, 'commentPrevApproved', 'Comment author must have a previously approved comment')}
+              </label>
+            </td>
+          </tr>
+
+          <tr>
+            <td colSpan={2}>
+              <h2 style={{ fontSize: 15, margin: '8px 0 0' }}>{L(t, 'commentModeration', 'Comment Moderation')}</h2>
+            </td>
+          </tr>
+          <tr>
+            <td colSpan={2}>
+              <label style={checkInline}>
+                <span>{L(t, 'holdIfLinks', 'Hold a comment in the queue if it contains')}</span>
+                <input
+                  type="number"
+                  min={0}
+                  style={{ width: 70 }}
+                  value={Number(v.moderationMaxLinks ?? 2)}
+                  onChange={(e) => set('moderationMaxLinks', Number(e.target.value))}
+                />
+                <span>{L(t, 'orMoreLinks', 'or more links. (A common characteristic of comment spam is a large number of hyperlinks.)')}</span>
+              </label>
+            </td>
+          </tr>
+          <Field
+            label={L(t, 'moderationKeysLabel', 'Moderation keys')}
+            hint={L(
+              t,
+              'moderationKeysDesc',
+              'When a comment contains any of these words in its content, author name, URL, email, IP address, or browser user agent, it will be held in the moderation queue. One word or IP address per line. It will match inside words, so "press" will match "WordPress".',
+            )}
+          >
+            <textarea
+              style={textareaStyle}
+              value={String(v.moderationKeys ?? '')}
+              onChange={(e) => set('moderationKeys', e.target.value)}
+            />
+          </Field>
+
+          <tr>
+            <td colSpan={2}>
+              <h2 style={{ fontSize: 15, margin: '8px 0 0' }}>{L(t, 'disallowedKeys', 'Disallowed Comment Keys')}</h2>
+            </td>
+          </tr>
+          <Field
+            label={L(t, 'disallowedKeysLabel', 'Disallowed keys')}
+            hint={L(
+              t,
+              'disallowedKeysDesc',
+              'When a comment contains any of these words in its content, author name, URL, email, IP address, or browser user agent, it will be moved to Trash. One word or IP address per line. It will match inside words, so "press" will match "WordPress".',
+            )}
+          >
+            <textarea
+              style={textareaStyle}
+              value={String(v.blacklistKeys ?? '')}
+              onChange={(e) => set('blacklistKeys', e.target.value)}
+            />
+          </Field>
+
+          <tr>
+            <td colSpan={2}>
+              <h2 style={{ fontSize: 15, margin: '8px 0 0' }}>{L(t, 'avatars', 'Avatars')}</h2>
+            </td>
+          </tr>
+          <tr>
+            <td colSpan={2}>
+              <label style={check}>
+                <input
+                  type="checkbox"
+                  checked={Boolean(v.showAvatars)}
+                  onChange={(e) => set('showAvatars', e.target.checked)}
+                />
+                {L(t, 'showAvatars', 'Show Avatars')}
+              </label>
+            </td>
+          </tr>
+          <Field label={L(t, 'maxRating', 'Maximum Rating')}>
+            <select
+              style={selectStyle}
+              value={String(v.avatarRating ?? 'G')}
+              onChange={(e) => set('avatarRating', e.target.value)}
+            >
+              <option value="G">{L(t, 'ratingG', 'G — Suitable for all audiences')}</option>
+              <option value="PG">{L(t, 'ratingPG', 'PG — Possibly offensive, usually for audiences 13 and above')}</option>
+              <option value="R">{L(t, 'ratingR', 'R — Intended for adult audiences above 17')}</option>
+              <option value="X">{L(t, 'ratingX', 'X — Even more mature than above')}</option>
+            </select>
+          </Field>
+          <Field label={L(t, 'defaultAvatar', 'Default avatar')}>
+            <select
+              style={selectStyle}
+              value={String(v.avatarDefault ?? 'mystery')}
+              onChange={(e) => set('avatarDefault', e.target.value)}
+            >
+              <option value="mystery">{L(t, 'avatarMystery', 'Mystery Person')}</option>
+              <option value="blank">{L(t, 'avatarBlank', 'Blank')}</option>
+              <option value="gravatar">{L(t, 'avatarGravatar', 'Gravatar Logo')}</option>
+              <option value="identicon">{L(t, 'avatarIdenticon', 'Identicon (Generated)')}</option>
+              <option value="wavatar">{L(t, 'avatarWavatar', 'Wavatar (Generated)')}</option>
+              <option value="monsterid">{L(t, 'avatarMonster', 'MonsterID (Generated)')}</option>
+              <option value="retro">{L(t, 'avatarRetro', 'Retro (Generated)')}</option>
+            </select>
+          </Field>
         </>
       )}
     </SettingsForm>

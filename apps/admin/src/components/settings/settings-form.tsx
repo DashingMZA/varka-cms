@@ -86,12 +86,12 @@ export function SettingsForm({ group, title, description, defaults, children }: 
         {description ? <p className="v-page-desc">{description}</p> : null}
 
         {message ? (
-          <div className="v-notice v-notice--success">
+          <div className="v-alert v-alert--ok" role="status">
             <p>{message}</p>
           </div>
         ) : null}
         {error ? (
-          <div className="v-notice v-notice--error" role="alert">
+          <div className="v-alert v-alert--error" role="alert">
             <p>{error}</p>
           </div>
         ) : null}
