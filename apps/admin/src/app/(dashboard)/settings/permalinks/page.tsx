@@ -97,8 +97,10 @@ export default function PermalinksSettingsPage() {
                     className="v-btn"
                     style={{ fontSize: 12, fontFamily: 'monospace' }}
                     onClick={() => {
-                      const input = document.getElementById('custom-structure-input') as HTMLInputElement | null;
                       const current = String(v.customStructure ?? '');
+                      // Each tag applies only once — skip if already present
+                      if (current.includes(tag)) return;
+                      const input = document.getElementById('custom-structure-input') as HTMLInputElement | null;
                       if (input && input.selectionStart !== null) {
                         const start = input.selectionStart;
                         const end = input.selectionEnd ?? start;
