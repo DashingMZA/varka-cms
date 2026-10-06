@@ -5,9 +5,9 @@ import { Noto_Nastaliq_Urdu, Noto_Naskh_Arabic } from 'next/font/google';
 import { resolveLocale, isRtlLocale } from '@varka/i18n';
 import { LocaleProvider } from '@/lib/locale-provider';
 import './globals.css';
-import './tiptap-wp.css';
-import './wp-admin-extra.css';
-import './wp-login-media.css';
+import './tiptap.css';
+import './admin-extra.css';
+import './login-media.css';
 
 const notoNastaliqUr = Noto_Nastaliq_Urdu({
   subsets: ['arabic'],
