@@ -2,8 +2,10 @@
 
 import { use, useState, type FormEvent } from 'react';
 import Link from 'next/link';
-import { useMessages } from '@/lib/i18n';
+import { useMessages, setStoredLocale } from '@/lib/i18n';
 import { useServerLocale } from '@/lib/locale-provider';
+import type { AppLocale } from '@varka/i18n';
+import { AuthHeader } from '@/components/auth-header';
 import { resetPasswordSchema, zodErrorKeys } from '@varka/validation';
 import { resetPasswordAction } from '@/actions/auth';
 
@@ -44,7 +46,8 @@ export function ResetPasswordForm({
   const params = use(searchParams);
   const token = params.token ?? '';
   const serverLocale = useServerLocale();
-  const { t } = useMessages(serverLocale);
+  const [locale, setLocale] = useState<AppLocale>(serverLocale);
+  const { t } = useMessages(locale);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [passwordConfirm, setPasswordConfirm] = useState('');
@@ -56,6 +59,11 @@ export function ResetPasswordForm({
 
   function mapKey(key: string): string {
     return t('validation', key) || key;
+  }
+
+  function onLocale(next: AppLocale) {
+    setStoredLocale(next);
+    setLocale(next);
   }
 
   async function onSubmit(e: FormEvent) {
@@ -90,7 +98,7 @@ export function ResetPasswordForm({
     return (
       <div className="v-login-screen-modern">
         <div className="v-login-modern">
-          <h1 className="v-login-brand">VARKA</h1>
+          <AuthHeader locale={locale} onLocale={onLocale} />
           <p className="v-login-error-modern">{mapKey('tokenRequired')}</p>
           <p className="v-login-return">
             <Link href="/forgot-password">{t('auth', 'forgotPassword')}</Link>
@@ -103,7 +111,7 @@ export function ResetPasswordForm({
   return (
     <div className="v-login-screen-modern">
       <div className="v-login-modern">
-        <h1 className="v-login-brand">VARKA</h1>
+        <AuthHeader locale={locale} onLocale={onLocale} />
         <h2 className="v-login-title">{t('auth', 'resetTitle')}</h2>
 
         {done ? (
