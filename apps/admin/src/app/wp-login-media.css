@@ -598,3 +598,29 @@
   .v-login-return a { color: #d1d5db; }
   .v-login-return a:hover { color: #f9fafb; }
 }
+
+/* Register page extras */
+.v-login-hint {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: #6b7280;
+}
+.v-login-terms {
+  margin: 16px 0 0;
+  font-size: 12px;
+  color: #6b7280;
+  text-align: center;
+  line-height: 1.5;
+}
+.v-login-terms a {
+  color: #374151;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.v-login-terms a:hover { color: #111827; }
+@media (prefers-color-scheme: dark) {
+  .v-login-hint { color: #9ca3af; }
+  .v-login-terms { color: #9ca3af; }
+  .v-login-terms a { color: #d1d5db; }
+  .v-login-terms a:hover { color: #f9fafb; }
+}
