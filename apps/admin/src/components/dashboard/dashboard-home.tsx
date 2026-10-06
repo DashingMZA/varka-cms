@@ -379,7 +379,7 @@ export function DashboardHome() {
                 </div>
                 <ul style={{ margin: 0, paddingInlineStart: 18, fontSize: 13 }}>
                   {(health.checks ?? []).map((c) => (
-                    <li key={c.id} style={{ color: c.ok ? 'inherit' : 'var(--wp-danger)' }}>
+                    <li key={c.id} style={{ color: c.ok ? 'inherit' : 'var(--danger)' }}>
                       {c.ok ? '✓' : '✕'} {c.label}
                       {c.detail ? <span className="v-muted"> — {String(c.detail)}</span> : null}
                     </li>
