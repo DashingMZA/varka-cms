@@ -166,7 +166,7 @@ export function WidgetsAdmin() {
                 >
                   <span aria-hidden>⋮⋮</span>
                   <span style={{ textTransform: 'capitalize' }}>{w.title}</span>
-                  <button type="button" className="v-btn" style={{ marginLeft: 'auto', fontSize: 11 }} onClick={() => removeWidget(zone.id, w.id)}>
+                  <button type="button" className="v-btn" style={{ marginInlineStart: 'auto', fontSize: 11 }} onClick={() => removeWidget(zone.id, w.id)}>
                     {L(t, 'remove', 'Remove')}
                   </button>
                 </li>
