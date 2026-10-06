@@ -8,6 +8,7 @@ export function SitemapSettings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [settings, setSettings] = useState({
     sitemapEnabled: true,
     includePosts: true,
@@ -33,12 +34,12 @@ export function SitemapSettings() {
 
   async function save() {
     setSaving(true);
-    setMessage(null);
+    setMessage(null); setError(null);
     try {
       const result = await saveSeoSettingsAction(settings);
-      setMessage(result.ok ? 'Settings saved.' : `Error: ${result.error}`);
+      if (result.ok) { setMessage('Settings saved.'); setError(null); } else { setError(result.error || 'Save failed'); setMessage(null); }
     } catch (e) {
-      setMessage(`Error: ${e instanceof Error ? e.message : 'Save failed'}`);
+      setError(e instanceof Error ? e.message : 'Save failed'); setMessage(null);
     }
     setSaving(false);
   }
@@ -55,6 +56,7 @@ export function SitemapSettings() {
 
   return (
     <div className="v-card">
+      {error ? <p className="v-alert v-alert--error">{error}</p> : null}
       {message ? <p className="v-alert v-alert--ok">{message}</p> : null}
       {toggles.map(([key, label]) => (
         <label key={key} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
