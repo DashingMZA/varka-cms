@@ -246,7 +246,7 @@ export function TagsAdmin({ initialItems = [] }: { initialItems?: Row[] }) {
           <div className="v-muted" style={{ marginBottom: 8, textAlign: 'right' }}>
             {filtered.length} {t('common', 'items')}
             {totalPages > 1 ? (
-              <span style={{ marginLeft: 12 }}>
+              <span style={{ marginInlineStart: 12 }}>
                 <button className="v-btn v-btn--small" disabled={page <= 1} onClick={() => setPage(1)}>«</button>
                 <button className="v-btn v-btn--small" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>‹</button>
                 <span style={{ margin: '0 8px' }}>{page} {t('common', 'of')} {totalPages}</span>
