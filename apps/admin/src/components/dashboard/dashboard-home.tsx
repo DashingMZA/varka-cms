@@ -191,7 +191,7 @@ export function DashboardHome() {
       {showWelcome ? (
         <section className="v-postbox" aria-label={t('dashboard', 'welcome') || 'Welcome'}>
           <div className="v-postbox__b">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
               <div>
                 <h2 style={{ margin: '0 0 4px', fontSize: 21, fontWeight: 400 }}>
                   {t('dashboard', 'welcomeTitle') || 'Welcome to VARKA'}
