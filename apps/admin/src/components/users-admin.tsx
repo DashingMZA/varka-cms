@@ -12,7 +12,7 @@ import {
 
 type Role = { slug: string; name: string };
 type UserRow = {
-  id: string;
+  id: number;
   name: string;
   email: string;
   username?: string | null;
@@ -33,7 +33,7 @@ export function UsersAdmin() {
   const [roleFilter, setRoleFilter] = useState('all');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selected, setSelected] = useState<Set<number>>(new Set());
   const [bulkAction, setBulkAction] = useState('');
   const [changeRole, setChangeRole] = useState('');
 
