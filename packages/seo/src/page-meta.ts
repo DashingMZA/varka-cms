@@ -5,7 +5,7 @@
  * Returns plain objects that any framework (Next.js, Astro) can consume.
  */
 
-import { ogLocale, twitterHandle } from './templates.js';
+import { ogLocale, twitterHandle } from './templates';
 
 export interface PageMetaInput {
   /** Site name */
