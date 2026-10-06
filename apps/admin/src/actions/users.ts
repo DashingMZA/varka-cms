@@ -148,12 +148,30 @@ export async function updateMyProfileAction(body: {
   name?: string;
   newPassword?: string;
   currentPassword?: string;
-  adminColorScheme?: string;
+  confirmPassword: string; // required for all profile updates
 }): Promise<ActionResult<unknown>> {
   try {
     const ctx = await getServerAuth();
     const userId = await resolveProfileUserId(ctx.userId);
     if (!userId) return { ok: false, error: 'Not found' };
+
+    // Password confirmation required for ALL profile updates
+    if (!body.confirmPassword) {
+      return { ok: false, error: 'Password confirmation required' };
+    }
+    const { prisma } = await import('@varka/database');
+    const account = await prisma.account.findFirst({
+      where: { userId, providerId: 'credential' },
+      select: { password: true },
+    });
+    if (!account?.password) {
+      return { ok: false, error: 'No credential account found' };
+    }
+    const { verifyPassword } = await import('@varka/auth');
+    const valid = await verifyPassword({ password: body.confirmPassword, hash: account.password });
+    if (!valid) {
+      return { ok: false, error: 'Incorrect password' };
+    }
 
     if (body.newPassword) {
       await changeOwnPassword(userId, body.currentPassword, body.newPassword);
@@ -167,9 +185,23 @@ export async function updateMyProfileAction(body: {
       bio: body.bio,
       email: body.email,
       name: body.name,
-      adminColorScheme: body.adminColorScheme,
     });
     revalidatePath('/users');
+    return { ok: true, data: JSON.parse(JSON.stringify(user)) };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+/** Update admin color scheme — UI preference, no password required. */
+export async function updateColorSchemeAction(
+  scheme: string
+): Promise<ActionResult<unknown>> {
+  try {
+    const ctx = await getServerAuth();
+    const userId = await resolveProfileUserId(ctx.userId);
+    if (!userId) return { ok: false, error: 'Not found' };
+    const user = await updateOwnProfile(userId, { adminColorScheme: scheme });
     return { ok: true, data: JSON.parse(JSON.stringify(user)) };
   } catch (e) {
     return fail(e);
