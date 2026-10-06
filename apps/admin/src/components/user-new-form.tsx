@@ -84,24 +84,24 @@ export function UserNewForm() {
         </p>
       ) : null}
 
-      <label>
-        {L(t, 'username', 'Username')}
+      <label style={{ display: "block" }}>
+        <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>{L(t, 'username', 'Username')}</span>
         <input required value={username} onChange={(e) => setUsername(e.target.value)} />
       </label>
-      <label>
-        {L(t, 'email', 'Email')}
+      <label style={{ display: "block" }}>
+        <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>{L(t, 'email', 'Email')}</span>
         <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
       </label>
-      <label>
-        {L(t, 'firstName', 'First name')}
+      <label style={{ display: "block" }}>
+        <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>{L(t, 'firstName', 'First name')}</span>
         <input value={firstName} onChange={(e) => setFirstName(e.target.value)} />
       </label>
-      <label>
-        {L(t, 'lastName', 'Last name')}
+      <label style={{ display: "block" }}>
+        <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>{L(t, 'lastName', 'Last name')}</span>
         <input value={lastName} onChange={(e) => setLastName(e.target.value)} />
       </label>
-      <label>
-        {L(t, 'website', 'Website')}
+      <label style={{ display: "block" }}>
+        <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>{L(t, 'website', 'Website')}</span>
         <input value={website} onChange={(e) => setWebsite(e.target.value)} />
       </label>
       <label>
