@@ -9,5 +9,17 @@
   "search": "Buscar etiquetas…",
   "namePlaceholder": "Nombre de la nueva etiqueta",
   "bulkNotWired": "Eliminación masiva aún no disponible.",
-  "tags": "Etiquetas"
+  "tags": "Etiquetas",
+  "addTag": "Añadir etiqueta",
+  "nameHelp": "El nombre es como aparece en tu sitio.",
+  "slugHelp": "El \"slug\" es la versión del nombre apta para URL.",
+  "descriptionHelp": "La descripción no es prominente por defecto; sin embargo, algunos temas pueden mostrarla.",
+  "searchTags": "Buscar etiquetas",
+  "quickEdit": "Edición rápida",
+  "loadFailed": "Error al cargar las etiquetas.",
+  "createFailed": "Error al crear la etiqueta.",
+  "deleteFailed": "Error al eliminar la etiqueta.",
+  "updateFailed": "Error al actualizar la etiqueta.",
+  "deleteConfirm": "¿Eliminar esta etiqueta؟",
+  "deleteSelectedConfirm": "¿Eliminar las etiquetas seleccionadas؟"
 }

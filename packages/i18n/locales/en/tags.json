@@ -9,5 +9,17 @@
   "search": "Search tags…",
   "namePlaceholder": "New tag name",
   "bulkNotWired": "Bulk delete not wired yet.",
-  "tags": "Tags"
+  "tags": "Tags",
+  "addTag": "Add Tag",
+  "nameHelp": "The name is how it appears on your site.",
+  "slugHelp": "The \"slug\" is the URL-friendly version of the name. It is usually all lowercase and contains only letters, numbers, and hyphens.",
+  "descriptionHelp": "The description is not prominent by default; however, some themes may show it.",
+  "searchTags": "Search Tags",
+  "quickEdit": "Quick Edit",
+  "loadFailed": "Failed to load tags.",
+  "createFailed": "Failed to create tag.",
+  "deleteFailed": "Failed to delete tag.",
+  "updateFailed": "Failed to update tag.",
+  "deleteConfirm": "Delete this tag?",
+  "deleteSelectedConfirm": "Delete the selected tags?"
 }

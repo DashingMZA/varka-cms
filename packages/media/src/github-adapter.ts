@@ -44,7 +44,7 @@ async function ghFetch(
       Authorization: `Bearer ${token}`,
       'X-GitHub-Api-Version': '2022-11-28',
       'User-Agent': 'VARKA-media-github-driver/1.0',
-      ...(init?.headers ?? {}),
+      ...init?.headers,
     },
   });
   return res;
