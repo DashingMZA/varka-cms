@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { listRolesAction, createUserAction } from '@/actions/users';
+import { createUserAction } from '@/actions/users';
 import { useMessages } from '@/lib/i18n';
+import { ROLES } from '@varka/permissions';
 
 /** Label with hard fallback so missing i18n never shows raw keys */
 function L(
@@ -16,8 +17,6 @@ function L(
   return v;
 }
 
-type Role = { slug: string; name: string };
-
 function generatePassword(len = 20): string {
   const chars =
     'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%^&*';
@@ -29,7 +28,6 @@ function generatePassword(len = 20): string {
 export function UserNewForm() {
   const { t } = useMessages();
   const router = useRouter();
-  const [roles, setRoles] = useState<Role[]>([]);
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -39,18 +37,6 @@ export function UserNewForm() {
   const [roleSlug, setRoleSlug] = useState('author');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    void listRolesAction().then((res) => {
-      if (res.ok) {
-        const list = (res.data.roles as Role[]) ?? [];
-        setRoles(list);
-        if (list.length && !list.some((r) => r.slug === roleSlug)) {
-          setRoleSlug(list[0]!.slug);
-        }
-      }
-    });
-  }, [roleSlug]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -124,9 +110,9 @@ export function UserNewForm() {
       <label>
         {L(t, 'role', 'Role')}
         <select value={roleSlug} onChange={(e) => setRoleSlug(e.target.value)}>
-          {roles.map((r) => (
-            <option key={r.slug} value={r.slug}>
-              {r.name}
+          {ROLES.map((r) => (
+            <option key={r} value={r}>
+              {r.charAt(0).toUpperCase() + r.slice(1).replace('_', ' ')}
             </option>
           ))}
         </select>
