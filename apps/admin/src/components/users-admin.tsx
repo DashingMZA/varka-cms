@@ -174,136 +174,138 @@ export function UsersAdmin() {
         </div>
       </div>
 
-      <table className="v-list-table">
-        <thead>
-          <tr>
-            <th>
-              <input
-                type="checkbox"
-                checked={allSelected}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    setSelected(new Set(items.map((u) => u.id)));
-                  } else {
-                    setSelected(new Set());
-                  }
-                }}
-              />
-            </th>
-            <th>{t('users', 'username', 'Username')}</th>
-            <th>{t('users', 'name', 'Name')}</th>
-            <th>{t('users', 'email', 'Email')}</th>
-            <th>{t('users', 'role', 'Role')}</th>
-            <th>{t('users', 'posts', 'Posts')}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {loading && items.length === 0 ? (
+            <div className="v-card" style={{ padding: 0, overflow: "hidden" }}>
+  <table className="v-list-table">
+          <thead>
             <tr>
-              <td colSpan={6} className="v-muted">
-                {t('common', 'loading', 'Loading…')}
-              </td>
+              <th>
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelected(new Set(items.map((u) => u.id)));
+                    } else {
+                      setSelected(new Set());
+                    }
+                  }}
+                />
+              </th>
+              <th>{t('users', 'username', 'Username')}</th>
+              <th>{t('users', 'name', 'Name')}</th>
+              <th>{t('users', 'email', 'Email')}</th>
+              <th>{t('users', 'role', 'Role')}</th>
+              <th>{t('users', 'posts', 'Posts')}</th>
             </tr>
-          ) : items.length === 0 ? (
-            <tr>
-              <td colSpan={6}>{t('users', 'noUsers', 'No users found.')}</td>
-            </tr>
-          ) : (
-            items.map((u) => {
-              const roleNames =
-                u.roles?.map((r) => r.role?.name || r.role?.slug).filter(Boolean).join(', ') ||
-                '—';
-              const displayName = [u.firstName, u.lastName].filter(Boolean).join(' ') || u.name || '—';
-              return (
-                <tr key={u.id}>
-                  <td>
-                    <input
-                      type="checkbox"
-                      checked={selected.has(u.id)}
-                      onChange={(e) => {
-                        const next = new Set(selected);
-                        if (e.target.checked) next.add(u.id);
-                        else next.delete(u.id);
-                        setSelected(next);
-                      }}
-                    />
-                  </td>
-                  <td>
-                    <strong style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      {u.image ? (
-                        <img src={u.image} alt="" style={{ width: 32, height: 32, borderRadius: '50%' }} />
-                      ) : (
-                        <span
-                          style={{
-                            width: 32,
-                            height: 32,
-                            borderRadius: '50%',
-                            background: '#0073aa',
-                            color: '#fff',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: 16,
-                            fontWeight: 'bold',
-                          }}
-                        >
-                          {(u.username || u.email || '?').charAt(0).toUpperCase()}
+          </thead>
+          <tbody>
+            {loading && items.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="v-muted">
+                  {t('common', 'loading', 'Loading…')}
+                </td>
+              </tr>
+            ) : items.length === 0 ? (
+              <tr>
+                <td colSpan={6}>{t('users', 'noUsers', 'No users found.')}</td>
+              </tr>
+            ) : (
+              items.map((u) => {
+                const roleNames =
+                  u.roles?.map((r) => r.role?.name || r.role?.slug).filter(Boolean).join(', ') ||
+                  '—';
+                const displayName = [u.firstName, u.lastName].filter(Boolean).join(' ') || u.name || '—';
+                return (
+                  <tr key={u.id}>
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={selected.has(u.id)}
+                        onChange={(e) => {
+                          const next = new Set(selected);
+                          if (e.target.checked) next.add(u.id);
+                          else next.delete(u.id);
+                          setSelected(next);
+                        }}
+                      />
+                    </td>
+                    <td>
+                      <strong style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        {u.image ? (
+                          <img src={u.image} alt="" style={{ width: 32, height: 32, borderRadius: '50%' }} />
+                        ) : (
+                          <span
+                            style={{
+                              width: 32,
+                              height: 32,
+                              borderRadius: '50%',
+                              background: '#0073aa',
+                              color: '#fff',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: 16,
+                              fontWeight: 'bold',
+                            }}
+                          >
+                            {(u.username || u.email || '?').charAt(0).toUpperCase()}
+                          </span>
+                        )}
+                        <Link href={`/users/profile?id=${u.id}`} className="row-title">
+                          {u.username || u.email}
+                        </Link>
+                      </strong>
+                      <div className="row-actions">
+                        <span>
+                          <Link href={`/users/profile?id=${u.id}`}>{t('common', 'edit', 'Edit')}</Link>
                         </span>
+                        {' | '}
+                        <span>
+                          <a
+                            href="#"
+                            className={u.disabled ? '' : 'trash'}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              void toggleDisabled(u);
+                            }}
+                          >
+                            {u.disabled ? t('users', 'enable', 'Enable') : t('users', 'disable', 'Disable')}
+                          </a>
+                        </span>
+                      </div>
+                    </td>
+                    <td>{displayName}</td>
+                    <td>
+                      <a href={`mailto:${u.email}`}>{u.email}</a>
+                    </td>
+                    <td>{roleNames}</td>
+                    <td>
+                      {u.postCount ? (
+                        <Link href={`/content/posts?author=${u.id}`}>{u.postCount}</Link>
+                      ) : (
+                        '0'
                       )}
-                      <Link href={`/users/profile?id=${u.id}`} className="row-title">
-                        {u.username || u.email}
-                      </Link>
-                    </strong>
-                    <div className="row-actions">
-                      <span>
-                        <Link href={`/users/profile?id=${u.id}`}>{t('common', 'edit', 'Edit')}</Link>
-                      </span>
-                      {' | '}
-                      <span>
-                        <a
-                          href="#"
-                          className={u.disabled ? '' : 'trash'}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            void toggleDisabled(u);
-                          }}
-                        >
-                          {u.disabled ? t('users', 'enable', 'Enable') : t('users', 'disable', 'Disable')}
-                        </a>
-                      </span>
-                    </div>
-                  </td>
-                  <td>{displayName}</td>
-                  <td>
-                    <a href={`mailto:${u.email}`}>{u.email}</a>
-                  </td>
-                  <td>{roleNames}</td>
-                  <td>
-                    {u.postCount ? (
-                      <Link href={`/content/posts?author=${u.id}`}>{u.postCount}</Link>
-                    ) : (
-                      '0'
-                    )}
-                  </td>
-                </tr>
-              );
-            })
-          )}
-        </tbody>
-      </table>
-
-      {items.length > 0 ? (
-        <div className="v-list-table-bottom" style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-          <select value={bulkAction} onChange={(e) => setBulkAction(e.target.value)}>
-            <option value="">{t('common', 'bulkActions', 'Bulk actions')}</option>
-            <option value="disable">{t('users', 'disable', 'Disable')}</option>
-            <option value="enable">{t('users', 'enable', 'Enable')}</option>
-          </select>
-          <button type="button" className="v-btn" onClick={() => void applyBulk()} disabled={!bulkAction || selected.size === 0}>
-            {t('common', 'apply', 'Apply')}
-          </button>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
         </div>
-      ) : null}
-    </div>
-  );
-}
+
+        {items.length > 0 ? (
+          <div className="v-list-table-bottom" style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+            <select value={bulkAction} onChange={(e) => setBulkAction(e.target.value)}>
+              <option value="">{t('common', 'bulkActions', 'Bulk actions')}</option>
+              <option value="disable">{t('users', 'disable', 'Disable')}</option>
+              <option value="enable">{t('users', 'enable', 'Enable')}</option>
+            </select>
+            <button type="button" className="v-btn" onClick={() => void applyBulk()} disabled={!bulkAction || selected.size === 0}>
+              {t('common', 'apply', 'Apply')}
+            </button>
+          </div>
+        ) : null}
+      </div>
+    );
+  }
