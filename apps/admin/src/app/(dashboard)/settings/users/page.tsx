@@ -21,6 +21,8 @@ const DEFAULTS = {
   requireOtpOnEmailChange: true,
   requireOtpOnPasswordChange: true,
   requireOtpOn2fa: true,
+  // Email provider
+  emailProvider: 'smtp',
   // SMTP (database-driven, overrides .env when enabled)
   smtpEnabled: false,
   smtpHost: '',
@@ -30,6 +32,8 @@ const DEFAULTS = {
   smtpFrom: '',
   smtpFromName: 'VARKA',
   smtpSecure: true,
+  // Resend
+  resendApiKey: '',
 };
 
 function Toggle({
@@ -211,9 +215,48 @@ export default function UserSettingsPage() {
 
           <tr>
             <td colSpan={2}>
+              <h2 style={{ fontSize: 15, margin: '16px 0 8px' }}>Email Provider</h2>
+              <p style={{ margin: '0 0 8px', fontSize: 13, color: 'var(--muted)' }}>
+                Choose which email service to use. Priority: Database → .env (Resend → SMTP → Webhook).
+              </p>
+            </td>
+          </tr>
+          <Field
+            label="Provider"
+            hint="SMTP for your own mail server, Resend for API-based sending."
+          >
+            <select
+              style={selectStyle}
+              value={String(v.emailProvider ?? 'smtp')}
+              onChange={(e) => set('emailProvider', e.target.value)}
+            >
+              <option value="smtp">SMTP</option>
+              <option value="resend">Resend</option>
+            </select>
+          </Field>
+
+          {String(v.emailProvider ?? 'smtp') === 'resend' ? (
+            <Field
+              label="Resend API Key"
+              hint="Get your API key from resend.com. Stored in database."
+            >
+              <input
+                type="password"
+                style={inputStyle}
+                value={String(v.resendApiKey ?? '')}
+                onChange={(e) => set('resendApiKey', e.target.value)}
+                placeholder="re_..."
+                autoComplete="off"
+              />
+            </Field>
+          ) : null}
+
+          <tr>
+            <td colSpan={2}>
               <h2 style={{ fontSize: 15, margin: '16px 0 8px' }}>Email (SMTP)</h2>
               <p style={{ margin: '0 0 8px', fontSize: 13, color: 'var(--muted)' }}>
                 Configure SMTP in the database. When enabled, these settings override .env values.
+                If database is not configured, .env SMTP settings are used as fallback.
               </p>
             </td>
           </tr>
@@ -278,11 +321,11 @@ export default function UserSettingsPage() {
                   onChange={(e) => set('smtpFromName', e.target.value)}
                 />
               </Field>
-              <Field label="Use TLS/SSL" hint="Enable secure connection.">
+              <Field label="Use TLS/SSL" hint="Port 465 = SSL (secure=true). Port 587 = STARTTLS (secure=false recommended).">
                 <Toggle
                   checked={Boolean(v.smtpSecure)}
                   onChange={(val) => set('smtpSecure', val)}
-                  label="Secure connection"
+                  label="Secure connection (SSL)"
                 />
               </Field>
             </>
