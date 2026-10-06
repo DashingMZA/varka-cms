@@ -20,7 +20,20 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
 });
-const db = new PrismaClient({ adapter: new PrismaPg(pool) });
+const db = new PrismaClient({ adapter: new PrismaPg(pool) }).$extends({
+  query: {
+    $allModels: {
+      async $allOperations({ model, args, query }) {
+        const f = INT_ID_FIELDS[model ?? ''];
+        if (f && args) {
+          if (args.where) convertIds(args.where, f);
+          if (args.data) convertIds(args.data, f);
+        }
+        return query(args);
+      },
+    },
+  },
+});
 
 // Apply the same middleware as src/client.ts
 const INT_ID_FIELDS = {
@@ -43,15 +56,6 @@ function convertIds(obj, fields) {
     } else if (v && typeof v === 'object') convertIds(v, fields);
   }
 }
-db.$use(async (params, next) => {
-  const f = INT_ID_FIELDS[params.model ?? ''];
-  if (f && params.args) {
-    if (params.args.where) convertIds(params.args.where, f);
-    if (params.args.data) convertIds(params.args.data, f);
-  }
-  return next(params);
-});
-
 const email = process.argv[2] || 'admin@csofts.com';
 console.log('1. Finding user by email:', email);
 const user = await db.user.findFirst({ where: { email } });
