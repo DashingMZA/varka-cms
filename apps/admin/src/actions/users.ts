@@ -53,6 +53,7 @@ export async function createUserAction(input: {
   password: string;
   firstName?: string;
   lastName?: string;
+  nickname?: string;
   website?: string;
   roleSlug?: string;
   sendNotification?: boolean;
@@ -146,6 +147,14 @@ export async function updateMyProfileAction(body: {
   bio?: string;
   email?: string;
   name?: string;
+  displayNameAs?: string;
+  facebookUrl?: string;
+  xUrl?: string;
+  instagramUrl?: string;
+  mediumUrl?: string;
+  youtubeUrl?: string;
+  tiktokUrl?: string;
+  linkedinUrl?: string;
   newPassword?: string;
   currentPassword?: string;
   confirmPassword: string; // required for all profile updates
@@ -185,6 +194,14 @@ export async function updateMyProfileAction(body: {
       bio: body.bio,
       email: body.email,
       name: body.name,
+      displayNameAs: body.displayNameAs,
+      facebookUrl: body.facebookUrl,
+      xUrl: body.xUrl,
+      instagramUrl: body.instagramUrl,
+      mediumUrl: body.mediumUrl,
+      youtubeUrl: body.youtubeUrl,
+      tiktokUrl: body.tiktokUrl,
+      linkedinUrl: body.linkedinUrl,
     });
     revalidatePath('/users');
     return { ok: true, data: JSON.parse(JSON.stringify(user)) };
