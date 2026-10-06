@@ -157,7 +157,7 @@ export function PluginsAdmin() {
           >
             {L(t, 'apply', 'Apply')}
           </button>
-          <span className="v-muted" style={{ marginLeft: 'auto' }}>
+          <span className="v-muted" style={{ marginInlineStart: 'auto' }}>
             {filtered.length} {L(t, 'items', 'items')}
           </span>
         </div>
