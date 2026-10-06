@@ -4,6 +4,7 @@ Newest first. Read this before starting related work so decisions stay consisten
 
 | Date | Task | Summary |
 |------|------|--------|
+| 2026-10-05 | [tags-wp-rebuild-i18n-harden](./tags-wp-rebuild-i18n-harden.md) | Finished interrupted WordPress-style Tags rebuild: i18n-hardened all strings (7 new keys × 4 locales), tsc + lint PASS; committed as 445e6f1 on sandbox main — push BLOCKED by 48/111-commit divergence with origin/main, which has a competing partial tags fix (batches 1-6, old UI) |
 | 2026-10-05 | [updates-page](./updates-page.md) | WordPress-style Updates page: /dashboard/updates checks npm registry for outdated @varka/* packages and deps, shows app version + git commit; Dashboard nav submenu (Home, Updates); i18n in 4 locales |
 | 2026-10-05 | [i18n-locale-coverage-100](./i18n-locale-coverage-100.md) | 100% locale key coverage for nav/dashboard/blogs/comments/forms: 239 keys added to ar/es/ur (nav +68, dashboard +24, blogs +66, comments +54, forms +27); key-parity verified; pushed as 2eafa73 |
 | 2026-10-05 | [i18n-batch-3-final](./i18n-batch-3-final.md) | i18n batch 3 FINAL: restored batch-1 stash (page-create/menu/page-editor/user-new), converted 10 components (audit-log, autosave, insert-image-modal, post-create, revision-history, roles-matrix, system-health, theme-picker, list-table, screen-meta) + 10 app pages to client components, deleted dead media-settings.tsx; new keys in 11 namespaces × 4 locales; tsc PASS; final audit = zero hardcoded strings; committed as 0b5f180 |
