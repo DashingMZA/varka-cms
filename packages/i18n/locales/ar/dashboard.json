@@ -43,5 +43,12 @@
   "latest": "الأحدث",
   "updateCmd": "للتحديث، نفذ:",
   "checkAgain": "تحقق مرة أخرى",
-  "loading": "جارٍ التحميل…"
+  "loading": "جارٍ التحميل…",
+  "news": "الأخبار",
+  "newsDesc": "آخر التحديثات من VARKA.",
+  "newsReleases": "إصدارات VARKA",
+  "newsGithub": "VARKA على GitHub",
+  "newsUpdates": "التحقق من التحديثات",
+  "quickDraftContent": "ما الذي يدور في ذهنك؟",
+  "recentlyPublished": "منشور مؤخرًا"
 }
