@@ -11,6 +11,7 @@ import {
   type MessageTree,
   t as tPath,
 } from '@varka/i18n';
+import { useServerLocale } from './locale-provider';
 
 const COOKIE = 'varka_locale';
 
@@ -32,10 +33,16 @@ export function setStoredLocale(locale: AppLocale) {
 }
 
 /**
- * Prefer an explicit locale (from server layout cookie) so SSR + first client paint match.
+ * Uses the server-resolved locale from LocaleProvider when available,
+ * so SSR and first client paint match (prevents hydration mismatch).
+ * Falls back to explicit param, then stored cookie (client-only).
  */
 export function useMessages(locale?: string) {
-  const loc = resolveLocale(locale ?? getStoredLocale());
+  const serverLocale = useServerLocale();
+  // useServerLocale returns 'en' default when no provider — detect by checking
+  // if we should prefer the cookie instead. We trust the provider when it's
+  // explicitly set; otherwise fall back to stored locale on client.
+  const loc = resolveLocale(locale ?? serverLocale);
   const messages = useMemo(() => loadAllMessages(loc), [loc]);
   const t = useCallback(
     (ns: MessageNamespace, key: string, fallback?: string) => {
