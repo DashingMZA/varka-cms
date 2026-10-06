@@ -226,7 +226,7 @@ export function CategoriesAdmin() {
       </div>
       {error ? <p className="v-alert v-alert--error">{error}</p> : null}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 24, alignItems: 'start' }}>
+      <div className="v-tax-grid">
         {/* Left: Add Category form (WordPress-style) */}
         <div className="v-card" style={{ padding: 16 }}>
           <h2 style={{ margin: '0 0 12px', fontSize: 14 }}>Add Category</h2>
