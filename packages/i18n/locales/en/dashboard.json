@@ -41,5 +41,12 @@
   "latest": "Latest",
   "updateCmd": "To update, run:",
   "checkAgain": "Check Again",
-  "loading": "Loading…"
+  "loading": "Loading…",
+  "news": "News",
+  "newsDesc": "Latest updates from VARKA.",
+  "newsReleases": "VARKA releases",
+  "newsGithub": "VARKA on GitHub",
+  "newsUpdates": "Check for updates",
+  "quickDraftContent": "What's on your mind?",
+  "recentlyPublished": "Recently Published"
 }
