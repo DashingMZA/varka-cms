@@ -11,7 +11,7 @@ function L(t: (ns: 'profile' | 'common', key: string) => string, key: string, fa
 }
 
 type Profile = {
-  id: string;
+  id: number;
   name?: string | null;
   email?: string | null;
   firstName?: string | null;
