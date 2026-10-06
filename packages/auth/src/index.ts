@@ -63,4 +63,16 @@ export {
   type RateLimitStore,
 } from './rate-limit';
 
+export {
+  requestSensitiveOtp,
+  verifySensitiveOtp,
+  hasPendingOtp,
+  sendEmailVerificationOtp,
+  verifyEmailOtp,
+  sendPasswordResetOtp,
+  verifyPasswordResetOtp,
+  resetPasswordWithToken,
+  type SensitiveAction,
+} from './otp';
+
 export { rateLimit, clientIp, getCache, CacheKeys } from './rate-limit-bridge';
