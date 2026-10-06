@@ -188,7 +188,7 @@ export function MenuBuilder() {
       </div>
 
       <div className="v-panel" style={{ padding: 0 }}>
-        <h3 style={{ margin: 0, padding: 12, fontSize: 13, borderBottom: '1px solid var(--wp-border)' }}>
+        <h3 style={{ margin: 0, padding: 12, fontSize: 13, borderBottom: '1px solid var(--border)' }}>
           {t('appearance', 'structure')}
         </h3>
         <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
@@ -205,12 +205,12 @@ export function MenuBuilder() {
                 gap: 8,
                 padding: '10px 12px',
                 paddingLeft: 12 + (item.depth ?? 0) * 20,
-                borderBottom: '1px solid var(--wp-border)',
+                borderBottom: '1px solid var(--border)',
                 cursor: 'grab',
                 background: dragId === item.id ? '#f0f6fc' : '#fff',
               }}
             >
-              <span aria-hidden style={{ color: 'var(--wp-muted)' }}>
+              <span aria-hidden style={{ color: 'var(--muted)' }}>
                 ⋮⋮
               </span>
               <strong style={{ fontSize: 13 }}>{item.label}</strong>
