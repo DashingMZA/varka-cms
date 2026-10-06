@@ -50,5 +50,14 @@
   "newsGithub": "VARKA على GitHub",
   "newsUpdates": "التحقق من التحديثات",
   "quickDraftContent": "ما الذي يدور في ذهنك؟",
-  "recentlyPublished": "منشور مؤخرًا"
+  "recentlyPublished": "منشور مؤخرًا",
+  "welcome": "مرحباً",
+  "welcomeAddPage": "أضف صفحة من نحن",
+  "welcomeBody": "ابدأ بالأساسيات — اكتب المحتوى، وشكّل موقعك، واضبط مظهره.",
+  "welcomeComments": "تشغيل التعليقات أو إيقافها",
+  "welcomeHomepage": "جهّز صفحتك الرئيسية",
+  "welcomeMenus": "إدارة القوائم",
+  "welcomeTitle": "مرحباً بك في VARKA",
+  "welcomeWidgets": "إدارة الودجت",
+  "welcomeWritePost": "اكتب أول مقالة في مدونتك"
 }
