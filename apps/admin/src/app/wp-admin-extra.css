@@ -126,11 +126,29 @@ table.form-table select,
 table.form-table textarea {
   width: 25em;
   max-width: 100%;
-  padding: 0 8px;
-  min-height: 30px;
-  border: 1px solid var(--wp-border);
-  border-radius: var(--wp-radius);
+  padding: 8px 12px;
+  min-height: 40px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
   background: #fff;
+  font-size: 14px;
+  color: #111827;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.v-form-table select,
+table.form-table select {
+  padding-inline-end: 28px;
+  cursor: pointer;
+}
+.v-form-table input:focus,
+.v-form-table select:focus,
+.v-form-table textarea:focus,
+table.form-table input:focus,
+table.form-table select:focus,
+table.form-table textarea:focus {
+  border-color: #111827;
+  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08);
 }
 .v-form-table textarea,
 table.form-table textarea {
@@ -151,24 +169,45 @@ p.description {
 .v-main input[type="password"],
 .v-main input[type="search"],
 .v-main input[type="number"],
+.v-main input[type="tel"],
+.v-main input[type="date"],
 .v-main select,
 .v-main textarea {
-  border: 1px solid var(--wp-border);
-  border-radius: var(--wp-radius);
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
   background: #fff;
-  padding: 0 8px;
-  min-height: 30px;
+  color: #111827;
+  padding: 8px 12px;
+  min-height: 40px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.v-main select {
+  padding-inline-end: 28px;
+  cursor: pointer;
 }
 .v-main textarea {
-  padding: 6px 8px;
-  min-height: 4em;
+  padding: 8px 12px;
+  min-height: 90px;
+  resize: vertical;
 }
 .v-main input:focus,
 .v-main select:focus,
 .v-main textarea:focus {
-  border-color: var(--wp-accent-focus);
-  box-shadow: 0 0 0 1px var(--wp-accent-focus);
-  outline: 2px solid transparent;
+  border-color: #111827;
+  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08);
+  outline: none;
+}
+.v-main input::placeholder,
+.v-main textarea::placeholder {
+  color: #9ca3af;
+}
+.v-main input[type="checkbox"],
+.v-main input[type="radio"] {
+  min-height: 0;
+  padding: 0;
+  accent-color: #111827;
 }
 
 .v-notice,
