@@ -79,9 +79,9 @@ export function AdminTopbar(props: { locale?: AppLocale | string } = {}) {
           onChange={(e) => onLocale(e.target.value as AppLocale)}
           aria-label={t('common', 'language')}
           style={{
-            background: '#2c3338',
-            color: '#f0f0f1',
-            border: '1px solid #3c434a',
+            background: 'var(--sidebar-hover)',
+            color: 'var(--sidebar-text)',
+            border: '1px solid var(--sidebar-muted)',
             borderRadius: 3,
             padding: '2px 6px',
             fontSize: 12,
