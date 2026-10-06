@@ -383,6 +383,7 @@ html[data-admin-scheme="light"] .v-topbar a { color: #333; }
   border: 1px solid var(--wp-border);
   border-radius: var(--wp-radius);
   box-shadow: 0 1px 1px rgba(0,0,0,0.04);
+  padding: 20px;
 }
 .v-form .v-field { margin: 0 0 14px; }
 .v-form .v-field > label { display: block; font-weight: 500; font-size: 13px; color: #374151; margin-bottom: 6px; }
