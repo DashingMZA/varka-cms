@@ -90,3 +90,16 @@ grids/flex headers:
   languages/updates already used responsive patterns (auto-fit grids, stacked
   tables, wrapping toolbars). tsc 0 errors, build OK, oxlint 0 errors (2
   pre-existing _count warnings).
+
+## Design batch 3 — login-style modern controls (2026-10-06, pushed as e8d6f8f)
+User: make all dashboard inputs/buttons like the modern login page; responsive
+for ALL 51 pages (not 1-2). Changes (CSS-only, no component rewrites):
+- `.v-main` inputs/selects/textareas: 40px, 8px radius, #d1d5db border,
+  #111827 focus ring (matches .v-login-form-modern)
+- `.v-btn`: 38px, 8px radius, 500 weight; primary dark #111827 like login
+  submit; new .v-btn--small (32px); focus-visible rings
+- `.v-form .v-field` and `.v-form-table`/`table.form-table` inputs modernized
+- Unwrapped tables (audit-log, languages, scheduled-actions, redirections)
+  wrapped in .v-table-wrap for mobile horizontal scroll
+- Theme grid: minmax(min(280px,100%),1fr). Scoped to .v-main/.v-admin so
+  login screens untouched. tsc 0, build OK, oxlint 0.
