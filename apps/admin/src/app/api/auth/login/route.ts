@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
   }
   const email = String(form.get('email') ?? '').trim().toLowerCase();
   const password = String(form.get('password') ?? '');
+  const rememberMe = form.get('remember') === 'on';
   if (!email || !password) return fail('missing');
 
   // Same brute-force policy as the server-action login.
@@ -40,7 +41,7 @@ export async function POST(req: NextRequest) {
   const auth = getAuth();
   try {
     const { headers, response } = await auth.api.signInEmail({
-      body: { email, password },
+      body: { email, password, rememberMe },
       headers: req.headers,
       returnHeaders: true,
     });
