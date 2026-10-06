@@ -5,10 +5,10 @@ import Link from 'next/link';
 import {
   setStoredLocale,
   useMessages,
-  SUPPORTED_LOCALES,
 } from '@/lib/i18n';
 import { useServerLocale } from '@/lib/locale-provider';
 import type { AppLocale } from '@varka/i18n';
+import { AuthHeader } from '@/components/auth-header';
 import { loginSchema, twoFactorCodeSchema, zodErrorKeys } from '@varka/validation';
 import { signInEmailAction, verifyTwoFactorAction } from '@/actions/auth';
 
@@ -145,36 +145,9 @@ export function LoginForm({
     setLocale(next);
   }
 
-  // Localized language names: e.g. locale=en -> "English, Urdu, Arabic";
-  // locale=ur -> "انگریزی، اردو، عربی". Uses Intl.DisplayNames.
-  function langName(code: string): string {
-    try {
-      const dn = new Intl.DisplayNames([locale], { type: 'language' });
-      return dn.of(code) ?? code;
-    } catch {
-      return code;
-    }
-  }
-
   return (
     <div className="v-login-modern">
-      <div className="v-login-topbar">
-        <label className="v-login-lang v-login-lang--top">
-          <span className="v-sr-only">{t('common', 'language')}</span>
-          <select
-            value={locale}
-            onChange={(e) => onLocale(e.target.value as AppLocale)}
-            aria-label={t('common', 'language')}
-          >
-            {SUPPORTED_LOCALES.map((l) => (
-              <option key={l} value={l}>
-                {langName(l)}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-      <h1 className="v-login-brand">VARKA</h1>
+      <AuthHeader locale={locale} onLocale={onLocale} />
       <h2 className="v-login-title">{t('auth', 'welcomeBack')}</h2>
       <p className="v-login-subtitle">{t('auth', 'signInSubtitle')}</p>
 
