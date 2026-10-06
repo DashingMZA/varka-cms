@@ -43,5 +43,7 @@
   "titleCol": "Title",
   "titleRequired": "Title is required",
   "trash": "Trash",
-  "writeContent": "Write page content…"
+  "writeContent": "Write page content…",
+  "helpBody": "Create and manage static pages.",
+  "untitled": "Untitled"
 }
