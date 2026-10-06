@@ -84,7 +84,7 @@ export function RedirectionsAdmin() {
       <div className="v-card" style={{ maxWidth: 720, marginBottom: 16 }}>
         <h2 style={{ marginTop: 0 }}>Add Redirection</h2>
         {error ? <p className="v-alert v-alert--error">{error}</p> : null}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 8, alignItems: 'end' }}>
+        <div className="v-grid-3">
           <label>
             <span style={{ display: 'block', fontWeight: 600, marginBottom: 4 }}>Source URL</span>
             <input
