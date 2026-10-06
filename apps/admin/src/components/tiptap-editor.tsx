@@ -11,7 +11,8 @@ import TextStyle from '@tiptap/extension-text-style';
 import Color from '@tiptap/extension-color';
 import Highlight from '@tiptap/extension-highlight';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { getStoredLocale, isRtlLocale, useMessages } from '@/lib/i18n';
+import { isRtlLocale, useMessages } from '@/lib/i18n';
+import { useServerLocale } from '@/lib/locale-provider';
 import { searchContentAction } from '@/actions/posts';
 
 /** Label with hard fallback so missing i18n never shows raw keys */
@@ -90,6 +91,7 @@ export function TiptapEditor(props: {
   onInsertImage?: () => void;
 }) {
   const { t } = useMessages();
+  const serverLocale = useServerLocale();
   const [rtl, setRtl] = useState(false);
   const [mode, setMode] = useState<'visual' | 'code'>('visual');
   const [code, setCode] = useState(props.value || '');
@@ -104,7 +106,7 @@ export function TiptapEditor(props: {
   const [colorMenu, setColorMenu] = useState<'text' | 'bg' | null>(null);
 
   useEffect(() => {
-    setRtl(isRtlLocale(getStoredLocale()));
+    setRtl(isRtlLocale(serverLocale));
   }, []);
 
   const editor = useEditor({
@@ -140,10 +142,10 @@ export function TiptapEditor(props: {
       attributes: {
         class: 'v-tiptap-prose',
         dir:
-          typeof document !== 'undefined' && isRtlLocale(getStoredLocale())
+          typeof document !== 'undefined' && isRtlLocale(serverLocale)
             ? 'rtl'
             : 'ltr',
-        lang: typeof document !== 'undefined' ? getStoredLocale() : 'en',
+        lang: typeof document !== 'undefined' ? serverLocale : 'en',
       },
     },
   });
