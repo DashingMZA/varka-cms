@@ -120,10 +120,18 @@ export default function PermalinksSettingsPage() {
               </div>
             </Field>
           ) : null}
-          <h2 style={{ fontSize: 15, margin: '8px 0 0' }}>{L(t, 'optional', 'Optional')}</h2>
-          <p style={{ margin: 0, fontSize: 13, color: 'var(--muted)' }}>
-            {L(t, 'optionalDesc', 'Custom bases for category and tag URLs. Leave blank for defaults.')}
-          </p>
+          <tr>
+            <td colSpan={2}>
+              <h2 style={{ fontSize: 15, margin: '8px 0 0' }}>{L(t, 'optional', 'Optional')}</h2>
+            </td>
+          </tr>
+          <tr>
+            <td colSpan={2}>
+              <p style={{ margin: 0, fontSize: 13, color: 'var(--muted)' }}>
+                {L(t, 'optionalDesc', 'Custom bases for category and tag URLs. Leave blank for defaults.')}
+              </p>
+            </td>
+          </tr>
           <Field label={L(t, 'categoryBase', 'Category base')}>
             <input
               style={inputStyle}
