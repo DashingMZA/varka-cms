@@ -12,17 +12,17 @@
     "lint": "echo lint:@varka/web"
   },
   "dependencies": {
-    "@astrojs/node": "^11.1.5",
-    "@astrojs/vercel": "^11.0.11",
+    "@astrojs/node": "^11.1.7",
+    "@astrojs/vercel": "^11.0.12",
     "@varka/content": "workspace:*",
     "@varka/database": "workspace:*",
     "@varka/i18n": "workspace:*",
     "@varka/seo": "workspace:*",
     "@varka/themes": "workspace:*",
-    "astro": "7.3.2"
+    "astro": "7.3.6"
   },
   "devDependencies": {
-    "@types/node": "^24.13.4",
+    "@types/node": "^24.19.1",
     "typescript": "7.0.2"
   }
 }
