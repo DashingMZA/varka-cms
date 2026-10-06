@@ -77,3 +77,16 @@ tested so the user can pull and verify.
 ## Skills used
 - `.claude/skills/wp-admin-dashboard/SKILL.md` (required admin skill)
 - references/design-system.md (checked pre-compaction)
+
+## Responsive batch 2 (2026-10-06, pushed as 853a895)
+User reported Categories/Tags pages broken on small screens (fixed 300px+1fr
+inline grid overflowed). Audited all admin routes page-by-page for fixed inline
+grids/flex headers:
+- Categories/Tags: `.v-tax-grid` (300px+1fr desktop, 1 col mobile)
+- Redirections add-form: `.v-grid-3` stacks on mobile
+- `.v-list-table-bottom`: flex-wrap (plugins-admin inline style removed)
+- space-between flex headers (404 monitor, form editor, dashboard welcome): wrap
+- Posts/pages/media/comments/users/themes/menus/widgets/tools/seo/settings/
+  languages/updates already used responsive patterns (auto-fit grids, stacked
+  tables, wrapping toolbars). tsc 0 errors, build OK, oxlint 0 errors (2
+  pre-existing _count warnings).
