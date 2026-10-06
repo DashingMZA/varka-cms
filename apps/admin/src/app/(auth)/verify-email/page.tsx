@@ -3,9 +3,11 @@
 import { useState, type FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { verifyEmailAction, resendVerificationAction } from '@/actions/verify-email';
+import { useMessages } from '@/lib/i18n';
 
 export default function VerifyEmailPage() {
   const router = useRouter();
+  const { t } = useMessages();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState(searchParams.get('email') ?? '');
   const [code, setCode] = useState('');
@@ -18,11 +20,11 @@ export default function VerifyEmailPage() {
     setError(null);
     setMessage(null);
     if (!email.trim()) {
-      setError('Email is required');
+      setError(t('auth', 'emailRequired') || 'Email is required');
       return;
     }
     if (code.trim().length !== 6) {
-      setError('Enter the 6-digit code');
+      setError(t('auth', 'enterSixDigit'));
       return;
     }
     setLoading(true);
@@ -32,13 +34,13 @@ export default function VerifyEmailPage() {
       setError(res.error);
       return;
     }
-    setMessage('Email verified! Redirecting to login…');
+    setMessage(t('auth', 'emailVerifiedRedirect'));
     setTimeout(() => router.push('/login'), 1500);
   }
 
   async function onResend() {
     if (!email.trim()) {
-      setError('Enter your email first');
+      setError(t('auth', 'emailRequired') || 'Enter your email first');
       return;
     }
     setError(null);
@@ -49,15 +51,15 @@ export default function VerifyEmailPage() {
       setError(res.error);
       return;
     }
-    setMessage('New code sent to your email');
+    setMessage(t('auth', 'newCodeSent'));
   }
 
   return (
     <main className="v-auth-page">
       <div className="v-auth-card">
-        <h1 className="v-auth-title">Verify your email</h1>
+        <h1 className="v-auth-title">{t('auth', 'verifyWithCode')}</h1>
         <p className="v-muted" style={{ fontSize: 14, marginBottom: 20 }}>
-          Enter the 6-digit code sent to your email address.
+          {t('auth', 'enterCodeEmail')}
         </p>
         <form onSubmit={onSubmit} className="v-form">
           {error ? (
@@ -71,7 +73,7 @@ export default function VerifyEmailPage() {
             </p>
           ) : null}
           <div className="v-field">
-            <label htmlFor="ve-email">Email</label>
+            <label htmlFor="ve-email">{t('auth', 'email')}</label>
             <input
               id="ve-email"
               type="email"
@@ -81,7 +83,7 @@ export default function VerifyEmailPage() {
             />
           </div>
           <div className="v-field">
-            <label htmlFor="ve-code">Verification code</label>
+            <label htmlFor="ve-code">{t('auth', 'verifyCode')}</label>
             <input
               id="ve-code"
               type="text"
@@ -100,7 +102,7 @@ export default function VerifyEmailPage() {
             disabled={loading}
             style={{ width: '100%' }}
           >
-            {loading ? 'Verifying…' : 'Verify email'}
+            {loading ? t('auth', 'verifying') || 'Verifying…' : t('common', 'verify')}
           </button>
           <button
             type="button"
@@ -109,11 +111,11 @@ export default function VerifyEmailPage() {
             disabled={loading}
             style={{ width: '100%', marginTop: 8 }}
           >
-            Resend code
+            {t('common', 'resend')}
           </button>
         </form>
         <p style={{ marginTop: 16, fontSize: 13, textAlign: 'center' }}>
-          <a href="/login" className="v-link">Back to login</a>
+          <a href="/login" className="v-link">{t('auth', 'signIn')}</a>
         </p>
       </div>
     </main>
