@@ -140,7 +140,7 @@ export function UserProfileForm() {
 
   return (
       <div className="v-card">
-    <form onSubmit={onSubmit} className="v-form">
+    <form onSubmit={onSubmit} className="v-form v-form--horizontal">
       {error ? (
         <p role="alert" className="v-alert v-alert--error">
           {error}
@@ -148,10 +148,6 @@ export function UserProfileForm() {
       ) : null}
       {message ? <p className="v-alert v-alert--ok">{message}</p> : null}
 
-      <div className="v-field">
-        <label htmlFor="pf-name">{L(t, 'displayName', 'Display name')}</label>
-        <input id="pf-name" value={name} onChange={(e) => setName(e.target.value)} />
-      </div>
       <div className="v-field">
         <label htmlFor="pf-first">{L(t, 'firstName', 'First name')} <span style={{color: '#d63638'}}>*</span></label>
         <input id="pf-first" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
@@ -169,7 +165,6 @@ export function UserProfileForm() {
         <select id="pf-display-as" value={displayNameAs} onChange={(e) => setDisplayNameAs(e.target.value)}>
           <option value="full_name">{`${firstName} ${lastName}`.trim() || 'Full name'}</option>
           <option value="nickname">{nickname || 'Nickname'}</option>
-          <option value="username">{name || 'Username'}</option>
         </select>
       </div>
       <div className="v-field">
@@ -230,6 +225,8 @@ export function UserProfileForm() {
 
     {showConfirm && typeof document !== 'undefined' ? createPortal(
       <div
+        className="v-admin"
+        data-admin-scheme={document.querySelector('.v-admin')?.getAttribute('data-admin-scheme') || 'default'}
         style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999,
