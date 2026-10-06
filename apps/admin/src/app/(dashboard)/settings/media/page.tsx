@@ -128,14 +128,18 @@ export default function MediaSettingsPage() {
               <h2 style={{ fontSize: 15, margin: '8px 0 0' }}>{L(t, 'uploadingFiles', 'Uploading Files')}</h2>
             </td>
           </tr>
-          <label style={{ display: 'flex', gap: 8, fontSize: 14 }}>
-            <input
-              type="checkbox"
-              checked={Boolean(v.organizeByYearMonth)}
-              onChange={(e) => set('organizeByYearMonth', e.target.checked)}
-            />
-            {L(t, 'organizeUploads', 'Organize my uploads into month- and year-based folders')}
-          </label>
+          <tr>
+            <td colSpan={2}>
+              <label style={{ display: 'flex', gap: 8, fontSize: 14 }}>
+                <input
+                  type="checkbox"
+                  checked={Boolean(v.organizeByYearMonth)}
+                  onChange={(e) => set('organizeByYearMonth', e.target.checked)}
+                />
+                {L(t, 'organizeUploads', 'Organize my uploads into month- and year-based folders')}
+              </label>
+            </td>
+          </tr>
           <tr>
             <td colSpan={2}>
               <h2 style={{ fontSize: 15, margin: '8px 0 0' }}>{L(t, 'storageDriver', 'Storage Driver')}</h2>
