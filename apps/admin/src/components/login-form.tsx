@@ -3,11 +3,11 @@
 import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import {
-  getStoredLocale,
   setStoredLocale,
   useMessages,
   SUPPORTED_LOCALES,
 } from '@/lib/i18n';
+import { useServerLocale } from '@/lib/locale-provider';
 import type { AppLocale } from '@varka/i18n';
 import { loginSchema, twoFactorCodeSchema, zodErrorKeys } from '@varka/validation';
 import { signInEmailAction, verifyTwoFactorAction } from '@/actions/auth';
@@ -35,7 +35,7 @@ export function LoginForm({
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
-  const [locale, setLocale] = useState(getStoredLocale);
+  const [locale, setLocale] = useState<AppLocale>(useServerLocale);
   const { t } = useMessages(locale);
 
   function mapKey(key: string): string {

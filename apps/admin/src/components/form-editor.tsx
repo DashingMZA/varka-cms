@@ -8,9 +8,9 @@ import {
   listEntriesAction,
   deleteEntryAction,
   bulkDeleteEntriesAction,
-  FORM_FIELD_TYPES,
   type FormField,
 } from '@/actions/forms';
+import { FORM_FIELD_TYPES } from '@/lib/form-field-types';
 
 type Props = { formId: string; initialTab?: string };
 

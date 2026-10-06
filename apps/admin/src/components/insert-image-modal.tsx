@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useMessages } from '@/lib/i18n';
+import { listMediaAction } from '@/actions/media';
 
 /** Label with hard fallback so missing i18n never shows raw keys */
 function L(
@@ -64,10 +65,10 @@ export function InsertImageModal({
   useEffect(() => {
     if (!open) return;
     void (async () => {
-      const res = await fetch('/api/media?limit=60', { credentials: 'include' });
-      if (!res.ok) return;
-      const data = (await res.json()) as { items: Asset[] };
-      setItems((data.items ?? []).filter((x) => x.mimeType.startsWith('image/')));
+      const result = await listMediaAction({ limit: 60 });
+      if (!result.ok) return;
+      const items = (result.data.items as Asset[]) ?? [];
+      setItems(items.filter((x) => x.mimeType.startsWith('image/')));
     })();
   }, [open]);
 

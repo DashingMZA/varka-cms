@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { useMessages } from '@/lib/i18n';
+import { uploadMediaAction } from '@/actions/media';
 
 /** Label with hard fallback so missing i18n never shows raw keys */
 function L(
@@ -61,21 +62,16 @@ export function FeaturedImagePanel({ value, library, onChange, onLibraryAdd }: P
       const fd = new FormData();
       fd.set('file', file);
       fd.set('title', file.name);
-      const res = await fetch('/api/media', {
-        method: 'POST',
-        body: fd,
-        credentials: 'include',
-      });
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { error?: string };
+      const result = await uploadMediaAction(fd);
+      if (!result.ok) {
         setErr(
-          body.error ??
-            L(t, 'uploadFailed', 'Upload failed ({status})').replace('{status}', String(res.status)),
+          result.error ??
+            L(t, 'uploadFailed', 'Upload failed'),
         );
         setUploading(false);
         return;
       }
-      const data = (await res.json()) as FeaturedMedia & { asset?: FeaturedMedia };
+      const data = result.data as FeaturedMedia & { asset?: FeaturedMedia };
       const asset = data.asset ?? data;
       if (!asset?.id) {
         setErr(L(t, 'noAssetId', 'Upload succeeded but no asset id returned'));
