@@ -88,6 +88,14 @@ model User {
   nickname         String?
   website          String?
   bio              String?
+  displayNameAs    String?   // "full_name" | "nickname" | "username" — how to display publicly
+  facebookUrl      String?
+  xUrl             String?
+  instagramUrl     String?
+  mediumUrl        String?
+  youtubeUrl       String?
+  tiktokUrl        String?
+  linkedinUrl      String?
   adminColorScheme String    @default("default")
   disabled         Boolean   @default(false)
   failedLogins     Int       @default(0)
