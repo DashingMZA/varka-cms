@@ -48,5 +48,14 @@
   "newsGithub": "VARKA on GitHub",
   "newsUpdates": "Check for updates",
   "quickDraftContent": "What's on your mind?",
-  "recentlyPublished": "Recently Published"
+  "recentlyPublished": "Recently Published",
+  "welcome": "Welcome",
+  "welcomeAddPage": "Add an About page",
+  "welcomeBody": "Get started with the essentials — write content, shape your site, and tune how it looks.",
+  "welcomeComments": "Turn comments on or off",
+  "welcomeHomepage": "Set up your homepage",
+  "welcomeMenus": "Manage menus",
+  "welcomeTitle": "Welcome to VARKA",
+  "welcomeWidgets": "Manage widgets",
+  "welcomeWritePost": "Write your first blog post"
 }
