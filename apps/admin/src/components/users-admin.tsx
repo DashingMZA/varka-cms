@@ -239,7 +239,7 @@ export function UsersAdmin() {
                               width: 32,
                               height: 32,
                               borderRadius: '50%',
-                              background: '#0073aa',
+                              background: 'var(--accent)',
                               color: '#fff',
                               display: 'inline-flex',
                               alignItems: 'center',
