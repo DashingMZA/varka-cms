@@ -77,76 +77,7 @@ function createClient(): PrismaClient {
     log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
   });
 
-  // Better Auth passes user IDs as strings; User.id is Int. Convert string
-  // IDs to numbers for User-related models to avoid Prisma type errors.
-  const INT_ID_FIELDS: Record<string, string[]> = {
-    User: ['id'],
-    Session: ['userId'],
-    Account: ['userId'],
-    TwoFactor: ['userId'],
-    UserRole: ['userId'],
-    AuthorProfile: ['userId'],
-    Post: ['authorId'],
-    Page: ['authorId'],
-    Revision: ['authorId'],
-    Comment: ['authorUserId'],
-    MediaAsset: ['uploadedById'],
-  };
-
-  function convertIds(obj: unknown, fields: string[]): void {
-    if (!obj || typeof obj !== 'object') return;
-    if (Array.isArray(obj)) {
-      for (const item of obj) convertIds(item, fields);
-      return;
-    }
-    const rec = obj as Record<string, unknown>;
-    for (const key of Object.keys(rec)) {
-      const val = rec[key];
-      if (fields.includes(key)) {
-        if (typeof val === 'string' && /^\d+$/.test(val)) {
-          rec[key] = parseInt(val, 10);
-        } else if (val && typeof val === 'object') {
-          const cond = val as Record<string, unknown>;
-          for (const op of ['equals', 'not', 'lt', 'lte', 'gt', 'gte']) {
-            if (typeof cond[op] === 'string' && /^\d+$/.test(cond[op] as string)) {
-              cond[op] = parseInt(cond[op] as string, 10);
-            }
-          }
-          for (const op of ['in', 'notIn']) {
-            if (Array.isArray(cond[op])) {
-              cond[op] = (cond[op] as unknown[]).map((v) =>
-                typeof v === 'string' && /^\d+$/.test(v) ? parseInt(v, 10) : v
-              );
-            }
-          }
-        }
-      } else if (val && typeof val === 'object') {
-        convertIds(val, fields);
-      }
-    }
-  }
-
-  // Prisma 7 + driver adapter: use $extends (middleware $use not supported).
-  // Converts string user IDs to Int for User-related models.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const extended = (client as any).$extends({
-    query: {
-      $allModels: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        async $allOperations({ model, args, query }: any) {
-          const fields = model ? INT_ID_FIELDS[model] : undefined;
-          if (fields && args) {
-            const a = args as Record<string, unknown>;
-            if (a.where) convertIds(a.where, fields);
-            if (a.data) convertIds(a.data, fields);
-          }
-          return query(args);
-        },
-      },
-    },
-  });
-
-  return extended;
+  return client;
 }
 
 function getPrisma(): PrismaClient {
