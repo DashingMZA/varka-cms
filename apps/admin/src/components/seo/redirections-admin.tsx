@@ -18,7 +18,7 @@ type Redirection = {
 };
 
 /** Rank Math-style Redirections manager. */
-export function RedirectionsAdmin() {
+export function RedirectionsAdmin({ searchParams }: { searchParams?: Promise<{ source?: string }> }) {
   const [items, setItems] = useState<Redirection[]>([]);
   const [loading, setLoading] = useState(true);
   const [source, setSource] = useState('');
@@ -26,6 +26,14 @@ export function RedirectionsAdmin() {
   const [code, setCode] = useState('301');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Prefill source from ?source= (e.g. "Redirect" action in 404 Monitor)
+  useEffect(() => {
+    if (!searchParams) return;
+    void searchParams.then((p) => {
+      if (p?.source) setSource(p.source);
+    });
+  }, [searchParams]);
 
   async function load() {
     setLoading(true);
@@ -81,7 +89,7 @@ export function RedirectionsAdmin() {
 
   return (
     <div>
-      <div className="v-card" style={{ maxWidth: 720, marginBottom: 16 }}>
+      <div className="v-card" style={{ marginBottom: 16 }}>
         <h2 style={{ marginTop: 0 }}>Add Redirection</h2>
         {error ? <p className="v-alert v-alert--error">{error}</p> : null}
         <div className="v-grid-3">
