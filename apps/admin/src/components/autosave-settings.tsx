@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useMessages } from '@/lib/i18n';
+import { getAutosaveAction, saveAutosaveAction } from '@/actions/settings';
 
 /** Label with hard fallback so missing i18n never shows raw keys */
 function L(
@@ -25,16 +26,11 @@ export function AutosaveSettings() {
 
   useEffect(() => {
     void (async () => {
-      const res = await fetch('/api/settings/autosave', { credentials: 'include' });
-      if (!res.ok) return;
-      const data = (await res.json()) as {
-        intervalMs: number;
-        minMs: number;
-        maxMs: number;
-      };
-      setMs(data.intervalMs);
-      setMin(data.minMs);
-      setMax(data.maxMs);
+      const result = await getAutosaveAction();
+      if (!result.ok) return;
+      setMs(result.data.intervalMs);
+      setMin(result.data.minMs);
+      setMax(result.data.maxMs);
     })();
   }, []);
 
@@ -42,24 +38,17 @@ export function AutosaveSettings() {
     setBusy(true);
     setMsg(null);
     setErr(null);
-    const res = await fetch('/api/settings/autosave', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ intervalMs: ms }),
-    });
-    if (!res.ok) {
-      const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setErr(body.error ?? L(t, 'saveFailed', 'Save failed'));
+    const result = await saveAutosaveAction(ms);
+    if (!result.ok) {
+      setErr(result.error ?? L(t, 'saveFailed', 'Save failed'));
       setBusy(false);
       return;
     }
-    const data = (await res.json()) as { intervalMs: number };
-    setMs(data.intervalMs);
+    setMs(result.data.intervalMs);
     setMsg(
-      L(t, 'intervalSet', `Autosave interval set to ${(data.intervalMs / 1000).toFixed(1)}s`).replace(
+      L(t, 'intervalSet', `Autosave interval set to ${(result.data.intervalMs / 1000).toFixed(1)}s`).replace(
         '{s}',
-        (data.intervalMs / 1000).toFixed(1),
+        (result.data.intervalMs / 1000).toFixed(1),
       ),
     );
     setBusy(false);

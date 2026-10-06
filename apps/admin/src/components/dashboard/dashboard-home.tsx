@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { ScreenMeta } from '@/components/screen-meta/screen-meta';
 import { getDashboardAction } from '@/actions/dashboard';
+import { getHealthAction } from '@/actions/updates';
 import { createPostAction } from '@/actions/posts';
 import { useMessages } from '@/lib/i18n';
 
@@ -85,8 +86,7 @@ export function DashboardHome() {
   useEffect(() => {
     void (async () => {
       try {
-        const res = await fetch('/api/health');
-        const data = await res.json();
+        const data = await getHealthAction();
         const checks: { id: string; ok: boolean; label: string; detail?: string }[] = [];
         if (data.database === 'up') {
           checks.push({ id: 'db', ok: true, label: 'Database', detail: 'connected' });

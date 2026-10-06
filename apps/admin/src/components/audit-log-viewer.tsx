@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useMessages } from '@/lib/i18n';
+import { listAuditAction } from '@/actions/tools';
 
 /** Label with hard fallback so missing i18n never shows raw keys */
 function L(
@@ -31,15 +32,14 @@ export function AuditLogViewer() {
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const res = await fetch('/api/audit?limit=50', { credentials: 'include' });
-    if (!res.ok) {
-      setError(L(t, 'loadFailedStatus', `Load failed (${res.status})`).replace('{status}', String(res.status)));
+    const result = await listAuditAction(50);
+    if (!result.ok) {
+      setError(L(t, 'loadFailedStatus', 'Load failed: {error}').replace('{error}', result.error));
       return;
     }
-    const data = (await res.json()) as { items: Row[] };
-    setItems(data.items ?? []);
+    setItems((result.data.items as Row[]) ?? []);
     setError(null);
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     void load();
