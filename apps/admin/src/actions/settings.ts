@@ -17,6 +17,7 @@ const SETTINGS_GROUPS = new Set([
   'media',
   'permalinks',
   'privacy',
+  'users',
 ]);
 
 export async function getSettingsAction(
