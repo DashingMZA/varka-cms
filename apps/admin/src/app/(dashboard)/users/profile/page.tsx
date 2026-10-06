@@ -1,4 +1,5 @@
 import { UserProfileForm } from '@/components/user-profile-form';
+import { AdminColorScheme } from '@/components/admin-color-scheme';
 import { TwoFactorSettings } from '@/components/security/two-factor-settings';
 
 export default function ProfilePage() {
@@ -9,7 +10,10 @@ export default function ProfilePage() {
       </div>
       <div className="v-profile-grid">
         <UserProfileForm />
-        <TwoFactorSettings enabled={false} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <AdminColorScheme />
+          <TwoFactorSettings enabled={false} />
+        </div>
       </div>
     </main>
   );
