@@ -224,6 +224,11 @@ button.v-nav__link { color: var(--wp-sidebar-text); }
 .v-size-fields { display: flex; gap: 24px; flex-wrap: wrap; align-items: center; }
 .v-size-fields > label { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; margin: 0; }
 .v-size-fields > label > span:first-child { min-width: 76px; }
+/* Profile page: 1 column mobile, 2 columns desktop (like dashboard) */
+.v-profile-grid { display: grid; gap: 20px; grid-template-columns: 1fr; align-items: start; }
+@media (min-width: 1024px) {
+  .v-profile-grid { grid-template-columns: 1fr 1fr; }
+}
 /* Small count badge */
 .v-badge {
   display: inline-block;
