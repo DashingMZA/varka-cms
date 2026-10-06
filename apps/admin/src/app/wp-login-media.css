@@ -347,12 +347,26 @@
   flex-direction: column;
   position: relative;
 }
-/* Language selector pinned top-right of the login card */
-.v-login-topbar {
-  position: absolute;
-  top: 0;
-  right: 0;
-  z-index: 2;
+/* Login header row: brand centered, language selector top-right */
+.v-login-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+.v-login-header-row .v-login-brand {
+  margin: 0;
+  flex: 1;
+}
+.v-login-header-spacer {
+  width: 120px;
+  flex-shrink: 0;
+}
+.v-login-lang--top {
+  width: 120px;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
 }
 .v-login-lang--top select {
   font-size: 13px;
