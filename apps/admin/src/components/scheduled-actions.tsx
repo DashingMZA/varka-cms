@@ -75,7 +75,7 @@ export function ScheduledActions() {
                     : '—'}
                 </td>
                 <td>
-                  <Link href={`/content/posts/${p.id}`}>{L(t, 'edit', 'Edit')}</Link>
+                  <Link href={`/content/posts/${p.translations[0]?.slug || p.id}`}>{L(t, 'edit', 'Edit')}</Link>
                 </td>
               </tr>
             ))}
