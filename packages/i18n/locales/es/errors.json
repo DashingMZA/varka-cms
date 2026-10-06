@@ -1,5 +1,5 @@
 {
   "loadFailed": "Error al cargar.",
-  "networkError": "Error al subir",
+  "networkError": "Error de red. Inténtalo de nuevo.",
   "saveFailed": "Error al guardar."
 }
