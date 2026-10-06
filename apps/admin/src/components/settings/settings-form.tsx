@@ -96,9 +96,11 @@ export function SettingsForm({ group, title, description, defaults, children }: 
           </div>
         ) : null}
 
-        <table className="v-form-table form-table">
-          <tbody>{children(values, set)}</tbody>
-        </table>
+        <div className="v-card" style={{ marginBottom: 20 }}>
+          <table className="v-form-table form-table">
+            <tbody>{children(values, set)}</tbody>
+          </table>
+        </div>
 
         <p className="submit" style={{ marginTop: 20 }}>
           <button type="submit" className="v-btn v-btn--primary" disabled={saving}>
