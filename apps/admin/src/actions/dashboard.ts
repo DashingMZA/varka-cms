@@ -8,7 +8,7 @@ export async function getDashboardAction(): Promise<
   ActionResult<{
     glance: Record<string, number>;
     activity: {
-      posts: Array<{ id: string; title: string; status: string; updatedAt: string }>;
+      posts: Array<{ id: string; slug?: string; title: string; status: string; updatedAt: string }>;
       comments: Array<{
         id: string;
         authorName: string;
@@ -97,8 +97,9 @@ export async function getDashboardAction(): Promise<
         },
         activity: {
           posts: recentPosts.map(
-            (p: { id: string; translations: { title: string }[]; status: string; updatedAt: Date }) => ({
+            (p: { id: string; translations: { title: string; slug: string }[]; status: string; updatedAt: Date }) => ({
               id: p.id,
+              slug: p.translations[0]?.slug,
               title: p.translations[0]?.title ?? 'Untitled',
               status: p.status,
               updatedAt: p.updatedAt.toISOString(),
