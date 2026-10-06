@@ -4,7 +4,9 @@ import { assertPasswordPolicy, hashPassword } from './password';
 
 const ADMIN_SCHEMES = new Set([
   'default',
+  'fresh',
   'light',
+  'modern',
   'blue',
   'coffee',
   'ectoplasm',
