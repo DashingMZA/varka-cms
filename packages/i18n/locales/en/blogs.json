@@ -67,5 +67,6 @@
   "bulkEdit": "Edit",
   "bulkEditTitle": "Bulk Edit",
   "noChange": "No Change",
-  "cancel": "Cancel"
+  "cancel": "Cancel",
+  "addNewPost": "Add New Post"
 }
