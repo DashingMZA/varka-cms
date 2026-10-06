@@ -2,7 +2,6 @@
 
 import { Field, SettingsForm, inputStyle, selectStyle } from '@/components/settings/settings-form';
 import { useMessages } from '@/lib/i18n';
-import { ROLES } from '@varka/permissions';
 
 const ADMIN_URL = process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3000';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:4321';
@@ -11,8 +10,6 @@ const DEFAULTS = {
   siteTitle: 'VARKA',
   tagline: '',
   adminEmail: '',
-  membership: false,
-  defaultRole: 'reader',
   siteLanguage: 'en',
   timezone: 'UTC',
   dateFormat: 'F j, Y',
@@ -189,32 +186,6 @@ export default function GeneralSettingsPage() {
               onChange={(e) => set('adminEmail', e.target.value)}
               required
             />
-          </Field>
-          <Field label="Membership" hint="Allow new users to register on this site.">
-            <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 14 }}>
-              <input
-                type="checkbox"
-                checked={Boolean(v.membership)}
-                onChange={(e) => set('membership', e.target.checked)}
-              />
-              Anyone can register
-            </label>
-          </Field>
-          <Field
-            label="New User Default Role"
-            hint="The default role assigned to newly registered users."
-          >
-            <select
-              style={selectStyle}
-              value={String(v.defaultRole ?? 'reader')}
-              onChange={(e) => set('defaultRole', e.target.value)}
-            >
-              {ROLES.map((role) => (
-                <option key={role} value={role}>
-                  {role.charAt(0).toUpperCase() + role.slice(1).replace('_', ' ')}
-                </option>
-              ))}
-            </select>
           </Field>
           <Field label="Site Language" hint="The language used for the admin interface.">
             <select
