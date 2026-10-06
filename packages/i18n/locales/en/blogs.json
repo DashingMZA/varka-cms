@@ -68,5 +68,13 @@
   "bulkEditTitle": "Bulk Edit",
   "noChange": "No Change",
   "cancel": "Cancel",
-  "addNewPost": "Add New Post"
+  "addNewPost": "Add New Post",
+  "allCategories": "All Categories",
+  "allDates": "All dates",
+  "comments": "Comments",
+  "filterByCategory": "Filter by category",
+  "filterByDate": "Filter by date",
+  "helpBody": "Filter by status, search, and bulk actions.",
+  "quickEdit": "Quick Edit",
+  "seoDetails": "SEO Details"
 }
