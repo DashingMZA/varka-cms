@@ -74,10 +74,12 @@ export function UserNewForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} style={{ maxWidth: 480, display: 'grid', gap: 12 }}>
-      <h1 className="v-page-title" style={{ margin: 0 }}>
+    <>
+      <h1 className="v-page-title" style={{ margin: '0 0 16px' }}>
         {L(t, 'addNewUser', 'Add New User')}
       </h1>
+      <div className="v-card" style={{ maxWidth: 560 }}>
+    <form onSubmit={onSubmit} style={{ display: 'grid', gap: 12 }}>
       {error ? (
         <p role="alert" className="v-alert v-alert--error">
           {error}
@@ -134,5 +136,7 @@ export function UserNewForm() {
         {loading ? L(t, 'creating', 'Creating…') : L(t, 'addNewUser', 'Add New User')}
       </button>
     </form>
+      </div>
+    </>
   );
 }
