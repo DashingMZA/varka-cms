@@ -136,84 +136,86 @@ export function CommentsModeration() {
             </div>
           </div>
 
-          <table className="v-list-table">
-            <thead>
-              <tr>
-                <td className="check-col">
-                  <input
-                    type="checkbox"
-                    checked={items.length > 0 && selected.size === items.length}
-                    onChange={(e) => {
-                      if (e.target.checked) setSelected(new Set(items.map((c) => c.id)));
-                      else setSelected(new Set());
-                    }}
-                  />
-                </td>
-                <th>{t('comments', 'author') || 'Author'}</th>
-                <th>{t('comments', 'comment') || 'Comment'}</th>
-                <th>{t('comments', 'inResponseTo') || 'In response to'}</th>
-                <th>{t('comments', 'submittedOn') || 'Submitted on'}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading && items.length === 0 ? (
+                    <div className="v-card" style={{ padding: 0, overflow: "hidden" }}>
+  <table className="v-list-table">
+              <thead>
                 <tr>
-                  <td colSpan={5} className="v-muted">
-                    {t('common', 'loading')}
+                  <td className="check-col">
+                    <input
+                      type="checkbox"
+                      checked={items.length > 0 && selected.size === items.length}
+                      onChange={(e) => {
+                        if (e.target.checked) setSelected(new Set(items.map((c) => c.id)));
+                        else setSelected(new Set());
+                      }}
+                    />
                   </td>
+                  <th>{t('comments', 'author') || 'Author'}</th>
+                  <th>{t('comments', 'comment') || 'Comment'}</th>
+                  <th>{t('comments', 'inResponseTo') || 'In response to'}</th>
+                  <th>{t('comments', 'submittedOn') || 'Submitted on'}</th>
                 </tr>
-              ) : (
-                items.map((c) => (
-                  <tr key={c.id}>
-                    <td className="check-col">
-                      <input
-                        type="checkbox"
-                        checked={selected.has(c.id)}
-                        onChange={(e) => {
-                          setSelected((prev) => {
-                            const n = new Set(prev);
-                            if (e.target.checked) n.add(c.id);
-                            else n.delete(c.id);
-                            return n;
-                          });
-                        }}
-                      />
-                    </td>
-                    <td>
-                      <strong>{c.authorName}</strong>
-                      {c.authorEmail ? (
-                        <div className="v-muted" style={{ fontSize: 12 }}>
-                          {c.authorEmail}
-                        </div>
-                      ) : null}
-                    </td>
-                    <td>
-                      <div style={{ maxWidth: 420 }}>{c.body}</div>
-                      <div className="row-actions">
-                        <a href="#" onClick={(e) => { e.preventDefault(); void setStatus(c.id, 'APPROVED'); }}>
-                          {t('comments', 'approve') || 'Approve'}
-                        </a>
-                        {' | '}
-                        <a href="#" onClick={(e) => { e.preventDefault(); void setStatus(c.id, 'SPAM'); }}>
-                          {t('comments', 'spam') || 'Spam'}
-                        </a>
-                        {' | '}
-                        <a href="#" className="trash" onClick={(e) => { e.preventDefault(); void remove(c.id); }}>
-                          {t('common', 'delete') || 'Delete'}
-                        </a>
-                      </div>
-                    </td>
-                    <td>{(c as { postTitle?: string }).postTitle || '—'}</td>
-                    <td style={{ fontSize: 12 }}>
-                      {c.createdAt ? new Date(c.createdAt).toLocaleString() : '—'}
+              </thead>
+              <tbody>
+                {loading && items.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="v-muted">
+                      {t('common', 'loading')}
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </>
-      )}
-    </div>
-  );
-}
+                ) : (
+                  items.map((c) => (
+                    <tr key={c.id}>
+                      <td className="check-col">
+                        <input
+                          type="checkbox"
+                          checked={selected.has(c.id)}
+                          onChange={(e) => {
+                            setSelected((prev) => {
+                              const n = new Set(prev);
+                              if (e.target.checked) n.add(c.id);
+                              else n.delete(c.id);
+                              return n;
+                            });
+                          }}
+                        />
+                      </td>
+                      <td>
+                        <strong>{c.authorName}</strong>
+                        {c.authorEmail ? (
+                          <div className="v-muted" style={{ fontSize: 12 }}>
+                            {c.authorEmail}
+                          </div>
+                        ) : null}
+                      </td>
+                      <td>
+                        <div style={{ maxWidth: 420 }}>{c.body}</div>
+                        <div className="row-actions">
+                          <a href="#" onClick={(e) => { e.preventDefault(); void setStatus(c.id, 'APPROVED'); }}>
+                            {t('comments', 'approve') || 'Approve'}
+                          </a>
+                          {' | '}
+                          <a href="#" onClick={(e) => { e.preventDefault(); void setStatus(c.id, 'SPAM'); }}>
+                            {t('comments', 'spam') || 'Spam'}
+                          </a>
+                          {' | '}
+                          <a href="#" className="trash" onClick={(e) => { e.preventDefault(); void remove(c.id); }}>
+                            {t('common', 'delete') || 'Delete'}
+                          </a>
+                        </div>
+                      </td>
+                      <td>{(c as { postTitle?: string }).postTitle || '—'}</td>
+                      <td style={{ fontSize: 12 }}>
+                        {c.createdAt ? new Date(c.createdAt).toLocaleString() : '—'}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }
