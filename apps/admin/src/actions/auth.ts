@@ -109,6 +109,24 @@ export async function signInEmailAction(
     }
 
     const auth = getAuth();
+
+    // Block login for disabled accounts (pending admin approval or suspended).
+    try {
+      const { prisma } = await import('@/lib/server-db');
+      const existing = await prisma.user.findUnique({
+        where: { email: normalized },
+        select: { disabled: true },
+      });
+      if (existing?.disabled) {
+        return fail(
+          'Your account is pending admin approval.',
+          'ACCOUNT_DISABLED',
+        );
+      }
+    } catch {
+      /* fail open: let Better Auth decide */
+    }
+
     const { headers: resHeaders, response } = await auth.api.signInEmail({
       body: { email: normalized, password, rememberMe },
       headers: h,
@@ -348,4 +366,102 @@ export async function disableTwoFactorAction(
   } catch (e) {
     return fail(e instanceof Error ? e.message : 'Disable 2FA failed');
   }
+}
+
+/**
+ * Check if public registration is enabled (Settings → General → Membership).
+ */
+async function isRegistrationEnabled(): Promise<boolean> {
+  try {
+    const { prisma } = await import('@/lib/server-db');
+    // Get the default site (registration is a global setting)
+    const site = await prisma.site.findFirst({ orderBy: { createdAt: 'asc' } });
+    if (!site) return false;
+    const setting = await prisma.siteSetting.findUnique({
+      where: { siteId_key: { siteId: site.id, key: 'general.membership' } },
+    });
+    return setting?.value === true;
+  } catch {
+    return false;
+  }
+}
+
+export async function signUpEmailAction(
+  name: string,
+  email: string,
+  password: string,
+): Promise<AuthActionResult> {
+  const normalized = email.trim().toLowerCase();
+  const trimmedName = name.trim();
+
+  // 1. Registration must be enabled
+  if (!(await isRegistrationEnabled())) {
+    return fail('Registration is disabled', 'REGISTRATION_DISABLED');
+  }
+
+  // 2. Validate input
+  const { registerSchema } = await import('@varka/validation');
+  const parsed = registerSchema.safeParse({
+    name: trimmedName,
+    email: normalized,
+    password,
+    passwordConfirm: password,
+  });
+  if (!parsed.success) {
+    return fail('Invalid input', 'VALIDATION');
+  }
+
+  try {
+    const auth = getAuth();
+    const h = await hdrs();
+    const { headers: resHeaders } = await auth.api.signUpEmail({
+      body: {
+        name: trimmedName,
+        email: normalized,
+        password,
+      },
+      headers: h,
+      returnHeaders: true,
+    });
+    await forwardSetCookies(resHeaders);
+
+    // 3. Require manual admin approval: disable the new account until approved.
+    // Also assign the default role from settings.
+    try {
+      const { prisma } = await import('@/lib/server-db');
+      const user = await prisma.user.findUnique({ where: { email: normalized } });
+      if (user) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { disabled: true },
+        });
+        // Assign default role
+        const site = await prisma.site.findFirst({ orderBy: { createdAt: 'asc' } });
+        if (site) {
+          const roleSetting = await prisma.siteSetting.findUnique({
+            where: { siteId_key: { siteId: site.id, key: 'general.defaultRole' } },
+          });
+          const roleName = typeof roleSetting?.value === 'string' ? roleSetting.value : 'subscriber';
+          const role = await prisma.role.findFirst({ where: { name: roleName } });
+          if (role) {
+            await prisma.userRole.create({
+              data: { userId: user.id, roleId: role.id },
+            }).catch(() => {});
+          }
+        }
+      }
+    } catch {
+      /* non-blocking: approval flag is best-effort here */
+    }
+
+    return { ok: true };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : 'Registration failed';
+    return fail(message);
+  }
+}
+
+/** Public check for the register page: is registration open? */
+export async function getRegistrationStatusAction(): Promise<{ enabled: boolean }> {
+  return { enabled: await isRegistrationEnabled() };
 }
