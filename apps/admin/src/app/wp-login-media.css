@@ -570,3 +570,31 @@
 }
 
 /* RTL: nothing extra needed — inset-inline-end / padding-inline-end mirror automatically. */
+
+/* Auth success + return link (shared by forgot/reset password) */
+.v-login-success-modern {
+  margin: 0;
+  padding: 12px 14px;
+  font-size: 14px;
+  color: #065f46;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 10px;
+  text-align: center;
+}
+.v-login-return {
+  margin: 20px 0 0;
+  font-size: 14px;
+  text-align: center;
+}
+.v-login-return a {
+  color: #374151;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.v-login-return a:hover { color: #111827; }
+@media (prefers-color-scheme: dark) {
+  .v-login-success-modern { background: #0d241b; border-color: #065f46; color: #a7f3d0; }
+  .v-login-return a { color: #d1d5db; }
+  .v-login-return a:hover { color: #f9fafb; }
+}
