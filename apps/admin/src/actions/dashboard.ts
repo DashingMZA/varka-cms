@@ -41,9 +41,9 @@ export async function getDashboardAction(): Promise<
       recentComments,
       recentAudit,
     ] = await Promise.all([
-      prisma.post.count({ where: { siteId } }),
-      prisma.post.count({ where: { siteId, status: 'PUBLISHED' } }),
-      prisma.post.count({ where: { siteId, status: 'DRAFT' } }),
+      prisma.post.count({ where: { siteId, deletedAt: null } }),
+      prisma.post.count({ where: { siteId, deletedAt: null, status: 'PUBLISHED' } }),
+      prisma.post.count({ where: { siteId, deletedAt: null, status: 'DRAFT' } }),
       prisma.page.count({ where: { siteId } }),
       prisma.mediaAsset.count({ where: { siteId } }),
       prisma.comment.count({ where: { siteId } }),
