@@ -98,7 +98,11 @@ export default function WritingSettingsPage() {
               {L(t, 'no', 'No')}
             </label>
           </Field>
-          <h2 style={{ fontSize: 16, margin: '12px 0 0' }}>{L(t, 'postViaEmail', 'Post via email')}</h2>
+          <tr>
+            <td colSpan={2} style={{ padding: '12px 0 0' }}>
+              <h2 style={{ fontSize: 16, margin: 0 }}>{L(t, 'postViaEmail', 'Post via email')}</h2>
+            </td>
+          </tr>
           <Field label={L(t, 'mailServer', 'Mail Server')}>
             <input
               style={inputStyle}
