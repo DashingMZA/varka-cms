@@ -11,7 +11,8 @@ export type SettingsGroup =
   | 'discussion'
   | 'media'
   | 'permalinks'
-  | 'privacy';
+  | 'privacy'
+  | 'users';
 
 type Props = {
   group: SettingsGroup;
