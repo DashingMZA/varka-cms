@@ -120,21 +120,21 @@ export default function DiscussionSettingsPage() {
           </tr>
           <tr>
             <td colSpan={2}>
-              <label style={check}>
+              <label style={checkInline}>
                 <input
                   type="checkbox"
                   checked={Boolean(v.closeCommentsOld)}
                   onChange={(e) => set('closeCommentsOld', e.target.checked)}
                 />
-                {L(t, 'closeCommentsOld', 'Automatically close comments on posts older than')}{' '}
+                <span>{L(t, 'closeCommentsOld', 'Automatically close comments on posts older than')}</span>
                 <input
                   type="number"
                   min={1}
-                  style={{ width: 56, margin: '0 6px' }}
+                  style={{ width: 70 }}
                   value={Number(v.closeCommentsDays ?? 14)}
                   onChange={(e) => set('closeCommentsDays', Number(e.target.value))}
-                />{' '}
-                days
+                />
+                <span>days</span>
               </label>
             </td>
           </tr>
@@ -242,4 +242,13 @@ const check: React.CSSProperties = {
   gap: 8,
   alignItems: 'flex-start',
   fontSize: 14,
+};
+
+// For labels with inline inputs (text + input on one line): vertically center
+const checkInline: React.CSSProperties = {
+  display: 'flex',
+  gap: 8,
+  alignItems: 'center',
+  fontSize: 14,
+  flexWrap: 'wrap',
 };
