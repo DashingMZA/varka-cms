@@ -97,6 +97,8 @@ export function UserProfileForm() {
     setMessage(L(t, 'profileUpdated', 'Profile updated'));
     setCurrentPassword('');
     setNewPassword('');
+    // Apply the new color scheme immediately without a full page reload
+    document.documentElement.dataset.adminScheme = colorScheme;
   }
 
   if (!profile && !error) return <p className="v-muted">{L(t, 'loading', 'Loading…')}</p>;
@@ -113,32 +115,32 @@ export function UserProfileForm() {
       ) : null}
       {message ? <p className="v-alert v-alert--ok">{message}</p> : null}
 
-      <label>
-        {L(t, 'displayName', 'Display name')}
+      <label style={{ display: "block" }}>
+        <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>{L(t, 'displayName', 'Display name')}</span>
         <input value={name} onChange={(e) => setName(e.target.value)} />
       </label>
-      <label>
-        {L(t, 'firstName', 'First name')}
+      <label style={{ display: "block" }}>
+        <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>{L(t, 'firstName', 'First name')}</span>
         <input value={firstName} onChange={(e) => setFirstName(e.target.value)} />
       </label>
-      <label>
-        {L(t, 'lastName', 'Last name')}
+      <label style={{ display: "block" }}>
+        <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>{L(t, 'lastName', 'Last name')}</span>
         <input value={lastName} onChange={(e) => setLastName(e.target.value)} />
       </label>
-      <label>
-        {L(t, 'nickname', 'Nickname')}
+      <label style={{ display: "block" }}>
+        <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>{L(t, 'nickname', 'Nickname')}</span>
         <input value={nickname} onChange={(e) => setNickname(e.target.value)} />
       </label>
-      <label>
-        {L(t, 'email', 'Email')}
+      <label style={{ display: "block" }}>
+        <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>{L(t, 'email', 'Email')}</span>
         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
       </label>
-      <label>
-        {L(t, 'website', 'Website')}
+      <label style={{ display: "block" }}>
+        <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>{L(t, 'website', 'Website')}</span>
         <input value={website} onChange={(e) => setWebsite(e.target.value)} />
       </label>
-      <label>
-        {L(t, 'bio', 'Bio')}
+      <label style={{ display: "block" }}>
+        <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>{L(t, 'bio', 'Bio')}</span>
         <textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={3} />
       </label>
 
@@ -155,7 +157,7 @@ export function UserProfileForm() {
               gap: 8,
               cursor: 'pointer',
               padding: 8,
-              border: colorScheme === scheme.id ? '2px solid #2271b1' : '1px solid #ddd',
+              border: colorScheme === scheme.id ? '2px solid var(--wp-accent)' : '1px solid #ddd',
               borderRadius: 4,
             }}
           >
@@ -165,7 +167,7 @@ export function UserProfileForm() {
               value={scheme.id}
               checked={colorScheme === scheme.id}
               onChange={(e) => setColorScheme(e.target.value)}
-            />
+              />
             <span>
               <span style={{ display: 'block', fontSize: 12, fontWeight: 600 }}>{scheme.name}</span>
               <span style={{ display: 'flex', gap: 0 }}>
@@ -187,23 +189,23 @@ export function UserProfileForm() {
       </div>
 
       <h2 style={{ margin: '12px 0 0', fontSize: 16 }}>{L(t, 'changePassword', 'Change password')}</h2>
-      <label>
-        {L(t, 'currentPassword', 'Current password')}
+      <label style={{ display: "block" }}>
+        <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>{L(t, 'currentPassword', 'Current password')}</span>
         <input
           type="password"
           autoComplete="current-password"
           value={currentPassword}
           onChange={(e) => setCurrentPassword(e.target.value)}
-        />
+          />
       </label>
-      <label>
-        {L(t, 'newPassword', 'New password')}
+      <label style={{ display: "block" }}>
+        <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>{L(t, 'newPassword', 'New password')}</span>
         <input
           type="password"
           autoComplete="new-password"
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
-        />
+          />
       </label>
 
       <button type="submit" className="v-btn v-btn--primary" disabled={loading}>
