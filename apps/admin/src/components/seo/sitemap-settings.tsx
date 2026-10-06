@@ -54,7 +54,7 @@ export function SitemapSettings() {
   ];
 
   return (
-    <div className="v-card" style={{ maxWidth: 720 }}>
+    <div className="v-card">
       {message ? <p className="v-alert v-alert--ok">{message}</p> : null}
       {toggles.map(([key, label]) => (
         <label key={key} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
