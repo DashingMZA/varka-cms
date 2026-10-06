@@ -74,7 +74,7 @@ export function AutosaveSettings() {
             step={0.5}
             value={ms / 1000}
             onChange={(e) => setMs(Math.round(Number(e.target.value) * 1000))}
-            style={{ fontWeight: 400, padding: 8, border: '1px solid var(--wp-border)' }}
+            style={{ fontWeight: 400, padding: 8, border: '1px solid var(--border)' }}
           />
         </label>
         <p className="v-muted" style={{ fontSize: 12 }}>
