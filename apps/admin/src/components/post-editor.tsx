@@ -564,7 +564,7 @@ export function PostEditor({ postId: initialPostId }: { postId: string | null })
                       key={tg.id}
                       type="button"
                       className="v-btn"
-                      style={on ? { background: '#2271b1', color: '#fff' } : undefined}
+                      style={on ? { background: 'var(--accent)', color: '#fff' } : undefined}
                       onClick={() =>
                         setTagIds((prev) =>
                           prev.includes(tg.id)
