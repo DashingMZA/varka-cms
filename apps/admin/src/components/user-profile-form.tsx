@@ -104,10 +104,12 @@ export function UserProfileForm() {
   if (!profile && !error) return <p className="v-muted">{L(t, 'loading', 'Loading…')}</p>;
 
   return (
-    <form onSubmit={onSubmit} style={{ maxWidth: 480, display: 'grid', gap: 12 }}>
-      <h1 className="v-page-title" style={{ margin: 0 }}>
+    <>
+      <h1 className="v-page-title" style={{ margin: '0 0 16px' }}>
         {L(t, 'profile', 'Profile')}
       </h1>
+      <div className="v-card" style={{ maxWidth: 560 }}>
+    <form onSubmit={onSubmit} style={{ display: 'grid', gap: 12 }}>
       {error ? (
         <p role="alert" className="v-alert v-alert--error">
           {error}
@@ -212,5 +214,7 @@ export function UserProfileForm() {
         {loading ? L(t, 'saving', 'Saving…') : L(t, 'updateProfile', 'Update Profile')}
       </button>
     </form>
+      </div>
+    </>
   );
 }
