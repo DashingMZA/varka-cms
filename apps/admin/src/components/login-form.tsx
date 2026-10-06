@@ -67,7 +67,8 @@ export function LoginForm({
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
-  const [locale, setLocale] = useState<AppLocale>(useServerLocale);
+  const serverLocale = useServerLocale();
+  const [locale, setLocale] = useState<AppLocale>(serverLocale);
   const { t } = useMessages(locale);
 
   function mapKey(key: string): string {
