@@ -3,8 +3,38 @@
 import { use, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useMessages } from '@/lib/i18n';
+import { useServerLocale } from '@/lib/locale-provider';
 import { resetPasswordSchema, zodErrorKeys } from '@varka/validation';
 import { resetPasswordAction } from '@/actions/auth';
+
+function EyeIcon({ off }: { off?: boolean }) {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {off ? (
+        <>
+          <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+          <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+          <path d="M2 2l20 20" />
+        </>
+      ) : (
+        <>
+          <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+          <circle cx="12" cy="12" r="3" />
+        </>
+      )}
+    </svg>
+  );
+}
 
 export function ResetPasswordForm({
   searchParams,
@@ -13,9 +43,12 @@ export function ResetPasswordForm({
 }) {
   const params = use(searchParams);
   const token = params.token ?? '';
-  const { t } = useMessages();
+  const serverLocale = useServerLocale();
+  const { t } = useMessages(serverLocale);
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [passwordConfirm, setPasswordConfirm] = useState('');
+  const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [done, setDone] = useState(false);
@@ -55,58 +88,92 @@ export function ResetPasswordForm({
 
   if (!token) {
     return (
-      <div style={{ maxWidth: 360, margin: '48px auto' }}>
-        <p className="v-alert v-alert--error">{mapKey('tokenRequired')}</p>
-        <Link href="/forgot-password">{t('auth', 'forgotPassword')}</Link>
+      <div className="v-login-screen-modern">
+        <div className="v-login-modern">
+          <h1 className="v-login-brand">VARKA</h1>
+          <p className="v-login-error-modern">{mapKey('tokenRequired')}</p>
+          <p className="v-login-return">
+            <Link href="/forgot-password">{t('auth', 'forgotPassword')}</Link>
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <form
-      onSubmit={onSubmit}
-      style={{ maxWidth: 360, margin: '48px auto', display: 'grid', gap: 12 }}
-    >
-      <h1 style={{ margin: 0, fontSize: 22 }}>{t('auth', 'resetTitle')}</h1>
-      {done ? (
-        <>
-          <p className="v-alert v-alert--success">{t('auth', 'resetSuccess')}</p>
-          <Link href="/login">{t('auth', 'signIn')}</Link>
-        </>
-      ) : (
-        <>
-          <label style={{ display: 'grid', gap: 4, fontSize: 13 }}>
-            {t('auth', 'newPassword')}
-            <input
-              type="password"
-              autoComplete="new-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            {fieldErrors.password ? (
-              <span className="v-field-error">{fieldErrors.password}</span>
-            ) : null}
-          </label>
-          <label style={{ display: 'grid', gap: 4, fontSize: 13 }}>
-            {t('auth', 'passwordConfirm')}
-            <input
-              type="password"
-              autoComplete="new-password"
-              required
-              value={passwordConfirm}
-              onChange={(e) => setPasswordConfirm(e.target.value)}
-            />
-            {fieldErrors.passwordConfirm ? (
-              <span className="v-field-error">{fieldErrors.passwordConfirm}</span>
-            ) : null}
-          </label>
-          {error ? <p className="v-alert v-alert--error">{error}</p> : null}
-          <button type="submit" className="v-btn v-btn--primary" disabled={loading}>
-            {loading ? t('auth', 'signingIn') : t('auth', 'resetSubmit')}
-          </button>
-        </>
-      )}
-    </form>
+    <div className="v-login-screen-modern">
+      <div className="v-login-modern">
+        <h1 className="v-login-brand">VARKA</h1>
+        <h2 className="v-login-title">{t('auth', 'resetTitle')}</h2>
+
+        {done ? (
+          <>
+            <p className="v-login-success-modern">{t('auth', 'resetSuccess')}</p>
+            <p className="v-login-return">
+              <Link href="/login">{t('auth', 'signIn')}</Link>
+            </p>
+          </>
+        ) : (
+          <form className="v-login-form-modern" onSubmit={onSubmit}>
+            <div className="v-login-field">
+              <span className="v-login-field-label">{t('auth', 'newPassword')}</span>
+              <div className="v-login-password-wrap">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={t('auth', 'passwordPlaceholder')}
+                  aria-label={t('auth', 'newPassword')}
+                />
+                <button
+                  type="button"
+                  className="v-login-eye"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? t('auth', 'hidePassword') : t('auth', 'showPassword')}
+                  tabIndex={-1}
+                >
+                  <EyeIcon off={showPassword} />
+                </button>
+              </div>
+              {fieldErrors.password ? (
+                <span className="v-field-error">{fieldErrors.password}</span>
+              ) : null}
+            </div>
+            <div className="v-login-field">
+              <span className="v-login-field-label">{t('auth', 'passwordConfirm')}</span>
+              <div className="v-login-password-wrap">
+                <input
+                  type={showConfirm ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  required
+                  value={passwordConfirm}
+                  onChange={(e) => setPasswordConfirm(e.target.value)}
+                  placeholder={t('auth', 'passwordPlaceholder')}
+                  aria-label={t('auth', 'passwordConfirm')}
+                />
+                <button
+                  type="button"
+                  className="v-login-eye"
+                  onClick={() => setShowConfirm((v) => !v)}
+                  aria-label={showConfirm ? t('auth', 'hidePassword') : t('auth', 'showPassword')}
+                  tabIndex={-1}
+                >
+                  <EyeIcon off={showConfirm} />
+                </button>
+              </div>
+              {fieldErrors.passwordConfirm ? (
+                <span className="v-field-error">{fieldErrors.passwordConfirm}</span>
+              ) : null}
+            </div>
+            {error ? <p className="v-login-error-modern">{error}</p> : null}
+            <button type="submit" className="v-login-submit-modern" disabled={loading}>
+              {loading ? t('auth', 'signingIn') : t('auth', 'resetSubmit')}
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
   );
 }
