@@ -204,6 +204,10 @@ export function createAuth() {
         sameSite: 'lax',
         path: '/',
       },
+      database: {
+        // User.id is Int autoincrement — use serial ID generation
+        generateId: "serial",
+      },
     },
     trustedOrigins,
     plugins: [
