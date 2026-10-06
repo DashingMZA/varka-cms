@@ -72,10 +72,72 @@ function createClient(): PrismaClient {
   const { PrismaClient: PrismaClientCtor } = require('@prisma/client') as {
     PrismaClient: new (args?: unknown) => PrismaClient;
   };
-  return new PrismaClientCtor({
+  const client = new PrismaClientCtor({
     adapter,
     log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
   });
+
+  // Better Auth passes user IDs as strings; User.id is Int. Convert string
+  // IDs to numbers for User-related models to avoid Prisma type errors.
+  const INT_ID_FIELDS: Record<string, string[]> = {
+    User: ['id'],
+    Session: ['userId'],
+    Account: ['userId'],
+    TwoFactor: ['userId'],
+    UserRole: ['userId'],
+    AuthorProfile: ['userId'],
+    Post: ['authorId'],
+    Page: ['authorId'],
+    Revision: ['authorId'],
+    Comment: ['authorUserId'],
+    MediaAsset: ['uploadedById'],
+  };
+
+  function convertIds(obj: unknown, fields: string[]): void {
+    if (!obj || typeof obj !== 'object') return;
+    if (Array.isArray(obj)) {
+      for (const item of obj) convertIds(item, fields);
+      return;
+    }
+    const rec = obj as Record<string, unknown>;
+    for (const key of Object.keys(rec)) {
+      const val = rec[key];
+      if (fields.includes(key)) {
+        if (typeof val === 'string' && /^\d+$/.test(val)) {
+          rec[key] = parseInt(val, 10);
+        } else if (val && typeof val === 'object') {
+          const cond = val as Record<string, unknown>;
+          for (const op of ['equals', 'not', 'lt', 'lte', 'gt', 'gte']) {
+            if (typeof cond[op] === 'string' && /^\d+$/.test(cond[op] as string)) {
+              cond[op] = parseInt(cond[op] as string, 10);
+            }
+          }
+          for (const op of ['in', 'notIn']) {
+            if (Array.isArray(cond[op])) {
+              cond[op] = (cond[op] as unknown[]).map((v) =>
+                typeof v === 'string' && /^\d+$/.test(v) ? parseInt(v, 10) : v
+              );
+            }
+          }
+        }
+      } else if (val && typeof val === 'object') {
+        convertIds(val, fields);
+      }
+    }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  client.$use(async (params: any, next: any) => {
+    const fields = INT_ID_FIELDS[params.model ?? ''];
+    if (fields && params.args) {
+      const args = params.args as Record<string, unknown>;
+      if (args.where) convertIds(args.where, fields);
+      if (args.data) convertIds(args.data, fields);
+    }
+    return next(params);
+  });
+
+  return client;
 }
 
 function getPrisma(): PrismaClient {
