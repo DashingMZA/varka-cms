@@ -56,10 +56,23 @@ export function UserProfileForm() {
     })();
   }, []);
 
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
     setMessage(null);
+    // Show password confirmation modal first
+    setShowConfirm(true);
+  }
+
+  async function onConfirmSubmit() {
+    if (!confirmPassword) {
+      setError('Please enter your password to confirm');
+      return;
+    }
+    setShowConfirm(false);
     setLoading(true);
     const res = await updateMyProfileAction({
       firstName,
@@ -69,11 +82,13 @@ export function UserProfileForm() {
       bio,
       email,
       name,
+      confirmPassword,
       ...(newPassword
         ? { newPassword, currentPassword }
         : {}),
     });
     setLoading(false);
+    setConfirmPassword('');
     if (!res.ok) {
       setError(res.error);
       return;
@@ -150,6 +165,56 @@ export function UserProfileForm() {
         {loading ? L(t, 'saving', 'Saving…') : L(t, 'updateProfile', 'Update Profile')}
       </button>
     </form>
+
+    {showConfirm ? (
+      <div
+        style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+        }}
+        onClick={() => setShowConfirm(false)}
+      >
+        <div
+          className="v-card"
+          style={{ maxWidth: 400, width: '90%', padding: 24 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <h3 style={{ margin: '0 0 8px', fontSize: 16 }}>Confirm with password</h3>
+          <p className="v-muted" style={{ fontSize: 13, marginBottom: 16 }}>
+            Enter your current password to apply profile changes.
+          </p>
+          <div className="v-field">
+            <label htmlFor="pf-confirm">Password</label>
+            <input
+              id="pf-confirm"
+              type="password"
+              autoComplete="current-password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') void onConfirmSubmit(); }}
+              autoFocus
+            />
+          </div>
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16 }}>
+            <button
+              type="button"
+              className="v-btn"
+              onClick={() => { setShowConfirm(false); setConfirmPassword(''); }}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="v-btn v-btn--primary"
+              onClick={() => void onConfirmSubmit()}
+              disabled={loading}
+            >
+              Confirm & Save
+            </button>
+          </div>
+        </div>
+      </div>
+    ) : null}
       </div>
   );
 }
