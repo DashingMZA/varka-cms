@@ -20,7 +20,7 @@ type Glance = {
 };
 
 type Activity = {
-  posts: { id: string; title: string; status: string; updatedAt: string }[];
+  posts: { id: string; slug?: string; title: string; status: string; updatedAt: string }[];
   comments: {
     id: string;
     authorName: string;
@@ -310,15 +310,14 @@ export function DashboardHome() {
                 <p className="v-muted">{t('common', 'loading') || 'Loading…'}</p>
               ) : (
                 <>
-                  <h3 className="v-subh">{t('nav', 'posts') || 'Posts'}</h3>
+                  <h3 className="v-subh">{t('dashboard', 'recentlyPublished') || 'Recently Published'}</h3>
                   <ul className="v-activity">
                     {(activity.posts ?? []).slice(0, 5).map((p) => (
-                      <li key={p.id}>
-                        <Link href={`/content/posts/${p.id}`}>{p.title || 'Untitled'}</Link>
-                        <span className="v-muted"> — {p.status.toLowerCase()}</span>
-                        <time dateTime={p.updatedAt}>
-                          {new Date(p.updatedAt).toLocaleString()}
+                      <li key={p.id} className="v-activity-row">
+                        <time dateTime={p.updatedAt} className="v-activity-date">
+                          {new Date(p.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                         </time>
+                        <Link href={`/content/posts/${p.slug || p.id}`}>{p.title || 'Untitled'}</Link>
                       </li>
                     ))}
                     {(activity.posts ?? []).length === 0 ? (
@@ -392,6 +391,32 @@ export function DashboardHome() {
             )}
           </div>
         </section>
+
+        <section className="v-postbox">
+          <h2 className="v-postbox__h">{t('dashboard', 'news') || 'News'}</h2>
+          <div className="v-postbox__b">
+            <p className="v-muted" style={{ margin: '0 0 12px' }}>
+              {t('dashboard', 'newsDesc') || 'Latest updates from VARKA.'}
+            </p>
+            <ul className="v-news-list">
+              <li>
+                <a href="https://github.com/DashingMZA/varka-cms/releases" target="_blank" rel="noreferrer">
+                  {t('dashboard', 'newsReleases') || 'VARKA releases'}
+                </a>
+              </li>
+              <li>
+                <a href="https://github.com/DashingMZA/varka-cms" target="_blank" rel="noreferrer">
+                  {t('dashboard', 'newsGithub') || 'VARKA on GitHub'}
+                </a>
+              </li>
+              <li>
+                <Link href="/dashboard/updates">
+                  {t('dashboard', 'newsUpdates') || 'Check for updates'}
+                </Link>
+              </li>
+            </ul>
+          </div>
+        </section>
       </div>
     </div>
   );
@@ -400,6 +425,7 @@ export function DashboardHome() {
 function QuickDraft() {
   const { t } = useMessages();
   const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
   const [msg, setMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -410,7 +436,15 @@ function QuickDraft() {
     try {
       const result = await createPostAction(title.trim() || 'Untitled');
       if (result.ok) {
-        window.location.href = `/content/posts/${result.data.id}`;
+        // If content was entered, save it too
+        if (content.trim()) {
+          const { updatePostAction } = await import('@/actions/posts');
+          await updatePostAction(result.data.id, {
+            title: title.trim(),
+            contentHtml: content.trim(),
+          } as never);
+        }
+        window.location.href = `/content/posts/${result.data.slug || result.data.id}`;
       } else {
         setMsg(result.error);
       }
@@ -426,13 +460,19 @@ function QuickDraft() {
       <label>
         <input
           type="text"
-          placeholder={t('posts', 'titlePlaceholder') || 'Post title'}
+          placeholder={t('posts', 'titlePlaceholder') || 'Title'}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           style={{ width: '100%' }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') void create();
-          }}
+        />
+      </label>
+      <label>
+        <textarea
+          placeholder={t('dashboard', 'quickDraftContent') || "What's on your mind?"}
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          rows={4}
+          style={{ width: '100%', resize: 'vertical' }}
         />
       </label>
       <div>
