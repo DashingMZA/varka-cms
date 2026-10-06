@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { getMyProfileAction, updateMyProfileAction } from '@/actions/users';
+import { getMyProfileAction, updateMyProfileAction, getUserProfileAction, updateUserProfileAction } from '@/actions/users';
 import { useMessages } from '@/lib/i18n';
 import { PasswordInput } from '@/components/password-input';
 
@@ -41,8 +41,9 @@ const SOCIAL_FIELDS = [
   { key: 'linkedinUrl', label: 'LinkedIn' },
 ] as const;
 
-export function UserProfileForm() {
+export function UserProfileForm({ userId }: { userId?: string }) {
   const { t } = useMessages();
+  const isEditingOther = Boolean(userId);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -61,7 +62,7 @@ export function UserProfileForm() {
 
   useEffect(() => {
     void (async () => {
-      const res = await getMyProfileAction();
+      const res = userId ? await getUserProfileAction(userId) : await getMyProfileAction();
       if (!res.ok) {
         setError(res.error);
         return;
@@ -95,8 +96,41 @@ export function UserProfileForm() {
     e.preventDefault();
     setError(null);
     setMessage(null);
+    // Required field validation (WordPress-style)
+    if (!firstName.trim()) { setError('First Name is required'); return; }
+    if (!lastName.trim()) { setError('Last Name is required'); return; }
+    if (!nickname.trim()) { setError('Nickname is required'); return; }
+    if (!email.trim()) { setError('Email is required'); return; }
+    if (isEditingOther) {
+      // Admin editing another user — no password confirmation needed
+      await onAdminSubmit();
+      return;
+    }
     // Show password confirmation modal first
     setShowConfirm(true);
+  }
+
+  async function onAdminSubmit() {
+    setLoading(true);
+    const res = await updateUserProfileAction(userId!, {
+      firstName,
+      lastName,
+      nickname,
+      website,
+      bio,
+      email,
+      name,
+      displayNameAs,
+      ...socials,
+      ...(newPassword ? { newPassword } : {}),
+    });
+    setLoading(false);
+    if (!res.ok) {
+      setError(res.error);
+      return;
+    }
+    setMessage(L(t, 'profileUpdated', 'Profile updated'));
+    setNewPassword('');
   }
 
   async function onConfirmSubmit() {
