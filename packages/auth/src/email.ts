@@ -289,14 +289,7 @@ async function sendViaSmtp(
   config: DbSmtpConfig,
   mail: { to: string; subject: string; text: string },
 ): Promise<void> {
-  // Dynamic require to avoid hard dependency at type-check time
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  let nodemailer: any;
-  try {
-    nodemailer = require('nodemailer');
-  } catch {
-    throw new Error('nodemailer not installed. Run: pnpm add nodemailer --filter @varka/auth');
-  }
+  const nodemailer = await import('nodemailer');
   const transporter = nodemailer.createTransport({
     host: config.host,
     port: config.port,
