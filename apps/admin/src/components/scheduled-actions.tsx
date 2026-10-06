@@ -57,6 +57,7 @@ export function ScheduledActions() {
       {posts.length === 0 ? (
         <p className="v-muted">{L(t, 'noScheduled', 'No scheduled posts.')}</p>
       ) : (
+        <div className="v-table-wrap">
         <table className="v-table">
           <thead>
             <tr>
@@ -81,6 +82,7 @@ export function ScheduledActions() {
             ))}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   );
