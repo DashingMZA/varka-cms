@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getMyProfileAction, updateMyProfileAction } from '@/actions/users';
+import { getMyProfileAction, updateColorSchemeAction } from '@/actions/users';
 import { useMessages } from '@/lib/i18n';
 
 const COLOR_SCHEMES = [
@@ -41,7 +41,7 @@ export function AdminColorScheme() {
     setScheme(id);
     applyScheme(id); // live preview
     setSaving(true);
-    const res = await updateMyProfileAction({ adminColorScheme: id });
+    const res = await updateColorSchemeAction(id);
     setSaving(false);
     if (!res.ok) {
       // revert on failure - refetch
