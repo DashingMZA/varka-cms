@@ -19,7 +19,7 @@
   text-decoration: none;
   padding: 0 0 8px;
 }
-.v-login-logo a:hover { color: #135e96; }
+.v-login-logo a:hover { color: var(--accent-hover); }
 .v-login-card {
   width: 100%;
   max-width: 320px;
@@ -65,15 +65,15 @@
   padding: 0 12px;
   font-size: 13px;
   line-height: 2.15384615;
-  background: #2271b1 !important;
-  border-color: #2271b1 !important;
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
   color: #fff !important;
   box-shadow: none;
   margin-top: 4px;
 }
 .v-login-form .v-login-submit:hover {
-  background: #135e96 !important;
-  border-color: #135e96 !important;
+  background: var(--accent-hover) !important;
+  border-color: var(--accent-hover) !important;
 }
 .v-login-form .v-login-error {
   margin: 0;
@@ -90,11 +90,11 @@
   font-size: 12px;
   margin-top: 4px;
 }
-.v-login-form a { color: #2271b1; font-size: 13px; }
-.v-login-form a:hover { color: #135e96; }
+.v-login-form a { color: var(--accent); font-size: 13px; }
+.v-login-form a:hover { color: var(--accent-hover); }
 .v-login-back { margin: 0; font-size: 13px; text-align: center; }
 .v-login-back a { color: #50575e; text-decoration: none; }
-.v-login-back a:hover { color: #135e96; }
+.v-login-back a:hover { color: var(--accent-hover); }
 .v-login-form select {
   width: 100%;
   min-height: 30px;
@@ -198,8 +198,8 @@
 }
 .v-media__item:hover { border-color: #8c8f94; }
 .v-media__item.is-selected {
-  border-color: #2271b1;
-  box-shadow: inset 0 0 0 2px #2271b1;
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 2px var(--accent);
 }
 .v-media__item img {
   width: 100%;
