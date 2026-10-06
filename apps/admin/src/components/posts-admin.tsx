@@ -495,331 +495,333 @@ export function PostsAdmin({
       </div>
 
       <div className="v-list-table-wrap">
-      <table className="v-list-table">
-        <thead>
-          <tr>
-            <td className="check-column">
-              <input
-                type="checkbox"
-                checked={filtered.length > 0 && selected.size === filtered.length}
-                onChange={(e) => {
-                  if (e.target.checked) setSelected(new Set(filtered.map((p) => p.id)));
-                  else setSelected(new Set());
-                }}
-              />
-            </td>
-            <th>{t('blogs', 'titleCol')}</th>
-            {cols.author ? <th>{t('blogs', 'author')}</th> : null}
-            {cols.categories ? <th>{t('blogs', 'categories')}</th> : null}
-            {cols.tags ? <th>{t('blogs', 'tags')}</th> : null}
-            {cols.comments ? <th style={{ textAlign: 'center' }}>💬</th> : null}
-            <th>{t('blogs', 'status')}</th>
-            {cols.date ? <th>{t('blogs', 'date')}</th> : null}
-            {cols.seo ? <th>{t('blogs', 'seoDetails') || 'SEO Details'}</th> : null}
-          </tr>
-        </thead>
-        <tbody>
-          {loading && filtered.length === 0 ? (
+            <div className="v-card" style={{ padding: 0, overflow: "hidden" }}>
+  <table className="v-list-table">
+          <thead>
             <tr>
-              <td colSpan={7} className="v-muted">
-                {t('common', 'loading')}
+              <td className="check-column">
+                <input
+                  type="checkbox"
+                  checked={filtered.length > 0 && selected.size === filtered.length}
+                  onChange={(e) => {
+                    if (e.target.checked) setSelected(new Set(filtered.map((p) => p.id)));
+                    else setSelected(new Set());
+                  }}
+                />
               </td>
+              <th>{t('blogs', 'titleCol')}</th>
+              {cols.author ? <th>{t('blogs', 'author')}</th> : null}
+              {cols.categories ? <th>{t('blogs', 'categories')}</th> : null}
+              {cols.tags ? <th>{t('blogs', 'tags')}</th> : null}
+              {cols.comments ? <th style={{ textAlign: 'center' }}>💬</th> : null}
+              <th>{t('blogs', 'status')}</th>
+              {cols.date ? <th>{t('blogs', 'date')}</th> : null}
+              {cols.seo ? <th>{t('blogs', 'seoDetails') || 'SEO Details'}</th> : null}
             </tr>
-          ) : filtered.length === 0 ? (
-            <tr>
-              <td colSpan={7}>{t('blogs', 'noPosts')}</td>
-            </tr>
-          ) : (
-            filtered.map((p) => {
-              const title = p.translations?.[0]?.title || '(no title)';
-              const colSpan =
-                3 +
-                (cols.author ? 1 : 0) +
-                (cols.categories ? 1 : 0) +
-                (cols.tags ? 1 : 0) +
-                (cols.comments ? 1 : 0) +
-                (cols.date ? 1 : 0) +
-                (cols.seo ? 1 : 0);
-              return (
-                <Fragment key={p.id}>
-                  <tr>
-                  <th className="check-column">
-                    <input
-                      type="checkbox"
-                      checked={selected.has(p.id)}
-                      onChange={(e) => {
-                        setSelected((prev) => {
-                          const next = new Set(prev);
-                          if (e.target.checked) next.add(p.id);
-                          else next.delete(p.id);
-                          return next;
-                        });
-                      }}
-                    />
-                  </th>
-                  <td>
-                    <strong>
-                      <Link href={`/content/posts/${p.translations?.[0]?.slug || p.id}`} className="row-title">
-                        {title}
-                      </Link>
-                    </strong>
-                    <div className="row-actions">
-                      {status === 'trash' ? (
-                        <>
-                          <span>
-                            <a
-                              href="#"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                void (async () => {
-                                  await restorePostAction(p.id);
-                                  await load();
-                                })();
-                              }}
-                            >
-                              {t('blogs', 'restore') || 'Restore'}
-                            </a>
-                          </span>
-                          {' | '}
-                          <span>
+          </thead>
+          <tbody>
+            {loading && filtered.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="v-muted">
+                  {t('common', 'loading')}
+                </td>
+              </tr>
+            ) : filtered.length === 0 ? (
+              <tr>
+                <td colSpan={7}>{t('blogs', 'noPosts')}</td>
+              </tr>
+            ) : (
+              filtered.map((p) => {
+                const title = p.translations?.[0]?.title || '(no title)';
+                const colSpan =
+                  3 +
+                  (cols.author ? 1 : 0) +
+                  (cols.categories ? 1 : 0) +
+                  (cols.tags ? 1 : 0) +
+                  (cols.comments ? 1 : 0) +
+                  (cols.date ? 1 : 0) +
+                  (cols.seo ? 1 : 0);
+                return (
+                  <Fragment key={p.id}>
+                    <tr>
+                    <th className="check-column">
+                      <input
+                        type="checkbox"
+                        checked={selected.has(p.id)}
+                        onChange={(e) => {
+                          setSelected((prev) => {
+                            const next = new Set(prev);
+                            if (e.target.checked) next.add(p.id);
+                            else next.delete(p.id);
+                            return next;
+                          });
+                        }}
+                      />
+                    </th>
+                    <td>
+                      <strong>
+                        <Link href={`/content/posts/${p.translations?.[0]?.slug || p.id}`} className="row-title">
+                          {title}
+                        </Link>
+                      </strong>
+                      <div className="row-actions">
+                        {status === 'trash' ? (
+                          <>
+                            <span>
+                              <a
+                                href="#"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  void (async () => {
+                                    await restorePostAction(p.id);
+                                    await load();
+                                  })();
+                                }}
+                              >
+                                {t('blogs', 'restore') || 'Restore'}
+                              </a>
+                            </span>
+                            {' | '}
+                            <span>
+                              <a
+                                href="#"
+                                className="trash"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  if (window.confirm(t('blogs', 'deletePermanentlyConfirm') || 'Permanently delete this item? This cannot be undone.')) {
+                                    void (async () => {
+                                      await deletePostPermanentlyAction(p.id);
+                                      await load();
+                                    })();
+                                  }
+                                }}
+                              >
+                                {t('blogs', 'deletePermanently') || 'Delete Permanently'}
+                              </a>
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <span>
+                              <Link href={`/content/posts/${p.translations?.[0]?.slug || p.id}`}>{t('common', 'edit') || 'Edit'}</Link>
+                            </span>
+                            {' | '}
+                            <span>
+                              <a
+                                href="#"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  if (quickEditId === p.id) closeQuickEdit();
+                                  else void openQuickEdit(p);
+                                }}
+                              >
+                                {t('blogs', 'quickEdit') || 'Quick Edit'}
+                              </a>
+                            </span>
+                            {' | '}
                             <a
                               href="#"
                               className="trash"
                               onClick={(e) => {
                                 e.preventDefault();
-                                if (window.confirm(t('blogs', 'deletePermanentlyConfirm') || 'Permanently delete this item? This cannot be undone.')) {
-                                  void (async () => {
-                                    await deletePostPermanentlyAction(p.id);
-                                    await load();
-                                  })();
-                                }
+                                void (async () => {
+                                  await trashPostAction(p.id);
+                                  await load();
+                                })();
                               }}
                             >
-                              {t('blogs', 'deletePermanently') || 'Delete Permanently'}
+                              {t('common', 'trash') || 'Trash'}
                             </a>
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          <span>
-                            <Link href={`/content/posts/${p.translations?.[0]?.slug || p.id}`}>{t('common', 'edit') || 'Edit'}</Link>
-                          </span>
-                          {' | '}
-                          <span>
-                            <a
-                              href="#"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                if (quickEditId === p.id) closeQuickEdit();
-                                else void openQuickEdit(p);
+                            {' | '}
+                            <span>
+                              <Link href={`/content/posts/${p.translations?.[0]?.slug || p.id}?preview=1`} target="_blank" rel="noreferrer">
+                                {t('common', 'view') || 'View'}
+                              </Link>
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                    {cols.author ? <td>{p.author?.name || p.author?.email || '—'}</td> : null}
+                    {cols.categories ? (
+                      <td>
+                        {(p.categories ?? []).length > 0
+                          ? (p.categories ?? []).map((c) => (
+                              <span key={c.id}>
+                                <Link href={`/content/posts?category=${c.id}`}>
+                                  {c.translations?.[0]?.name || c.id}
+                                </Link>{' '}
+                              </span>
+                            ))
+                          : '—'}
+                      </td>
+                    ) : null}
+                    {cols.tags ? (
+                      <td>
+                        {(p.tags ?? []).length > 0
+                          ? (p.tags ?? []).map((tg) => (
+                              <span key={tg.id}>
+                                <Link href={`/content/posts?tag=${tg.id}`}>
+                                  {tg.translations?.[0]?.name || tg.id}
+                                </Link>{' '}
+                              </span>
+                            ))
+                          : '—'}
+                      </td>
+                    ) : null}
+                    {cols.comments ? (
+                      <td style={{ textAlign: 'center' }}>
+                        <Link href={`/comments?post=${p.id}`} title={t('blogs', 'comments') || 'Comments'}>
+                          {(p as { _count?: { comments?: number } })._count?.comments ?? '—'}
+                        </Link>
+                      </td>
+                    ) : null}
+                    <td>{p.status}</td>
+                    {cols.date ? (
+                      <td>{p.publishedAt || p.updatedAt || '—'}</td>
+                    ) : null}
+                    {cols.seo ? (
+                      <td>
+                        {(() => {
+                          // Basic SEO score: title + excerpt + featured image
+                          const tr = p.translations?.[0];
+                          let score = 0;
+                          if (tr?.title && tr.title.length >= 10) score += 40;
+                          if ((p as { excerpt?: string }).excerpt) score += 30;
+                          if ((p as { seoTitle?: string }).seoTitle) score += 15;
+                          if ((p as { seoDescription?: string }).seoDescription) score += 15;
+                          const color = score >= 70 ? '#46b450' : score >= 40 ? '#ffb900' : '#dc3232';
+                          return (
+                            <span
+                              style={{
+                                display: 'inline-block',
+                                background: color,
+                                color: '#fff',
+                                padding: '2px 8px',
+                                borderRadius: 3,
+                                fontSize: 12,
+                                fontWeight: 600,
                               }}
+                              title={`${score}/100`}
                             >
-                              {t('blogs', 'quickEdit') || 'Quick Edit'}
-                            </a>
-                          </span>
-                          {' | '}
-                          <a
-                            href="#"
-                            className="trash"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              void (async () => {
-                                await trashPostAction(p.id);
-                                await load();
-                              })();
-                            }}
-                          >
-                            {t('common', 'trash') || 'Trash'}
-                          </a>
-                          {' | '}
-                          <span>
-                            <Link href={`/content/posts/${p.translations?.[0]?.slug || p.id}?preview=1`} target="_blank" rel="noreferrer">
-                              {t('common', 'view') || 'View'}
-                            </Link>
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  </td>
-                  {cols.author ? <td>{p.author?.name || p.author?.email || '—'}</td> : null}
-                  {cols.categories ? (
-                    <td>
-                      {(p.categories ?? []).length > 0
-                        ? (p.categories ?? []).map((c) => (
-                            <span key={c.id}>
-                              <Link href={`/content/posts?category=${c.id}`}>
-                                {c.translations?.[0]?.name || c.id}
-                              </Link>{' '}
+                              {score} / 100
                             </span>
-                          ))
-                        : '—'}
-                    </td>
-                  ) : null}
-                  {cols.tags ? (
-                    <td>
-                      {(p.tags ?? []).length > 0
-                        ? (p.tags ?? []).map((tg) => (
-                            <span key={tg.id}>
-                              <Link href={`/content/posts?tag=${tg.id}`}>
-                                {tg.translations?.[0]?.name || tg.id}
-                              </Link>{' '}
-                            </span>
-                          ))
-                        : '—'}
-                    </td>
-                  ) : null}
-                  {cols.comments ? (
-                    <td style={{ textAlign: 'center' }}>
-                      <Link href={`/comments?post=${p.id}`} title={t('blogs', 'comments') || 'Comments'}>
-                        {(p as { _count?: { comments?: number } })._count?.comments ?? '—'}
-                      </Link>
-                    </td>
-                  ) : null}
-                  <td>{p.status}</td>
-                  {cols.date ? (
-                    <td>{p.publishedAt || p.updatedAt || '—'}</td>
-                  ) : null}
-                  {cols.seo ? (
-                    <td>
-                      {(() => {
-                        // Basic SEO score: title + excerpt + featured image
-                        const tr = p.translations?.[0];
-                        let score = 0;
-                        if (tr?.title && tr.title.length >= 10) score += 40;
-                        if ((p as { excerpt?: string }).excerpt) score += 30;
-                        if ((p as { seoTitle?: string }).seoTitle) score += 15;
-                        if ((p as { seoDescription?: string }).seoDescription) score += 15;
-                        const color = score >= 70 ? '#46b450' : score >= 40 ? '#ffb900' : '#dc3232';
-                        return (
-                          <span
-                            style={{
-                              display: 'inline-block',
-                              background: color,
-                              color: '#fff',
-                              padding: '2px 8px',
-                              borderRadius: 3,
-                              fontSize: 12,
-                              fontWeight: 600,
-                            }}
-                            title={`${score}/100`}
-                          >
-                            {score} / 100
-                          </span>
-                        );
-                      })()}
-                    </td>
-                  ) : null}
-                </tr>
-                {quickEditId === p.id ? (
-                  <tr className="v-quick-edit-row">
-                    <td colSpan={colSpan} style={{ background: '#f6f7f7' }}>
-                      <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
-                        <legend style={{ fontWeight: 600, marginBottom: 8 }}>
-                          {t('blogs', 'quickEdit') || 'Quick Edit'}
-                        </legend>
-                        {qeLoading && !qe ? (
-                          <p className="v-muted">{t('common', 'loading') || 'Loading\u2026'}</p>
-                        ) : qe ? (
-                          <div
-                            style={{
-                              display: 'grid',
-                              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                              gap: 12,
-                              alignItems: 'end',
-                            }}
-                          >
-                            <label style={{ display: 'block' }}>
-                              <span style={{ display: 'block', fontSize: 12, marginBottom: 4 }}>
-                                {t('blogs', 'titleCol') || 'Title'}
-                              </span>
-                              <input
-                                value={qe.title}
-                                onChange={(e) => setQe({ ...qe, title: e.target.value })}
-                                style={{ width: '100%' }}
-                              />
-                            </label>
-                            <label style={{ display: 'block' }}>
-                              <span style={{ display: 'block', fontSize: 12, marginBottom: 4 }}>
-                                {t('blogs', 'slug') || 'Slug'}
-                              </span>
-                              <input
-                                value={qe.slug}
-                                onChange={(e) => setQe({ ...qe, slug: e.target.value })}
-                                style={{ width: '100%' }}
-                              />
-                            </label>
-                            <label style={{ display: 'block' }}>
-                              <span style={{ display: 'block', fontSize: 12, marginBottom: 4 }}>
-                                {t('blogs', 'status') || 'Status'}
-                              </span>
-                              <select
-                                value={qe.status}
-                                onChange={(e) => setQe({ ...qe, status: e.target.value })}
-                                style={{ width: '100%' }}
-                              >
-                                <option value="PUBLISHED">{t('blogs', 'published') || 'Published'}</option>
-                                <option value="DRAFT">{t('blogs', 'draft') || 'Draft'}</option>
-                                <option value="PENDING_REVIEW">{t('blogs', 'pending') || 'Pending'}</option>
-                                <option value="TRASHED">{t('blogs', 'trash') || 'Trash'}</option>
-                              </select>
-                            </label>
-                            <div style={{ display: 'flex', gap: 8 }}>
-                              <button
-                                type="button"
-                                className="v-btn v-btn--primary v-btn--small"
-                                disabled={qeLoading}
-                                onClick={() => void saveQuickEdit()}
-                              >
-                                {t('common', 'update') || 'Update'}
-                              </button>
-                              <button
-                                type="button"
-                                className="v-btn v-btn--small"
-                                disabled={qeLoading}
-                                onClick={closeQuickEdit}
-                              >
-                                {t('common', 'cancel') || 'Cancel'}
-                              </button>
-                            </div>
-                          </div>
-                        ) : null}
-                        {qeError ? (
-                          <p role="alert" className="v-alert v-alert--error" style={{ marginTop: 8 }}>
-                            {qeError}
-                          </p>
-                        ) : null}
-                      </fieldset>
-                    </td>
+                          );
+                        })()}
+                      </td>
+                    ) : null}
                   </tr>
-                ) : null}
-                </Fragment>
-              );
-            })
-          )}
-        </tbody>
-      </table>
-      </div>
-      {total > perPage ? (
-        <div className="v-pagination" style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, justifyContent: 'center' }}>
-          <button
-            className="v-btn v-btn--small"
-            disabled={page <= 1 || loading}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-          >
-            ← {t('common', 'previous')}
-          </button>
-          <span className="v-muted" style={{ fontSize: 13 }}>
-            {t('common', 'page')} {page} {t('common', 'of')} {Math.ceil(total / perPage)} ({total} {t('common', 'items')})
-          </span>
-          <button
-            className="v-btn v-btn--small"
-            disabled={page >= Math.ceil(total / perPage) || loading}
-            onClick={() => setPage((p) => p + 1)}
-          >
-            {t('common', 'next')} →
-          </button>
+                  {quickEditId === p.id ? (
+                    <tr className="v-quick-edit-row">
+                      <td colSpan={colSpan} style={{ background: '#f6f7f7' }}>
+                        <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
+                          <legend style={{ fontWeight: 600, marginBottom: 8 }}>
+                            {t('blogs', 'quickEdit') || 'Quick Edit'}
+                          </legend>
+                          {qeLoading && !qe ? (
+                            <p className="v-muted">{t('common', 'loading') || 'Loading\u2026'}</p>
+                          ) : qe ? (
+                            <div
+                              style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                                gap: 12,
+                                alignItems: 'end',
+                              }}
+                            >
+                              <label style={{ display: 'block' }}>
+                                <span style={{ display: 'block', fontSize: 12, marginBottom: 4 }}>
+                                  {t('blogs', 'titleCol') || 'Title'}
+                                </span>
+                                <input
+                                  value={qe.title}
+                                  onChange={(e) => setQe({ ...qe, title: e.target.value })}
+                                  style={{ width: '100%' }}
+                                />
+                              </label>
+                              <label style={{ display: 'block' }}>
+                                <span style={{ display: 'block', fontSize: 12, marginBottom: 4 }}>
+                                  {t('blogs', 'slug') || 'Slug'}
+                                </span>
+                                <input
+                                  value={qe.slug}
+                                  onChange={(e) => setQe({ ...qe, slug: e.target.value })}
+                                  style={{ width: '100%' }}
+                                />
+                              </label>
+                              <label style={{ display: 'block' }}>
+                                <span style={{ display: 'block', fontSize: 12, marginBottom: 4 }}>
+                                  {t('blogs', 'status') || 'Status'}
+                                </span>
+                                <select
+                                  value={qe.status}
+                                  onChange={(e) => setQe({ ...qe, status: e.target.value })}
+                                  style={{ width: '100%' }}
+                                >
+                                  <option value="PUBLISHED">{t('blogs', 'published') || 'Published'}</option>
+                                  <option value="DRAFT">{t('blogs', 'draft') || 'Draft'}</option>
+                                  <option value="PENDING_REVIEW">{t('blogs', 'pending') || 'Pending'}</option>
+                                  <option value="TRASHED">{t('blogs', 'trash') || 'Trash'}</option>
+                                </select>
+                              </label>
+                              <div style={{ display: 'flex', gap: 8 }}>
+                                <button
+                                  type="button"
+                                  className="v-btn v-btn--primary v-btn--small"
+                                  disabled={qeLoading}
+                                  onClick={() => void saveQuickEdit()}
+                                >
+                                  {t('common', 'update') || 'Update'}
+                                </button>
+                                <button
+                                  type="button"
+                                  className="v-btn v-btn--small"
+                                  disabled={qeLoading}
+                                  onClick={closeQuickEdit}
+                                >
+                                  {t('common', 'cancel') || 'Cancel'}
+                                </button>
+                              </div>
+                            </div>
+                          ) : null}
+                          {qeError ? (
+                            <p role="alert" className="v-alert v-alert--error" style={{ marginTop: 8 }}>
+                              {qeError}
+                            </p>
+                          ) : null}
+                        </fieldset>
+                      </td>
+                    </tr>
+                  ) : null}
+                  </Fragment>
+                );
+              })
+            )}
+          </tbody>
+        </table>
         </div>
-      ) : null}
-    </div>
-  );
-}
+        </div>
+        {total > perPage ? (
+          <div className="v-pagination" style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, justifyContent: 'center' }}>
+            <button
+              className="v-btn v-btn--small"
+              disabled={page <= 1 || loading}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              ← {t('common', 'previous')}
+            </button>
+            <span className="v-muted" style={{ fontSize: 13 }}>
+              {t('common', 'page')} {page} {t('common', 'of')} {Math.ceil(total / perPage)} ({total} {t('common', 'items')})
+            </span>
+            <button
+              className="v-btn v-btn--small"
+              disabled={page >= Math.ceil(total / perPage) || loading}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              {t('common', 'next')} →
+            </button>
+          </div>
+        ) : null}
+      </div>
+    );
+  }
