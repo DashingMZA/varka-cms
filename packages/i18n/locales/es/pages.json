@@ -43,5 +43,7 @@
   "titleCol": "Título",
   "titleRequired": "El título es obligatorio",
   "trash": "Papelera",
-  "writeContent": "Escribe el contenido de la página…"
+  "writeContent": "Escribe el contenido de la página…",
+  "helpBody": "Crea y gestiona páginas estáticas.",
+  "untitled": "Sin título"
 }
