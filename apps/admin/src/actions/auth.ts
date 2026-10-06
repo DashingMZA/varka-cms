@@ -88,6 +88,7 @@ async function forwardSetCookies(respHeaders: Headers): Promise<void> {
 export async function signInEmailAction(
   email: string,
   password: string,
+  rememberMe = false,
 ): Promise<AuthActionResult<{ userId?: string }>> {
   const normalized = email.trim().toLowerCase();
   const h = await hdrs();
@@ -109,7 +110,7 @@ export async function signInEmailAction(
 
     const auth = getAuth();
     const { headers: resHeaders, response } = await auth.api.signInEmail({
-      body: { email: normalized, password },
+      body: { email: normalized, password, rememberMe },
       headers: h,
       returnHeaders: true,
     });
