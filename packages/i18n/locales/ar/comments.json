@@ -16,5 +16,6 @@
   "submittedOn": "أُرسل في",
   "bulkActions": "إجراءات جماعية",
   "searchComments": "بحث في التعليقات",
-  "noComments": "لا توجد تعليقات بعد."
+  "noComments": "لا توجد تعليقات بعد.",
+  "delete": "حذف نهائي"
 }
