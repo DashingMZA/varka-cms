@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from 'react';
 import { useMessages } from '@/lib/i18n';
+import { PasswordInput } from '@/components/password-input';
 import { loginPasswordField, otpField, zodErrorKeys } from '@varka/validation';
 import { z } from 'zod';
 import {
@@ -180,8 +181,8 @@ export function TwoFactorSettings({ enabled: initial }: Props) {
         <form onSubmit={startEnable} style={{ display: 'grid', gap: 8 }}>
           <label style={{ display: 'grid', gap: 4, fontSize: 13 }}>
             {t('auth', 'password')}
-            <input
-              type="password"
+            <PasswordInput
+              id="2fa-password"
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -258,8 +259,8 @@ export function TwoFactorSettings({ enabled: initial }: Props) {
         <form onSubmit={disable} style={{ display: 'grid', gap: 8 }}>
           <label style={{ display: 'grid', gap: 4, fontSize: 13 }}>
             {t('auth', 'password')}
-            <input
-              type="password"
+            <PasswordInput
+              id="2fa-password"
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
