@@ -116,7 +116,7 @@ export function UpdatesPage() {
                         <tr key={p.name}>
                           <td><code>{p.name}</code></td>
                           <td><code>{p.current}</code></td>
-                          <td><code style={{ color: 'var(--wp-success)' }}>{p.latest}</code></td>
+                          <td><code style={{ color: 'var(--success)' }}>{p.latest}</code></td>
                         </tr>
                       ))}
                     </tbody>
@@ -141,7 +141,7 @@ export function UpdatesPage() {
                         <tr key={p.name}>
                           <td><code>{p.name}</code></td>
                           <td><code>{p.current}</code></td>
-                          <td><code style={{ color: 'var(--wp-success)' }}>{p.latest}</code></td>
+                          <td><code style={{ color: 'var(--success)' }}>{p.latest}</code></td>
                         </tr>
                       ))}
                     </tbody>
