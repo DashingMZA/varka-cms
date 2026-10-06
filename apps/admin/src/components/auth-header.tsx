@@ -27,7 +27,6 @@ export function AuthHeader({
 
   return (
     <div className="v-login-header-row">
-      <span className="v-login-header-spacer" />
       <h1 className="v-login-brand">VARKA</h1>
       <label className="v-login-lang v-login-lang--top">
         <span className="v-sr-only">{t('common', 'language')}</span>
