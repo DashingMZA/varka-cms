@@ -1,5 +1,5 @@
 {
   "loadFailed": "فشل التحميل.",
-  "networkError": "فشل الرفع",
+  "networkError": "خطأ في الشبكة. حاول مرة أخرى.",
   "saveFailed": "فشل الحفظ."
 }
