@@ -294,7 +294,7 @@ export function PluginsAdmin() {
       </table>
 
       {filtered.length > 0 ? (
-        <div className="v-list-table-bottom" style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+        <div className="v-list-table-bottom">
           <select value={bulkAction} onChange={(e) => setBulkAction(e.target.value)}>
             <option value="">{L(t, 'bulkActions', 'Bulk actions')}</option>
             <option value="activate">{L(t, 'activate', 'Activate')}</option>
