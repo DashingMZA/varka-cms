@@ -63,22 +63,49 @@ export async function sendAuthEmail(input: SendAuthEmailInput): Promise<void> {
   const subject = SUBJECTS[input.type];
   const text = bodyFor(input);
 
-  // 1. Check database SMTP settings first (dynamic)
+  // 1. Check database email settings first (dynamic)
   try {
-    const dbSmtp = await getDbSmtpConfig();
-    if (dbSmtp?.enabled) {
-      await sendViaSmtp(dbSmtp, {
-        to: input.to,
-        subject,
-        text,
-      });
-      return;
+    const dbConfig = await getDbEmailConfig();
+    if (dbConfig) {
+      if (dbConfig.provider === 'smtp' && dbConfig.smtp?.enabled) {
+        await sendViaSmtp(dbConfig.smtp, { to: input.to, subject, text });
+        return;
+      }
+      if (dbConfig.provider === 'resend' && dbConfig.resendApiKey) {
+        await sendViaResend(dbConfig.resendApiKey, dbConfig.smtp, {
+          to: input.to,
+          subject,
+          text,
+        });
+        return;
+      }
     }
   } catch (e) {
-    console.error('[varka/auth-email] DB SMTP failed, falling back', e);
+    console.error('[varka/auth-email] DB email failed, falling back', e);
   }
 
-  // 2. Fall back to webhook / env
+  // 2. Fall back to .env: Resend → SMTP → Webhook
+  const resendKey = process.env.RESEND_API_KEY?.trim();
+  if (resendKey) {
+    try {
+      await sendViaResend(resendKey, null, { to: input.to, subject, text });
+      return;
+    } catch (e) {
+      console.error('[varka/auth-email] Resend failed, falling back', e);
+    }
+  }
+
+  const envSmtp = getEnvSmtpConfig();
+  if (envSmtp) {
+    try {
+      await sendViaSmtp(envSmtp, { to: input.to, subject, text });
+      return;
+    } catch (e) {
+      console.error('[varka/auth-email] Env SMTP failed, falling back', e);
+    }
+  }
+
+  // 3. Webhook (legacy)
   const from =
     process.env.SMTP_FROM ||
     process.env.EMAIL_FROM ||
@@ -132,20 +159,28 @@ type DbSmtpConfig = {
   pass: string;
   from: string;
   fromName: string;
+  /** true = SSL (port 465), false = STARTTLS (port 587) */
   secure: boolean;
 };
 
+type DbEmailConfig = {
+  provider: 'smtp' | 'resend';
+  smtp: DbSmtpConfig | null;
+  resendApiKey: string | null;
+};
+
 /**
- * Get SMTP config from database (users.smtp* settings).
- * Returns null if not enabled or not configured.
+ * Get email config from database (users.email* settings).
+ * Returns null if not configured.
  */
-async function getDbSmtpConfig(): Promise<DbSmtpConfig | null> {
+async function getDbEmailConfig(): Promise<DbEmailConfig | null> {
   try {
     const { prisma } = await import('@varka/database');
     const site = await prisma.site.findFirst({ orderBy: { createdAt: 'asc' } });
     if (!site) return null;
 
     const keys = [
+      'users.emailProvider',
       'users.smtpEnabled',
       'users.smtpHost',
       'users.smtpPort',
@@ -154,27 +189,96 @@ async function getDbSmtpConfig(): Promise<DbSmtpConfig | null> {
       'users.smtpFrom',
       'users.smtpFromName',
       'users.smtpSecure',
+      'users.resendApiKey',
     ];
     const settings = await prisma.siteSetting.findMany({
       where: { siteId: site.id, key: { in: keys } },
     });
-    const map = Object.fromEntries(settings.map((s: { key: string; value: unknown }) => [s.key, s.value]));
+    const map = Object.fromEntries(
+      settings.map((s: { key: string; value: unknown }) => [s.key, s.value]),
+    );
 
-    if (map['users.smtpEnabled'] !== true) return null;
-    if (!map['users.smtpHost'] || !map['users.smtpUser']) return null;
+    const provider = (map['users.emailProvider'] as string) || 'smtp';
 
-    return {
-      enabled: true,
-      host: String(map['users.smtpHost']),
-      port: Number(map['users.smtpPort']) || 587,
-      user: String(map['users.smtpUser']),
-      pass: String(map['users.smtpPass'] || ''),
-      from: String(map['users.smtpFrom'] || map['users.smtpUser']),
-      fromName: String(map['users.smtpFromName'] || 'VARKA'),
-      secure: map['users.smtpSecure'] !== false,
-    };
+    let smtp: DbSmtpConfig | null = null;
+    if (map['users.smtpEnabled'] === true && map['users.smtpHost'] && map['users.smtpUser']) {
+      smtp = {
+        enabled: true,
+        host: String(map['users.smtpHost']),
+        port: Number(map['users.smtpPort']) || 587,
+        user: String(map['users.smtpUser']),
+        pass: String(map['users.smtpPass'] || ''),
+        from: String(map['users.smtpFrom'] || map['users.smtpUser']),
+        fromName: String(map['users.smtpFromName'] || 'VARKA'),
+        // Port 465 = implicit SSL, Port 587 = STARTTLS
+        secure: map['users.smtpSecure'] !== false,
+      };
+    }
+
+    const resendApiKey = map['users.resendApiKey']
+      ? String(map['users.resendApiKey'])
+      : null;
+
+    // Return config if either provider is usable
+    if (provider === 'resend' && resendApiKey) {
+      return { provider: 'resend', smtp, resendApiKey };
+    }
+    if (smtp) {
+      return { provider: 'smtp', smtp, resendApiKey };
+    }
+    return null;
   } catch {
     return null;
+  }
+}
+
+/**
+ * Get SMTP config from .env (fallback when DB not configured).
+ */
+function getEnvSmtpConfig(): DbSmtpConfig | null {
+  const host = process.env.SMTP_HOST?.trim();
+  const user = process.env.SMTP_USER?.trim();
+  if (!host || !user) return null;
+  return {
+    enabled: true,
+    host,
+    port: Number(process.env.SMTP_PORT) || 587,
+    user,
+    pass: process.env.SMTP_PASS || '',
+    from: process.env.SMTP_FROM || process.env.EMAIL_FROM || user,
+    fromName: process.env.SMTP_FROM_NAME || 'VARKA',
+    secure: process.env.SMTP_SECURE === 'true',
+  };
+}
+
+/**
+ * Send email via Resend API.
+ */
+async function sendViaResend(
+  apiKey: string,
+  smtp: DbSmtpConfig | null,
+  mail: { to: string; subject: string; text: string },
+): Promise<void> {
+  const from = smtp?.from || process.env.SMTP_FROM || process.env.EMAIL_FROM || 'noreply@varka.local';
+  const fromName = smtp?.fromName || process.env.SMTP_FROM_NAME || 'VARKA';
+
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      from: `${fromName} <${from}>`,
+      to: mail.to,
+      subject: mail.subject,
+      text: mail.text,
+    }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(`Resend failed: ${res.status} ${body}`);
   }
 }
 
