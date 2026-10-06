@@ -27,33 +27,38 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
   let scheme = 'default';
 
-  if (sessionUserId) {
-    try {
-      const { prisma } = await import('@varka/database');
-      const u = await prisma.user.findUnique({
-        where: { id: sessionUserId },
-        select: { adminColorScheme: true },
-      });
-      if (u?.adminColorScheme) scheme = u.adminColorScheme;
-    } catch {
-      /* ignore */
-    }
-  }
-
   const jar = await cookies();
   const locale = resolveLocale(jar.get('varka_locale')?.value ?? 'en');
   const dir = isRtlLocale(locale) ? 'rtl' : 'ltr';
 
-  // Active plugin menu entries (e.g. "WP Import") for the sidebar.
-  let pluginMenu: Array<{ slug: string; title: string; icon: string }> = [];
-  if (sessionUserId) {
-    try {
-      const r = await getActivePluginMenuAction();
-      if (r.ok) pluginMenu = r.data;
-    } catch {
-      /* nav renders without plugin entries */
-    }
-  }
+  // Independent per-request work runs in parallel instead of sequentially:
+  // user color scheme + active plugin menu entries (e.g. "WP Import").
+  const [resolvedScheme, pluginMenu] = await Promise.all([
+    (async (): Promise<string> => {
+      if (!sessionUserId) return 'default';
+      try {
+        const { prisma } = await import('@varka/database');
+        const u = await prisma.user.findUnique({
+          where: { id: sessionUserId },
+          select: { adminColorScheme: true },
+        });
+        return u?.adminColorScheme ?? 'default';
+      } catch {
+        return 'default';
+      }
+    })(),
+    (async (): Promise<Array<{ slug: string; title: string; icon: string }>> => {
+      if (!sessionUserId) return [];
+      try {
+        const r = await getActivePluginMenuAction();
+        return r.ok ? r.data : [];
+      } catch {
+        /* nav renders without plugin entries */
+        return [];
+      }
+    })(),
+  ]);
+  scheme = resolvedScheme;
 
   return (
     <div className="v-admin" data-admin-scheme={scheme} lang={locale} dir={dir}>
@@ -63,7 +68,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
         <div className="v-sidebar__brand">VARKA</div>
         <AdminNav locale={locale} pluginMenu={pluginMenu} />
       </aside>
-      <div className="v-main">{children}</div>
+      <main className="v-main">{children}</main>
     </div>
   );
 }
