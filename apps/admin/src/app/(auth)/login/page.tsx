@@ -1,4 +1,5 @@
 import { LoginForm } from '@/components/login-form';
+import { getRegistrationStatusAction } from '@/actions/auth';
 
 /**
  * Modern login screen (ElevenLabs-style).
@@ -12,11 +13,13 @@ export default async function LoginPage({
   searchParams: Promise<{ error?: string; step?: string }>;
 }) {
   const params = await searchParams;
+  const { enabled: registrationEnabled } = await getRegistrationStatusAction();
   return (
     <div className="v-login-screen-modern">
       <LoginForm
         serverError={params.error ?? null}
         initialStep={params.step === '2fa' ? 'twoFactor' : undefined}
+        registrationEnabled={registrationEnabled}
       />
     </div>
   );
