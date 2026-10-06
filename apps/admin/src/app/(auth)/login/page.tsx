@@ -15,12 +15,12 @@ export default async function LoginPage({
   const params = await searchParams;
   const { enabled: registrationEnabled } = await getRegistrationStatusAction();
   return (
-    <div className="v-login-screen-modern">
+    <main className="v-login-screen-modern">
       <LoginForm
         serverError={params.error ?? null}
         initialStep={params.step === '2fa' ? 'twoFactor' : undefined}
         registrationEnabled={registrationEnabled}
       />
-    </div>
+    </main>
   );
 }
