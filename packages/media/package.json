@@ -1,6 +1,6 @@
 {
   "name": "@varka/media",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
   "type": "module",
   "main": "./src/index.ts",
@@ -20,10 +20,10 @@
     "zod": "^4.6.5"
   },
   "optionalDependencies": {
-    "sharp": "^0.34.2"
+    "sharp": "^0.35.5"
   },
   "devDependencies": {
     "tsx": "^4.23.15",
-    "typescript": "7.0.2"
+    "typescript": "^7.0.2"
   }
 }
