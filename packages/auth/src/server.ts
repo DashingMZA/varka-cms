@@ -113,7 +113,7 @@ export function createAuth() {
 
   const baseURL =
     process.env.BETTER_AUTH_URL ??
-    process.env.ADMIN_URL ??
+    process.env.NEXT_PUBLIC_ADMIN_URL ??
     'http://localhost:3000';
 
   const socialProviders: Record<string, { clientId: string; clientSecret: string }> = {};
@@ -134,8 +134,8 @@ export function createAuth() {
   const trustedOrigins = Array.from(
     new Set(
       [
-        process.env.ADMIN_URL,
-        process.env.SITE_URL,
+        process.env.NEXT_PUBLIC_ADMIN_URL,
+        process.env.NEXT_PUBLIC_SITE_URL,
         process.env.BETTER_AUTH_URL,
         baseURL,
         'http://localhost:3000',
