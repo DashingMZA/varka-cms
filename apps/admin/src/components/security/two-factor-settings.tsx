@@ -404,8 +404,13 @@ export function TwoFactorSettings({ enabled: initial }: Props) {
               </button>
             ) : (
               <>
-                <div className="v-field">
-                  <label htmlFor="2fa-otp">Verification code</label>
+                <div style={{ marginBottom: 16 }}>
+                  <label
+                    htmlFor="2fa-otp"
+                    style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#374151', marginBottom: 6 }}
+                  >
+                    Verification code
+                  </label>
                   <input
                     id="2fa-otp"
                     type="text"
@@ -416,7 +421,20 @@ export function TwoFactorSettings({ enabled: initial }: Props) {
                     onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
                     onKeyDown={(e) => { if (e.key === 'Enter') void onVerifyOtp(); }}
                     autoFocus
-                    style={{ fontSize: 20, letterSpacing: 8, textAlign: 'center' }}
+                    style={{
+                      width: '100%',
+                      minHeight: 44,
+                      padding: '10px 12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: 8,
+                      fontSize: 22,
+                      letterSpacing: 10,
+                      textAlign: 'center',
+                      color: '#111827',
+                      background: '#fff',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
                   />
                 </div>
                 <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16 }}>
