@@ -210,6 +210,92 @@ export async function updateMyProfileAction(body: {
   }
 }
 
+/** Check if current user is admin/owner. */
+async function isAdminOrOwner(userId: string): Promise<boolean> {
+  const { prisma } = await import('@varka/database');
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      roles: { select: { role: { select: { slug: true } } } },
+    },
+  });
+  return user?.roles.some((r: { role: { slug: string } }) => ['owner', 'admin', 'administrator'].includes(r.role.slug)) ?? false;
+}
+
+/** Admin: get any user's profile. */
+export async function getUserProfileAction(targetUserId: string): Promise<ActionResult<unknown>> {
+  try {
+    const ctx = await getServerAuth();
+    const myId = await resolveProfileUserId(ctx.userId);
+    if (!myId) return { ok: false, error: 'Not found' };
+    if (myId !== targetUserId && !(await isAdminOrOwner(myId))) {
+      return { ok: false, error: 'Not authorized' };
+    }
+    const user = await getOwnProfile(targetUserId);
+    if (!user) return { ok: false, error: 'Not found' };
+    return { ok: true, data: JSON.parse(JSON.stringify(user)) };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+/** Admin: update any user's profile (no password confirmation needed for admin edits). */
+export async function updateUserProfileAction(
+  targetUserId: string,
+  body: {
+    firstName?: string;
+    lastName?: string;
+    nickname?: string;
+    website?: string;
+    bio?: string;
+    email?: string;
+    name?: string;
+    displayNameAs?: string;
+    facebookUrl?: string;
+    xUrl?: string;
+    instagramUrl?: string;
+    mediumUrl?: string;
+    youtubeUrl?: string;
+    tiktokUrl?: string;
+    linkedinUrl?: string;
+    newPassword?: string;
+  }
+): Promise<ActionResult<unknown>> {
+  try {
+    const ctx = await getServerAuth();
+    const myId = await resolveProfileUserId(ctx.userId);
+    if (!myId) return { ok: false, error: 'Not found' };
+    if (myId !== targetUserId && !(await isAdminOrOwner(myId))) {
+      return { ok: false, error: 'Not authorized' };
+    }
+    const user = await updateOwnProfile(targetUserId, {
+      firstName: body.firstName,
+      lastName: body.lastName,
+      nickname: body.nickname,
+      website: body.website,
+      bio: body.bio,
+      email: body.email,
+      name: body.name,
+      displayNameAs: body.displayNameAs,
+      facebookUrl: body.facebookUrl,
+      xUrl: body.xUrl,
+      instagramUrl: body.instagramUrl,
+      mediumUrl: body.mediumUrl,
+      youtubeUrl: body.youtubeUrl,
+      tiktokUrl: body.tiktokUrl,
+      linkedinUrl: body.linkedinUrl,
+    });
+    // Admin can set password directly (no current password needed)
+    if (body.newPassword) {
+      await changeOwnPassword(targetUserId, undefined, body.newPassword);
+    }
+    revalidatePath('/users');
+    return { ok: true, data: JSON.parse(JSON.stringify(user)) };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
 /** Update admin color scheme — UI preference, no password required. */
 export async function updateColorSchemeAction(
   scheme: string
