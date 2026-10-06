@@ -116,11 +116,12 @@ export function UserNewForm() {
       <div className="v-field">
         <label>Send User Notification</label>
         <div style={{ paddingTop: 10 }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 400 }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 400, whiteSpace: 'nowrap' }}>
             <input
               type="checkbox"
               checked={sendNotification}
               onChange={(e) => setSendNotification(e.target.checked)}
+              style={{ margin: 0 }}
             />
             Send the new user an email about their account
           </label>
