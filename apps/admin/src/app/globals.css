@@ -220,6 +220,10 @@ button.v-nav__link { color: var(--wp-sidebar-text); }
 @media (max-width: 782px) {
   .v-grid-2, .v-grid-3 { grid-template-columns: 1fr; }
 }
+/* Size field pairs (e.g. Media settings): label text fixed width so inputs align */
+.v-size-fields { display: flex; gap: 24px; flex-wrap: wrap; align-items: center; }
+.v-size-fields > label { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; margin: 0; }
+.v-size-fields > label > span:first-child { min-width: 76px; }
 /* Small count badge */
 .v-badge {
   display: inline-block;
