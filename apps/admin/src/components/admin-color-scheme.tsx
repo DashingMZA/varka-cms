@@ -73,7 +73,7 @@ export function AdminColorScheme() {
               gap: 8,
               cursor: 'pointer',
               padding: 8,
-              border: scheme === s.id ? '2px solid var(--wp-accent)' : '1px solid #ddd',
+              border: scheme === s.id ? '2px solid var(--accent)' : '1px solid #ddd',
               borderRadius: 6,
             }}
           >
