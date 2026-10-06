@@ -68,5 +68,7 @@
   "of": "de",
   "items": "elementos",
   "noChange": "Sin cambios",
-  "backToSite": "Volver al sitio"
+  "backToSite": "Volver al sitio",
+  "and": "y",
+  "dismiss": "Descartar"
 }
