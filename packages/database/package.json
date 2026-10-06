@@ -15,7 +15,6 @@
     "migrate:dev:name": "prisma migrate dev --name",
     "db:push": "prisma db push",
     "seed": "tsx prisma/seed.ts",
-    "import:celebrtiy": "tsx ../../scripts/wp-import-celebrtiy/import.ts",
     "studio": "prisma studio",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "lint": "echo lint:@varka/database",

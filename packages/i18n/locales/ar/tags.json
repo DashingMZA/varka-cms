@@ -9,5 +9,17 @@
   "search": "بحث في الوسوم…",
   "namePlaceholder": "اسم الوسم الجديد",
   "bulkNotWired": "الحذف الجماعي غير مفعّل بعد.",
-  "tags": "الوسوم"
+  "tags": "الوسوم",
+  "addTag": "إضافة وسم",
+  "nameHelp": "الاسم هو كما يظهر على موقعك.",
+  "slugHelp": "الـ\"slug\" هو النسخة الصديقة للرابط من الاسم.",
+  "descriptionHelp": "الوصف غير بارز افتراضيًا؛ ومع ذلك قد تعرضه بعض القوالب.",
+  "searchTags": "بحث في الوسوم",
+  "quickEdit": "تحرير سريع",
+  "loadFailed": "فشل تحميل الوسوم.",
+  "createFailed": "فشل إنشاء الوسم.",
+  "deleteFailed": "فشل حذف الوسم.",
+  "updateFailed": "فشل تحديث الوسم.",
+  "deleteConfirm": "حذف هذا الوسم؟",
+  "deleteSelectedConfirm": "حذف الوسوم المحددة؟"
 }

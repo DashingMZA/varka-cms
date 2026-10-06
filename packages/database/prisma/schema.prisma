@@ -395,11 +395,12 @@ model Tag {
 }
 
 model TagTranslation {
-  id         String @id @default(cuid())
-  tagId      String
-  languageId String
-  name       String
-  slug       String
+  id          String  @id @default(cuid())
+  tagId       String
+  languageId  String
+  name        String
+  slug        String
+  description String?
 
   tag      Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
   language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
