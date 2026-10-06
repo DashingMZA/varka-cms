@@ -45,20 +45,7 @@ const FORM_PERMISSION_KEYS = [
   'forms.entries',
 ] as const;
 
-export const FORM_FIELD_TYPES = [
-  'text',
-  'email',
-  'textarea',
-  'select',
-  'radio',
-  'checkbox',
-  'number',
-  'tel',
-  'url',
-  'date',
-] as const;
-
-export type FormFieldType = (typeof FORM_FIELD_TYPES)[number];
+import { FORM_FIELD_TYPES, type FormFieldType } from '../lib/form-field-types';
 
 export type FormField = {
   id: string;

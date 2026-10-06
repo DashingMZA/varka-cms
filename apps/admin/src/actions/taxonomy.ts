@@ -139,6 +139,7 @@ export async function listTagsAction(): Promise<ActionResult<{ items: unknown[] 
 export async function createTagAction(input: {
   name: string;
   slug?: string;
+  description?: string;
 }): Promise<ActionResult<unknown>> {
   try {
     const { siteId } = await requireServerAuth('posts.update');
@@ -157,6 +158,7 @@ export async function createTagAction(input: {
             languageId: lang.id,
             name,
             slug,
+            description: input.description?.trim() || null,
           },
         },
       },
@@ -164,6 +166,63 @@ export async function createTagAction(input: {
     });
     revalidatePath('/content/tags');
     return { ok: true, data: JSON.parse(JSON.stringify(tag)) };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function updateTagAction(
+  id: string,
+  input: { name?: string; slug?: string; description?: string },
+): Promise<ActionResult<{ id: string }>> {
+  try {
+    const { siteId } = await requireServerAuth('posts.update');
+    const tag = await prisma.tag.findFirst({ where: { id, siteId } });
+    if (!tag) return { ok: false, error: 'Tag not found' };
+    const lang = await prisma.language.findFirst({
+      where: { siteId, defaultLanguage: true },
+    });
+    if (!lang) return { ok: false, error: 'No default language' };
+
+    const data: { name?: string; slug?: string; description?: string | null } = {};
+    if (input.name !== undefined) {
+      const name = input.name.trim();
+      if (!name) return { ok: false, error: 'Name required' };
+      data.name = name;
+    }
+    if (input.slug !== undefined) {
+      data.slug = input.slug.trim() ? slugifyName(input.slug) : slugifyName(data.name || 'tag');
+    }
+    if (input.description !== undefined) {
+      data.description = input.description.trim() || null;
+    }
+
+    await prisma.tagTranslation.upsert({
+      where: { tagId_languageId: { tagId: id, languageId: lang.id } },
+      create: {
+        tagId: id,
+        languageId: lang.id,
+        name: data.name || 'Untitled',
+        slug: data.slug || 'untitled',
+        description: data.description ?? null,
+      },
+      update: data,
+    });
+    revalidatePath('/content/tags');
+    return { ok: true, data: { id } };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function deleteTagAction(id: string): Promise<ActionResult<{ id: string }>> {
+  try {
+    const { siteId } = await requireServerAuth('posts.update');
+    const tag = await prisma.tag.findFirst({ where: { id, siteId } });
+    if (!tag) return { ok: false, error: 'Tag not found' };
+    await prisma.tag.delete({ where: { id } });
+    revalidatePath('/content/tags');
+    return { ok: true, data: { id } };
   } catch (e) {
     return fail(e);
   }
