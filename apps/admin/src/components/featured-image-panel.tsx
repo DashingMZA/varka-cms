@@ -101,7 +101,7 @@ export function FeaturedImagePanel({ value, library, onChange, onLibraryAdd }: P
                 maxHeight: 160,
                 objectFit: 'cover',
                 borderRadius: 4,
-                border: '1px solid var(--wp-border)',
+                border: '1px solid var(--border)',
                 display: 'block',
               }}
             />
@@ -215,7 +215,7 @@ export function FeaturedImagePanel({ value, library, onChange, onLibraryAdd }: P
                           }}
                           style={{
                             padding: 0,
-                            border: selected ? '2px solid var(--wp-accent)' : '1px solid var(--wp-border)',
+                            border: selected ? '2px solid var(--accent)' : '1px solid var(--border)',
                             borderRadius: 4,
                             overflow: 'hidden',
                             background: '#fff',
