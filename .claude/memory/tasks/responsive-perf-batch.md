@@ -103,3 +103,17 @@ for ALL 51 pages (not 1-2). Changes (CSS-only, no component rewrites):
   wrapped in .v-table-wrap for mobile horizontal scroll
 - Theme grid: minmax(min(280px,100%),1fr). Scoped to .v-main/.v-admin so
   login screens untouched. tsc 0, build OK, oxlint 0.
+
+## Fix batch 4 — hydration, input selectors, schemes, siteId cache (2026-10-06, pushed as 32331b5)
+User log showed 3 hydration errors + old-style settings inputs + scheme ask:
+- Invalid table markup: bare h2/label/p directly inside tbody in settings
+  (writing, discussion, media, permalinks) — wrapped in tr>td[colSpan=2].
+  Reading/privacy labels were already inside Field>td (valid, untouched).
+- Root cause of old inputs: settings <input> elements have NO type attribute,
+  so input[type="text"] never matched — added input:not([type]) selectors.
+- Buttons: .v-btn--primary now uses var(--wp-accent) so the 9 per-user color
+  schemes (profile picker) actually apply; added missing 'fresh' scheme vars.
+  Default scheme remains the single global default.
+- Perf: getSiteId() cached in module scope (was 1 DB round-trip per action).
+  Note: push script /tmp/push-commit.py had to be recreated after VM reset
+  (dynamic_credentials now requires allowed_hosts kwarg).
