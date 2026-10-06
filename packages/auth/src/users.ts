@@ -91,6 +91,7 @@ export type CreateUserInput = {
   password: string;
   firstName?: string;
   lastName?: string;
+  nickname?: string;
   website?: string;
   roleSlug?: string;
   sendNotification?: boolean;
@@ -121,7 +122,7 @@ export async function createUser(ctx: AuthContext, input: CreateUserInput) {
     data: {
       name: displayName,
       email,
-      nickname: username,
+      nickname: input.nickname?.trim() || username,
       firstName: input.firstName?.trim() || null,
       lastName: input.lastName?.trim() || null,
       website: input.website?.trim() || null,
@@ -189,6 +190,14 @@ export type ProfileUpdate = {
   email?: string;
   adminColorScheme?: string;
   name?: string;
+  displayNameAs?: string;
+  facebookUrl?: string;
+  xUrl?: string;
+  instagramUrl?: string;
+  mediumUrl?: string;
+  youtubeUrl?: string;
+  tiktokUrl?: string;
+  linkedinUrl?: string;
 };
 
 export async function updateOwnProfile(userId: string, data: ProfileUpdate) {
@@ -203,6 +212,14 @@ export async function updateOwnProfile(userId: string, data: ProfileUpdate) {
   if (data.website !== undefined) patch.website = data.website.trim() || null;
   if (data.bio !== undefined) patch.bio = data.bio.trim() || null;
   if (data.name !== undefined) patch.name = data.name.trim() || undefined;
+  if (data.displayNameAs !== undefined) patch.displayNameAs = data.displayNameAs || null;
+  if (data.facebookUrl !== undefined) patch.facebookUrl = data.facebookUrl.trim() || null;
+  if (data.xUrl !== undefined) patch.xUrl = data.xUrl.trim() || null;
+  if (data.instagramUrl !== undefined) patch.instagramUrl = data.instagramUrl.trim() || null;
+  if (data.mediumUrl !== undefined) patch.mediumUrl = data.mediumUrl.trim() || null;
+  if (data.youtubeUrl !== undefined) patch.youtubeUrl = data.youtubeUrl.trim() || null;
+  if (data.tiktokUrl !== undefined) patch.tiktokUrl = data.tiktokUrl.trim() || null;
+  if (data.linkedinUrl !== undefined) patch.linkedinUrl = data.linkedinUrl.trim() || null;
   if (data.email !== undefined) {
     const email = data.email.trim().toLowerCase();
     if (!email.includes('@')) throw new Error('Valid email required');
