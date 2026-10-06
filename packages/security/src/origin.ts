@@ -43,11 +43,9 @@ export class OriginError extends Error {
 
 export function allowedOriginsFromEnv(): string[] {
   const list = [
-    process.env.ADMIN_URL,
-    process.env.SITE_URL,
-    process.env.PUBLIC_SITE_URL,
     process.env.NEXT_PUBLIC_ADMIN_URL,
     process.env.NEXT_PUBLIC_SITE_URL,
+    process.env.PUBLIC_SITE_URL,
   ].filter(Boolean) as string[];
   // Local defaults so Astro (:4321) can post comments to admin (:3000)
   if (process.env.NODE_ENV !== 'production') {
