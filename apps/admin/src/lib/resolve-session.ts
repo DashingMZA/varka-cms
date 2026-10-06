@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { cookies } from 'next/headers';
 import { getAuth } from '@/lib/auth';
 import { authHeadersFromNext } from '@/lib/auth-headers';
@@ -31,8 +32,12 @@ function tokenCandidates(raw: string): string[] {
  * Resolve the current Better Auth session for server components / layouts.
  * 1) auth.api.getSession (primary)
  * 2) Fallback: Session table by varka.session_token (handles signed cookies)
+ *
+ * Cached per request — one request resolves the session at most once even
+ * when layout + actions + pages each ask for it.
  */
-export async function resolveSession(): Promise<ResolvedSession | null> {
+export const resolveSession = cache(
+  async function resolveSession(): Promise<ResolvedSession | null> {
   try {
     const headers = await authHeadersFromNext();
     const session = await getAuth().api.getSession({ headers });
@@ -109,4 +114,4 @@ export async function resolveSession(): Promise<ResolvedSession | null> {
     }
     return null;
   }
-}
+});
