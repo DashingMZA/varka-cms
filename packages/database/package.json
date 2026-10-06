@@ -1,6 +1,6 @@
 {
   "name": "@varka/database",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
   "type": "module",
   "main": "./src/index.ts",
@@ -22,15 +22,15 @@
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.10.0",
-    "@prisma/client": "7.10.0",
-    "dotenv": "^17.4.2",
+    "@prisma/client": "^7.10.0",
+    "dotenv": "^18.0.5",
     "pg": "^8.23.1"
   },
   "devDependencies": {
     "@types/node": "^24.19.1",
     "@types/pg": "^8.23.1",
-    "prisma": "7.10.0",
+    "prisma": "^7.10.0",
     "tsx": "^4.23.15",
-    "typescript": "7.0.2"
+    "typescript": "^7.0.2"
   }
 }
