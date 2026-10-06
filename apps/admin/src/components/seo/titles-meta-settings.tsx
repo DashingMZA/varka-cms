@@ -8,6 +8,7 @@ export function TitlesMetaSettings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [settings, setSettings] = useState({
     homepageTitle: '',
     homepageDescription: '',
@@ -34,12 +35,12 @@ export function TitlesMetaSettings() {
 
   async function save() {
     setSaving(true);
-    setMessage(null);
+    setMessage(null); setError(null);
     try {
       const result = await saveSeoSettingsAction(settings);
-      setMessage(result.ok ? 'Settings saved.' : `Error: ${result.error}`);
+      if (result.ok) { setMessage('Settings saved.'); setError(null); } else { setError(result.error || 'Save failed'); setMessage(null); }
     } catch (e) {
-      setMessage(`Error: ${e instanceof Error ? e.message : 'Save failed'}`);
+      setError(e instanceof Error ? e.message : 'Save failed'); setMessage(null);
     }
     setSaving(false);
   }
@@ -57,6 +58,7 @@ export function TitlesMetaSettings() {
 
   return (
     <div className="v-card">
+      {error ? <p className="v-alert v-alert--error">{error}</p> : null}
       {message ? <p className="v-alert v-alert--ok">{message}</p> : null}
       <p className="v-muted v-seo-full" style={{ marginTop: 0 }}>
         Use variables: %title%, %sitename%, %sep%, %term%, %excerpt%
