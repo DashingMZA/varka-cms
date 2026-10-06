@@ -7,6 +7,7 @@ import {
   getOwnProfile,
   updateOwnProfile,
   changeOwnPassword,
+  sendEmailVerificationOtp,
 } from '@varka/auth';
 import { prisma, requireServerAuth, getServerAuth } from '@/lib/server-db';
 import { revalidatePath } from 'next/cache';
@@ -64,6 +65,13 @@ export async function createUserAction(input: {
       return { ok: false, error: 'username, email, and password are required' };
     }
     const user = await createUser(ctx, input);
+    // Send email verification OTP — user must verify before login
+    try {
+      const created = user as { id: string; email: string };
+      await sendEmailVerificationOtp(created.id, created.email);
+    } catch {
+      /* non-blocking: admin can resend later */
+    }
     revalidatePath('/users');
     return { ok: true, data: JSON.parse(JSON.stringify(user)) };
   } catch (e) {
