@@ -390,3 +390,37 @@ p.description {
 .v-health-score--critical {
   border-color: var(--wp-danger);
 }
+
+/* Dashboard news widget */
+.v-news-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.v-news-list a {
+  color: #2271b1;
+  text-decoration: none;
+  font-size: 13px;
+}
+.v-news-list a:hover {
+  color: #135e96;
+  text-decoration: underline;
+}
+
+/* Activity widget: date left, title right (WordPress style) */
+.v-activity-row {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  padding: 6px 0;
+  border-bottom: 1px solid #f0f0f1;
+}
+.v-activity-row:last-child { border-bottom: none; }
+.v-activity-date {
+  flex-shrink: 0;
+  min-width: 52px;
+  font-size: 12px;
+  color: #646970;
+}
