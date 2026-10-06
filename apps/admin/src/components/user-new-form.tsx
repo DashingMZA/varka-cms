@@ -31,6 +31,7 @@ export function UserNewForm() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [firstName, setFirstName] = useState('');
+  const [nickname, setNickname] = useState('');
   const [lastName, setLastName] = useState('');
   const [website, setWebsite] = useState('');
   const [password, setPassword] = useState('');
@@ -81,12 +82,16 @@ export function UserNewForm() {
         <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
       </label>
       <label style={{ display: "block" }}>
-        <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>{L(t, 'firstName', 'First name')}</span>
-        <input value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+        <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>{L(t, 'firstName', 'First name')} <span style={{color: '#d63638'}}>*</span></span>
+        <input required value={firstName} onChange={(e) => setFirstName(e.target.value)} />
       </label>
       <label style={{ display: "block" }}>
-        <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>{L(t, 'lastName', 'Last name')}</span>
-        <input value={lastName} onChange={(e) => setLastName(e.target.value)} />
+        <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>{L(t, 'lastName', 'Last name')} <span style={{color: '#d63638'}}>*</span></span>
+        <input required value={lastName} onChange={(e) => setLastName(e.target.value)} />
+      </label>
+      <label style={{ display: "block" }}>
+        <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>{L(t, 'nickname', 'Nickname')} <span style={{color: '#d63638'}}>*</span></span>
+        <input required value={nickname} onChange={(e) => setNickname(e.target.value)} />
       </label>
       <label style={{ display: "block" }}>
         <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>{L(t, 'website', 'Website')}</span>
