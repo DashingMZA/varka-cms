@@ -8,6 +8,6 @@
   "sessionExpired": "Your session has expired. Please sign in again.",
   "rateLimited": "Too many attempts. Please wait.",
   "loadFailed": "Failed to load.",
-  "networkError": "Upload failed",
+  "networkError": "Network error. Try again.",
   "saveFailed": "Failed to save."
 }
