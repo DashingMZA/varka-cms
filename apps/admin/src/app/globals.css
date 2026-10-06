@@ -199,6 +199,22 @@ button.v-nav__link { color: var(--wp-sidebar-text); }
 
 .v-dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 16px; margin-top: 12px; }
 .v-dash-grid > * { min-width: 0; }
+/* Taxonomy pages (Categories/Tags): form + list side-by-side on desktop, stacked on mobile */
+.v-tax-grid { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 24px; align-items: start; }
+.v-tax-grid > * { min-width: 0; }
+@media (max-width: 782px) {
+  .v-tax-grid { grid-template-columns: 1fr; }
+}
+/* Inline form grids: multi-column on desktop, stacked on mobile */
+.v-grid-2, .v-grid-3 { display: grid; gap: 8px; align-items: end; }
+.v-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.v-grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)) auto; }
+.v-grid-2 > *, .v-grid-3 > * { min-width: 0; }
+@media (max-width: 782px) {
+  .v-grid-2, .v-grid-3 { grid-template-columns: 1fr; }
+}
+/* List-table footer (pagination etc.): wrap on small screens */
+.v-list-table-bottom { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; align-items: center; }
 .v-glance { list-style: none; margin: 0; padding: 0; }
 .v-glance li { padding: 6px 0; border-bottom: 1px solid #eee; }
 .v-activity { list-style: none; margin: 0 0 12px; padding: 0; }
