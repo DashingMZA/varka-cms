@@ -24,7 +24,8 @@
     "@varka/cache": "workspace:*",
     "@varka/security": "workspace:*",
     "better-auth": "^1.7.7",
-    "nodemailer": "^6.10.0",
+    "nodemailer": "^10.0.15",
+    "@types/nodemailer": "^8.0.2",
     "zod": "^4.6.5",
     "@node-rs/argon2": "^2.2.2"
   },
