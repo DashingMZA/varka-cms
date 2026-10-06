@@ -28,10 +28,13 @@ export async function listPostsAction(opts?: {
     const limit = Math.min(opts?.limit ?? perPage, 200);
     const status = opts?.status && opts.status !== 'all' ? opts.status.toUpperCase() : undefined;
     const q = opts?.q?.trim();
+    const isTrashView = status === 'TRASHED';
 
     const where: Record<string, unknown> = {
       siteId,
-      deletedAt: null,
+      // Trashed posts have deletedAt set — they must be visible in the Trash view
+      // and hidden everywhere else.
+      ...(isTrashView ? { deletedAt: { not: null } } : { deletedAt: null }),
       ...(status ? { status } : {}),
     };
 
@@ -87,7 +90,7 @@ export async function listPostsAction(opts?: {
       prisma.post.count({ where: { siteId, deletedAt: null } }),
       prisma.post.count({ where: { siteId, deletedAt: null, status: 'PUBLISHED' } }),
       prisma.post.count({ where: { siteId, deletedAt: null, status: 'DRAFT' } }),
-      prisma.post.count({ where: { siteId, deletedAt: null, status: 'TRASHED' } }),
+      prisma.post.count({ where: { siteId, status: 'TRASHED', deletedAt: { not: null } } }),
     ]);
 
     return {
