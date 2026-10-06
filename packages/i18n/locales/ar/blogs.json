@@ -68,5 +68,13 @@
   "bulkEditTitle": "تحرير جماعي",
   "noChange": "بدون تغيير",
   "cancel": "إلغاء",
-  "addNewPost": "إضافة منشور جديد"
+  "addNewPost": "إضافة منشور جديد",
+  "allCategories": "كل التصنيفات",
+  "allDates": "كل التواريخ",
+  "comments": "التعليقات",
+  "filterByCategory": "تصفية حسب التصنيف",
+  "filterByDate": "تصفية حسب التاريخ",
+  "helpBody": "صفِّ حسب الحالة، وابحث، واستخدم الإجراءات الجماعية.",
+  "quickEdit": "تحرير سريع",
+  "seoDetails": "تفاصيل SEO"
 }
