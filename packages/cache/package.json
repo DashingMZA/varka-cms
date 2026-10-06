@@ -1,6 +1,6 @@
 {
   "name": "@varka/cache",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
   "type": "module",
   "main": "./src/index.ts",
@@ -17,9 +17,9 @@
   "devDependencies": {
     "@types/node": "^24.19.1",
     "tsx": "^4.23.15",
-    "typescript": "7.0.2"
+    "typescript": "^7.0.2"
   },
   "optionalDependencies": {
-    "redis": "^5.8.2"
+    "redis": "^6.3.0"
   }
 }
