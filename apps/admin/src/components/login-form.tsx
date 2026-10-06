@@ -69,6 +69,7 @@ export function LoginForm({
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [showVerifyLink, setShowVerifyLink] = useState(false);
   const serverLocale = useServerLocale();
   const [locale, setLocale] = useState<AppLocale>(serverLocale);
   const { t } = useMessages(locale);
@@ -98,7 +99,10 @@ export function LoginForm({
     try {
       const res = await signInEmailAction(parsed.data.email, parsed.data.password, remember);
       if (!res.ok) {
-        if (res.code === 'EMAIL_NOT_VERIFIED') setError(t('auth', 'emailNotVerified'));
+        if (res.code === 'EMAIL_NOT_VERIFIED') {
+          setError(t('auth', 'emailNotVerified'));
+          setShowVerifyLink(true);
+        }
         else setError(res.error || t('auth', 'invalidCredentials'));
         setLoading(false);
         return;
@@ -242,6 +246,11 @@ export function LoginForm({
         )}
 
         {error ? <p className="v-login-error-modern">{error}</p> : null}
+        {showVerifyLink ? (
+          <p style={{ textAlign: 'center', marginTop: 8 }}>
+            <a href="/verify-email" className="v-link">Verify your email</a>
+          </p>
+        ) : null}
         {!error && serverErrorMessage ? (
           <p className="v-login-error-modern">{serverErrorMessage}</p>
         ) : null}
