@@ -70,5 +70,7 @@
   "noChange": "No Change",
   "backToSite": "Back to site",
   "and": "and",
-  "dismiss": "Dismiss"
+  "dismiss": "Dismiss",
+  "verify": "Verify",
+  "resend": "Resend"
 }
