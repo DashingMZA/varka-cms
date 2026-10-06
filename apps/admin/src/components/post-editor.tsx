@@ -325,7 +325,7 @@ export function PostEditor({ postId: initialPostId }: { postId: string | null })
         }))}
       />
       <div className="v-page-header">
-        <h1 className="v-page-title">{t('blogs', 'editPost')}</h1>
+        <h1 className="v-page-title">{postId ? t('blogs', 'editPost') : (t('blogs', 'addNewPost') || 'Add New Post')}</h1>
       </div>
       {message ? <p className="v-alert v-alert--ok">{message}</p> : null}
       {error ? (
