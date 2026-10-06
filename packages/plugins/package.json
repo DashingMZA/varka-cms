@@ -1,6 +1,6 @@
 {
   "name": "@varka/plugins",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
   "type": "module",
   "main": "./src/index.ts",
@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.19.1",
-    "typescript": "7.0.2",
-    "@types/adm-zip": "^0.5.7"
+    "typescript": "^7.0.2",
+    "@types/adm-zip": "^0.5.8"
   }
 }
