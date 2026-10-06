@@ -162,17 +162,24 @@ button.v-nav__link { color: var(--wp-sidebar-text); }
 .v-panel__b { padding: 12px; }
 
 .v-btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
-  padding: 0 10px; min-height: 30px; border-radius: var(--wp-radius);
-  border: 1px solid var(--wp-border); background: #f6f7f7;
-  color: var(--wp-ink); font-size: 13px; line-height: 2.15384615;
-  text-decoration: none; box-shadow: 0 1px 0 #ccc;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 0 16px; min-height: 38px; border-radius: 8px;
+  border: 1px solid #d1d5db; background: #fff;
+  color: #111827; font-size: 14px; font-weight: 500; line-height: 1.4;
+  text-decoration: none; box-shadow: none;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  white-space: nowrap;
 }
-.v-btn:hover { background: #f0f0f1; border-color: #8c8f94; color: var(--wp-ink); text-decoration: none; }
-.v-btn--primary { background: var(--wp-accent); border-color: var(--wp-accent); color: #fff; box-shadow: none; }
-.v-btn--primary:hover { background: var(--wp-accent-hover); border-color: var(--wp-accent-hover); color: #fff; }
-.v-btn--success { background: var(--wp-success); border-color: var(--wp-success); color: #fff; box-shadow: none; }
-.v-btn--danger { color: var(--wp-danger); border-color: var(--wp-danger); background: #fff; }
+.v-btn:hover { background: #f9fafb; border-color: #9ca3af; color: #111827; text-decoration: none; }
+.v-btn:focus-visible { outline: none; border-color: #111827; box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08); }
+.v-btn--primary { background: #111827; border-color: #111827; color: #fff; box-shadow: none; }
+.v-btn--primary:hover { background: #1f2937; border-color: #1f2937; color: #fff; }
+.v-btn--success { background: #00a32a; border-color: #00a32a; color: #fff; box-shadow: none; }
+.v-btn--success:hover { background: #008a23; border-color: #008a23; color: #fff; }
+.v-btn--danger { color: #d63638; border-color: #d1d5db; background: #fff; }
+.v-btn--danger:hover { color: #fff; background: #d63638; border-color: #d63638; }
+.v-btn--small { min-height: 32px; padding: 0 12px; font-size: 13px; border-radius: 7px; }
+.v-btn:disabled { opacity: 0.55; cursor: not-allowed; }
 .v-btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
 
 .v-table-wrap { background: var(--wp-card); border: 1px solid var(--wp-border); border-radius: var(--wp-radius); overflow: auto; box-shadow: 0 1px 1px rgba(0,0,0,0.04); }
@@ -352,18 +359,33 @@ html[data-admin-scheme="light"] .v-topbar a { color: #333; }
   border-radius: var(--wp-radius);
   box-shadow: 0 1px 1px rgba(0,0,0,0.04);
 }
-.v-form .v-field { margin: 0 0 12px; }
-.v-form .v-field label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+.v-form .v-field { margin: 0 0 14px; }
+.v-form .v-field > label { display: block; font-weight: 500; font-size: 13px; color: #374151; margin-bottom: 6px; }
 .v-form .v-field input,
 .v-form .v-field select,
 .v-form .v-field textarea {
   width: 100%;
   max-width: 25rem;
-  padding: 6px 8px;
-  border: 1px solid #8c8f94;
-  border-radius: 3px;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
   font-size: 14px;
+  color: #111827;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
+.v-form .v-field textarea { min-height: 90px; resize: vertical; }
+.v-form .v-field select { padding-inline-end: 28px; cursor: pointer; }
+.v-form .v-field input:focus,
+.v-form .v-field select:focus,
+.v-form .v-field textarea:focus {
+  border-color: #111827;
+  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08);
+}
+.v-form .v-field input::placeholder,
+.v-form .v-field textarea::placeholder { color: #9ca3af; }
 
 /* ============================================================
    Responsive polish - WordPress-style mobile behavior
@@ -485,7 +507,7 @@ html[data-admin-scheme="light"] .v-topbar a { color: #333; }
    ============================================================ */
 .v-theme-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
   gap: 20px;
   margin-top: 16px;
 }
