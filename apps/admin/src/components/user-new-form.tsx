@@ -28,7 +28,6 @@ function generatePassword(len = 20): string {
 export function UserNewForm() {
   const { t } = useMessages();
   const router = useRouter();
-  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [firstName, setFirstName] = useState('');
   const [nickname, setNickname] = useState('');
@@ -36,6 +35,7 @@ export function UserNewForm() {
   const [website, setWebsite] = useState('');
   const [password, setPassword] = useState('');
   const [roleSlug, setRoleSlug] = useState('author');
+  const [sendNotification, setSendNotification] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -43,14 +43,18 @@ export function UserNewForm() {
     e.preventDefault();
     setError(null);
     setLoading(true);
+    // Use email prefix as username (username field removed)
+    const username = email.split('@')[0] || nickname;
     const res = await createUserAction({
       username,
       email,
       password,
       firstName: firstName || undefined,
       lastName: lastName || undefined,
+      nickname: nickname || undefined,
       website: website || undefined,
       roleSlug,
+      sendNotification,
     });
     setLoading(false);
     if (!res.ok) {
@@ -65,42 +69,39 @@ export function UserNewForm() {
       <h1 className="v-page-title" style={{ margin: '0 0 16px' }}>
         {L(t, 'addNewUser', 'Add New User')}
       </h1>
-      <div className="v-card" style={{ maxWidth: 560 }}>
-    <form onSubmit={onSubmit} style={{ display: 'grid', gap: 12 }}>
+      <div className="v-card" style={{ maxWidth: 720 }}>
+    <form onSubmit={onSubmit} className="v-form v-form--horizontal">
       {error ? (
         <p role="alert" className="v-alert v-alert--error">
           {error}
         </p>
       ) : null}
 
-      <label style={{ display: "block" }}>
-        <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>{L(t, 'username', 'Username')}</span>
-        <input required value={username} onChange={(e) => setUsername(e.target.value)} />
-      </label>
-      <label style={{ display: "block" }}>
-        <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>{L(t, 'email', 'Email')}</span>
-        <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
-      </label>
-      <label style={{ display: "block" }}>
-        <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>{L(t, 'firstName', 'First name')} <span style={{color: '#d63638'}}>*</span></span>
-        <input required value={firstName} onChange={(e) => setFirstName(e.target.value)} />
-      </label>
-      <label style={{ display: "block" }}>
-        <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>{L(t, 'lastName', 'Last name')} <span style={{color: '#d63638'}}>*</span></span>
-        <input required value={lastName} onChange={(e) => setLastName(e.target.value)} />
-      </label>
-      <label style={{ display: "block" }}>
-        <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>{L(t, 'nickname', 'Nickname')} <span style={{color: '#d63638'}}>*</span></span>
-        <input required value={nickname} onChange={(e) => setNickname(e.target.value)} />
-      </label>
-      <label style={{ display: "block" }}>
-        <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>{L(t, 'website', 'Website')}</span>
-        <input value={website} onChange={(e) => setWebsite(e.target.value)} />
-      </label>
-      <label>
-        {L(t, 'password', 'Password')}
+      <div className="v-field">
+        <label htmlFor="nu-email">{L(t, 'email', 'Email')} <span style={{color: '#d63638'}}>*</span></label>
+        <input id="nu-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+      </div>
+      <div className="v-field">
+        <label htmlFor="nu-first">{L(t, 'firstName', 'First name')} <span style={{color: '#d63638'}}>*</span></label>
+        <input id="nu-first" required value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+      </div>
+      <div className="v-field">
+        <label htmlFor="nu-last">{L(t, 'lastName', 'Last name')} <span style={{color: '#d63638'}}>*</span></label>
+        <input id="nu-last" required value={lastName} onChange={(e) => setLastName(e.target.value)} />
+      </div>
+      <div className="v-field">
+        <label htmlFor="nu-nick">{L(t, 'nickname', 'Nickname')} <span style={{color: '#d63638'}}>*</span></label>
+        <input id="nu-nick" required value={nickname} onChange={(e) => setNickname(e.target.value)} />
+      </div>
+      <div className="v-field">
+        <label htmlFor="nu-web">{L(t, 'website', 'Website')}</label>
+        <input id="nu-web" value={website} onChange={(e) => setWebsite(e.target.value)} />
+      </div>
+      <div className="v-field">
+        <label htmlFor="nu-pass">{L(t, 'password', 'Password')} <span style={{color: '#d63638'}}>*</span></label>
         <div style={{ display: 'flex', gap: 8 }}>
           <input
+            id="nu-pass"
             type="text"
             required
             value={password}
@@ -111,21 +112,37 @@ export function UserNewForm() {
             {L(t, 'generate', 'Generate')}
           </button>
         </div>
-      </label>
-      <label>
-        {L(t, 'role', 'Role')}
-        <select value={roleSlug} onChange={(e) => setRoleSlug(e.target.value)}>
+      </div>
+      <div className="v-field">
+        <label>Send User Notification</label>
+        <div style={{ paddingTop: 10 }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 400 }}>
+            <input
+              type="checkbox"
+              checked={sendNotification}
+              onChange={(e) => setSendNotification(e.target.checked)}
+            />
+            Send the new user an email about their account
+          </label>
+        </div>
+      </div>
+      <div className="v-field">
+        <label htmlFor="nu-role">{L(t, 'role', 'Role')}</label>
+        <select id="nu-role" value={roleSlug} onChange={(e) => setRoleSlug(e.target.value)}>
           {ROLES.map((r) => (
             <option key={r} value={r}>
               {r.charAt(0).toUpperCase() + r.slice(1).replace('_', ' ')}
             </option>
           ))}
         </select>
-      </label>
+      </div>
 
-      <button type="submit" className="v-btn v-btn--primary" disabled={loading}>
-        {loading ? L(t, 'creating', 'Creating…') : L(t, 'addNewUser', 'Add New User')}
-      </button>
+      <div className="v-field">
+        <span></span>
+        <button type="submit" className="v-btn v-btn--primary" disabled={loading} style={{ justifySelf: 'start' }}>
+          {loading ? L(t, 'creating', 'Creating…') : L(t, 'addNewUser', 'Add New User')}
+        </button>
+      </div>
     </form>
       </div>
     </>
