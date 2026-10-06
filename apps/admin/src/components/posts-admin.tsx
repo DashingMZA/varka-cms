@@ -24,6 +24,8 @@ type PostRow = {
   publishedAt?: string | null;
   translations?: Array<{ title?: string; slug?: string }>;
   author?: { name?: string | null; email?: string } | null;
+  categories?: Array<{ id: string; translations?: Array<{ name?: string }> }>;
+  tags?: Array<{ id: string; translations?: Array<{ name?: string }> }>;
 };
 
 type Counts = { all: number; published: number; draft: number; trashed: number };
@@ -221,23 +223,14 @@ export function PostsAdmin({
 
   const filtered = useMemo(() => {
     if (status === 'all') return items;
-    return items.filter((p) => p.status === status.toUpperCase());
+    const dbStatus = status === 'pending' ? 'PENDING_REVIEW' : status === 'trash' ? 'TRASHED' : status.toUpperCase();
+    return items.filter((p) => p.status === dbStatus);
   }, [items, status]);
 
-  async function createPost() {
-    setLoading(true);
-    try {
-      const result = await createPostAction('Untitled');
-      if (!result.ok) {
-        setError(t('errors', 'saveFailed') + `: ${result.error}`);
-        setLoading(false);
-        return;
-      }
-      window.location.href = `/content/posts/${result.data.slug || result.data.id}`;
-    } catch {
-      setError(t('errors', 'networkError'));
-      setLoading(false);
-    }
+  function createPost() {
+    // Don't create a draft on click — navigate to blank editor like WordPress.
+    // The draft is created only when the user types a title/content or saves.
+    window.location.href = '/content/posts/new';
   }
 
   async function applyBulk() {
@@ -501,6 +494,7 @@ export function PostsAdmin({
         </div>
       </div>
 
+      <div className="v-list-table-wrap">
       <table className="v-list-table">
         <thead>
           <tr>
@@ -637,13 +631,43 @@ export function PostsAdmin({
                           >
                             {t('common', 'trash') || 'Trash'}
                           </a>
+                          {' | '}
+                          <span>
+                            <Link href={`/content/posts/${p.translations?.[0]?.slug || p.id}?preview=1`} target="_blank" rel="noreferrer">
+                              {t('common', 'view') || 'View'}
+                            </Link>
+                          </span>
                         </>
                       )}
                     </div>
                   </td>
                   {cols.author ? <td>{p.author?.name || p.author?.email || '—'}</td> : null}
-                  {cols.categories ? <td>—</td> : null}
-                  {cols.tags ? <td>—</td> : null}
+                  {cols.categories ? (
+                    <td>
+                      {(p.categories ?? []).length > 0
+                        ? (p.categories ?? []).map((c) => (
+                            <span key={c.id}>
+                              <Link href={`/content/posts?category=${c.id}`}>
+                                {c.translations?.[0]?.name || c.id}
+                              </Link>{' '}
+                            </span>
+                          ))
+                        : '—'}
+                    </td>
+                  ) : null}
+                  {cols.tags ? (
+                    <td>
+                      {(p.tags ?? []).length > 0
+                        ? (p.tags ?? []).map((tg) => (
+                            <span key={tg.id}>
+                              <Link href={`/content/posts?tag=${tg.id}`}>
+                                {tg.translations?.[0]?.name || tg.id}
+                              </Link>{' '}
+                            </span>
+                          ))
+                        : '—'}
+                    </td>
+                  ) : null}
                   {cols.comments ? (
                     <td style={{ textAlign: 'center' }}>
                       <Link href={`/comments?post=${p.id}`} title={t('blogs', 'comments') || 'Comments'}>
@@ -774,6 +798,7 @@ export function PostsAdmin({
           )}
         </tbody>
       </table>
+      </div>
       {total > perPage ? (
         <div className="v-pagination" style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, justifyContent: 'center' }}>
           <button
