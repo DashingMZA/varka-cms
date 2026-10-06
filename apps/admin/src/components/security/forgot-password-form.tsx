@@ -63,7 +63,7 @@ export function ForgotPasswordForm() {
     e.preventDefault();
     setError(null);
     if (otpCode.trim().length !== 6) {
-      setError('Enter the 6-digit code');
+      setError(t('auth', 'enterSixDigit'));
       return;
     }
     setLoading(true);
@@ -87,11 +87,11 @@ export function ForgotPasswordForm() {
     e.preventDefault();
     setError(null);
     if (newPassword.length < 12) {
-      setError('Password must be at least 12 characters');
+      setError(t('validation', 'passwordMinLength') || 'Password must be at least 12 characters');
       return;
     }
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('validation', 'passwordMismatch') || 'Passwords do not match');
       return;
     }
     setLoading(true);
@@ -127,9 +127,9 @@ export function ForgotPasswordForm() {
         <h2 className="v-login-title">{t('auth', 'forgotTitle')}</h2>
         <p className="v-login-subtitle">
           {step === 'email' && t('auth', 'forgotHint')}
-          {step === 'otp' && 'Enter the 6-digit code sent to your email.'}
-          {step === 'new-password' && 'Enter your new password.'}
-          {step === 'done' && 'Password reset successful! Redirecting to login…'}
+          {step === 'otp' && t('auth', 'enterCodeEmail')}
+          {step === 'new-password' && t('auth', 'enterNewPassword')}
+          {step === 'done' && t('auth', 'passwordResetDone')}
         </p>
 
         {step === 'email' && (
@@ -150,7 +150,7 @@ export function ForgotPasswordForm() {
             </label>
             {error ? <p className="v-login-error-modern">{error}</p> : null}
             <button type="submit" className="v-login-submit-modern" disabled={loading}>
-              {loading ? t('auth', 'signingIn') : 'Send code'}
+              {loading ? t('auth', 'signingIn') : t('auth', 'sendCode')}
             </button>
           </form>
         )}
@@ -158,7 +158,7 @@ export function ForgotPasswordForm() {
         {step === 'otp' && (
           <form className="v-login-form-modern" onSubmit={onOtpSubmit}>
             <label className="v-login-field">
-              <span className="v-login-field-label">Verification code</span>
+              <span className="v-login-field-label">{t('auth', 'verifyCode')}</span>
               <input
                 type="text"
                 inputMode="numeric"
@@ -172,7 +172,7 @@ export function ForgotPasswordForm() {
             </label>
             {error ? <p className="v-login-error-modern">{error}</p> : null}
             <button type="submit" className="v-login-submit-modern" disabled={loading}>
-              {loading ? t('auth', 'signingIn') : 'Verify code'}
+              {loading ? t('auth', 'signingIn') : t('common', 'verify')}
             </button>
             <button
               type="button"
@@ -181,7 +181,7 @@ export function ForgotPasswordForm() {
               disabled={loading}
               style={{ width: '100%', marginTop: 8 }}
             >
-              Resend code
+              {t('common', 'resend')}
             </button>
           </form>
         )}
@@ -189,7 +189,7 @@ export function ForgotPasswordForm() {
         {step === 'new-password' && (
           <form className="v-login-form-modern" onSubmit={onPasswordSubmit}>
             <div className="v-field">
-              <label htmlFor="fp-new">New password</label>
+              <label htmlFor="fp-new">{t('auth', 'newPassword') || 'New password'}</label>
               <PasswordInput
                 id="fp-new"
                 autoComplete="new-password"
@@ -199,7 +199,7 @@ export function ForgotPasswordForm() {
               />
             </div>
             <div className="v-field">
-              <label htmlFor="fp-confirm">Confirm password</label>
+              <label htmlFor="fp-confirm">{t('auth', 'passwordConfirm')}</label>
               <PasswordInput
                 id="fp-confirm"
                 autoComplete="new-password"
@@ -210,7 +210,7 @@ export function ForgotPasswordForm() {
             </div>
             {error ? <p className="v-login-error-modern">{error}</p> : null}
             <button type="submit" className="v-login-submit-modern" disabled={loading}>
-              {loading ? t('auth', 'signingIn') : 'Reset password'}
+              {loading ? t('auth', 'signingIn') : t('auth', 'resetSubmit')}
             </button>
           </form>
         )}
