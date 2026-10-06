@@ -2,14 +2,17 @@
 
 import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
-import { useMessages } from '@/lib/i18n';
+import { useMessages, setStoredLocale } from '@/lib/i18n';
 import { useServerLocale } from '@/lib/locale-provider';
+import type { AppLocale } from '@varka/i18n';
+import { AuthHeader } from '@/components/auth-header';
 import { forgotPasswordSchema, zodErrorKeys } from '@varka/validation';
 import { forgetPasswordAction } from '@/actions/auth';
 
 export function ForgotPasswordForm() {
   const serverLocale = useServerLocale();
-  const { t } = useMessages(serverLocale);
+  const [locale, setLocale] = useState<AppLocale>(serverLocale);
+  const { t } = useMessages(locale);
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -51,10 +54,15 @@ export function ForgotPasswordForm() {
     }
   }
 
+  function onLocale(next: AppLocale) {
+    setStoredLocale(next);
+    setLocale(next);
+  }
+
   return (
     <div className="v-login-screen-modern">
       <div className="v-login-modern">
-        <h1 className="v-login-brand">VARKA</h1>
+        <AuthHeader locale={locale} onLocale={onLocale} />
         <h2 className="v-login-title">{t('auth', 'forgotTitle')}</h2>
         <p className="v-login-subtitle">{t('auth', 'forgotHint')}</p>
 
