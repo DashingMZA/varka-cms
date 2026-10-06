@@ -58,7 +58,8 @@ export function AuditLogViewer() {
         </p>
       ) : null}
       <div className="v-table-wrap">
-      <table style={{ width: '100%', borderCollapse: 'collapse', background: 'var(--card)' }}>
+            <div className="v-card" style={{ padding: 0, overflow: "hidden" }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', background: 'var(--card)' }}>
         <thead>
           <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--border)' }}>
             <th style={{ padding: 8 }}>{L(t, 'when', 'When')}</th>
@@ -95,6 +96,7 @@ export function AuditLogViewer() {
           )}
         </tbody>
       </table>
+      </div>
       </div>
     </div>
   );
