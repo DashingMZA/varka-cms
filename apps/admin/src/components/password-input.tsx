@@ -36,20 +36,38 @@ type Props = React.InputHTMLAttributes<HTMLInputElement> & {
   id: string;
 };
 
-/** Password input with show/hide eye toggle. */
-export function PasswordInput({ id, ...rest }: Props) {
+/** Password input with show/hide eye toggle. Matches .v-form input styling. */
+export function PasswordInput({ id, style, ...rest }: Props) {
   const [show, setShow] = useState(false);
   return (
-    <div style={{ position: 'relative' }}>
-      <input id={id} type={show ? 'text' : 'password'} {...rest} style={{ ...rest.style, paddingRight: 40, width: '100%' }} />
+    <div className="v-password-wrap" style={{ position: 'relative', width: '100%', maxWidth: '25rem' }}>
+      <input
+        id={id}
+        type={show ? 'text' : 'password'}
+        {...rest}
+        style={{
+          width: '100%',
+          minHeight: 40,
+          padding: '8px 40px 8px 12px',
+          border: '1px solid #d1d5db',
+          borderRadius: 8,
+          fontSize: 14,
+          color: '#111827',
+          background: '#fff',
+          outline: 'none',
+          boxSizing: 'border-box',
+          ...style,
+        }}
+      />
       <button
         type="button"
         onClick={() => setShow((v) => !v)}
         aria-label={show ? 'Hide password' : 'Show password'}
         title={show ? 'Hide password' : 'Show password'}
+        tabIndex={-1}
         style={{
           position: 'absolute',
-          right: 8,
+          right: 10,
           top: '50%',
           transform: 'translateY(-50%)',
           background: 'none',
@@ -59,6 +77,7 @@ export function PasswordInput({ id, ...rest }: Props) {
           padding: 4,
           display: 'flex',
           alignItems: 'center',
+          justifyContent: 'center',
         }}
       >
         <EyeIcon off={show} />
