@@ -2,13 +2,14 @@
 
 import { Field, SettingsForm, inputStyle, selectStyle } from '@/components/settings/settings-form';
 import { useMessages } from '@/lib/i18n';
+import { ROLES } from '@varka/permissions';
 
 const DEFAULTS = {
   siteTitle: 'VARKA',
   tagline: '',
   adminEmail: '',
   membership: false,
-  defaultRole: 'subscriber',
+  defaultRole: 'reader',
   siteLanguage: 'en',
   timezone: 'UTC',
   dateFormat: 'F j, Y',
@@ -112,13 +113,14 @@ export default function GeneralSettingsPage() {
           <Field label={t('settings', 'defaultRole')}>
             <select
               style={selectStyle}
-              value={String(v.defaultRole ?? 'subscriber')}
+              value={String(v.defaultRole ?? 'reader')}
               onChange={(e) => set('defaultRole', e.target.value)}
             >
-              <option value="subscriber">{t('settings', 'roleSubscriber')}</option>
-              <option value="author">{t('settings', 'roleAuthor')}</option>
-              <option value="editor">{t('settings', 'roleEditor')}</option>
-              <option value="admin">{t('settings', 'roleAdmin')}</option>
+              {ROLES.map((role) => (
+                <option key={role} value={role}>
+                  {role.charAt(0).toUpperCase() + role.slice(1).replace('_', ' ')}
+                </option>
+              ))}
             </select>
           </Field>
           <Field label={t('settings', 'siteLanguage')}>
