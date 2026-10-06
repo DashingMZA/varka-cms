@@ -71,7 +71,7 @@ export async function createUserAction(input: {
 }
 
 export async function updateUserAction(
-  id: string,
+  id: number,
   body: Record<string, unknown>,
 ): Promise<ActionResult<unknown>> {
   try {
