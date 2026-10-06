@@ -299,7 +299,7 @@ export function PostEditor({ postId: initialPostId }: { postId: string | null })
         : '';
     const fig =
       payload.asset.caption || payload.alt
-        ? `<figure class="wp-block-image"><img src="${payload.src}" alt="${escapeAttr(payload.alt)}"${dim} loading="lazy" /><figcaption>${escapeHtml(payload.asset.caption || payload.alt)}</figcaption></figure>\n`
+        ? `<figure class="block-image"><img src="${payload.src}" alt="${escapeAttr(payload.alt)}"${dim} loading="lazy" /><figcaption>${escapeHtml(payload.asset.caption || payload.alt)}</figcaption></figure>\n`
         : `<p><img src="${payload.src}" alt="${escapeAttr(payload.alt)}"${dim} loading="lazy" /></p>\n`;
     setContentHtml((prev) => (prev ? `${prev}\n${fig}` : fig));
     setMediaOpen(false);
