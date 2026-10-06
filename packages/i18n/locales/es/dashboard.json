@@ -41,5 +41,21 @@
   "latest": "Último",
   "updateCmd": "Para actualizar, ejecuta:",
   "checkAgain": "Comprobar de nuevo",
-  "loading": "Cargando…"
+  "loading": "Cargando…",
+  "news": "Noticias",
+  "newsDesc": "Últimas novedades de VARKA.",
+  "newsGithub": "VARKA en GitHub",
+  "newsReleases": "Versiones de VARKA",
+  "newsUpdates": "Buscar actualizaciones",
+  "quickDraftContent": "¿Qué tienes en mente?",
+  "recentlyPublished": "Publicado recientemente",
+  "welcome": "Bienvenido",
+  "welcomeAddPage": "Añade una página de información",
+  "welcomeBody": "Empieza con lo esencial: escribe contenido, dale forma a tu sitio y ajusta su apariencia.",
+  "welcomeComments": "Activa o desactiva los comentarios",
+  "welcomeHomepage": "Configura tu página de inicio",
+  "welcomeMenus": "Gestionar menús",
+  "welcomeTitle": "Bienvenido a VARKA",
+  "welcomeWidgets": "Gestionar widgets",
+  "welcomeWritePost": "Escribe tu primera entrada"
 }
