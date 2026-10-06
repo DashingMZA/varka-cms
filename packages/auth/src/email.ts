@@ -60,12 +60,29 @@ export function hashOtp(code: string, salt = process.env.AUTH_SECRET ?? 'varka')
 }
 
 export async function sendAuthEmail(input: SendAuthEmailInput): Promise<void> {
+  const subject = SUBJECTS[input.type];
+  const text = bodyFor(input);
+
+  // 1. Check database SMTP settings first (dynamic)
+  try {
+    const dbSmtp = await getDbSmtpConfig();
+    if (dbSmtp?.enabled) {
+      await sendViaSmtp(dbSmtp, {
+        to: input.to,
+        subject,
+        text,
+      });
+      return;
+    }
+  } catch (e) {
+    console.error('[varka/auth-email] DB SMTP failed, falling back', e);
+  }
+
+  // 2. Fall back to webhook / env
   const from =
     process.env.SMTP_FROM ||
     process.env.EMAIL_FROM ||
     'noreply@varka.local';
-  const subject = SUBJECTS[input.type];
-  const text = bodyFor(input);
   const webhook = process.env.EMAIL_WEBHOOK_URL?.trim();
 
   if (webhook) {
@@ -105,4 +122,91 @@ export async function sendAuthEmail(input: SendAuthEmailInput): Promise<void> {
   console.info(
     `[varka/auth-email] DEV (no EMAIL_WEBHOOK_URL) → to=${input.to} type=${input.type} code=${input.code ?? ''} url=${input.url ?? ''}\nSubject: ${subject}\n${text}`,
   );
+}
+
+type DbSmtpConfig = {
+  enabled: boolean;
+  host: string;
+  port: number;
+  user: string;
+  pass: string;
+  from: string;
+  fromName: string;
+  secure: boolean;
+};
+
+/**
+ * Get SMTP config from database (users.smtp* settings).
+ * Returns null if not enabled or not configured.
+ */
+async function getDbSmtpConfig(): Promise<DbSmtpConfig | null> {
+  try {
+    const { prisma } = await import('@varka/database');
+    const site = await prisma.site.findFirst({ orderBy: { createdAt: 'asc' } });
+    if (!site) return null;
+
+    const keys = [
+      'users.smtpEnabled',
+      'users.smtpHost',
+      'users.smtpPort',
+      'users.smtpUser',
+      'users.smtpPass',
+      'users.smtpFrom',
+      'users.smtpFromName',
+      'users.smtpSecure',
+    ];
+    const settings = await prisma.siteSetting.findMany({
+      where: { siteId: site.id, key: { in: keys } },
+    });
+    const map = Object.fromEntries(settings.map((s: { key: string; value: unknown }) => [s.key, s.value]));
+
+    if (map['users.smtpEnabled'] !== true) return null;
+    if (!map['users.smtpHost'] || !map['users.smtpUser']) return null;
+
+    return {
+      enabled: true,
+      host: String(map['users.smtpHost']),
+      port: Number(map['users.smtpPort']) || 587,
+      user: String(map['users.smtpUser']),
+      pass: String(map['users.smtpPass'] || ''),
+      from: String(map['users.smtpFrom'] || map['users.smtpUser']),
+      fromName: String(map['users.smtpFromName'] || 'VARKA'),
+      secure: map['users.smtpSecure'] !== false,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Send email via SMTP using nodemailer.
+ */
+async function sendViaSmtp(
+  config: DbSmtpConfig,
+  mail: { to: string; subject: string; text: string },
+): Promise<void> {
+  // Dynamic require to avoid hard dependency at type-check time
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  let nodemailer: any;
+  try {
+    nodemailer = require('nodemailer');
+  } catch {
+    throw new Error('nodemailer not installed. Run: pnpm add nodemailer --filter @varka/auth');
+  }
+  const transporter = nodemailer.createTransport({
+    host: config.host,
+    port: config.port,
+    secure: config.secure && config.port === 465,
+    auth: {
+      user: config.user,
+      pass: config.pass,
+    },
+  });
+
+  await transporter.sendMail({
+    from: `"${config.fromName}" <${config.from}>`,
+    to: mail.to,
+    subject: mail.subject,
+    text: mail.text,
+  });
 }
