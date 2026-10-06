@@ -105,13 +105,21 @@ export async function listPostsAction(opts?: {
   }
 }
 
-export async function getPostAction(postId: string): Promise<ActionResult<unknown>> {
+export async function getPostAction(postIdOrSlug: string): Promise<ActionResult<unknown>> {
   try {
     await requireServerAuth('posts.read');
-    const post = await prisma.post.findUnique({
-      where: { id: postId },
+    // Try by ID first, then by translation slug.
+    let post = await prisma.post.findUnique({
+      where: { id: postIdOrSlug },
       include: { translations: true, categories: true, tags: true },
     });
+    if (!post) {
+      const tr = await prisma.postTranslation.findFirst({
+        where: { slug: postIdOrSlug },
+        include: { post: { include: { translations: true, categories: true, tags: true } } },
+      });
+      post = tr?.post ?? null;
+    }
     if (!post) return { ok: false, error: 'Not found' };
     return { ok: true, data: JSON.parse(JSON.stringify(post)) };
   } catch (e) {
@@ -119,16 +127,17 @@ export async function getPostAction(postId: string): Promise<ActionResult<unknow
   }
 }
 
-export async function createPostAction(title = 'Untitled'): Promise<ActionResult<{ id: string }>> {
+export async function createPostAction(title = 'Untitled'): Promise<ActionResult<{ id: string; slug: string }>> {
   try {
     const { ctx, siteId } = await requireServerAuth('posts.create');
     const post = (await createPost(prisma as never, ctx, {
       siteId,
       title,
       authorId: ctx.userId && ctx.userId !== 'dev-user' ? ctx.userId : undefined,
-    })) as { id: string };
+    })) as { id: string; translations: { slug: string }[] };
     revalidatePath('/content/posts');
-    return { ok: true, data: { id: post.id } };
+    const slug = post.translations?.[0]?.slug || post.id;
+    return { ok: true, data: { id: post.id, slug } };
   } catch (e) {
     return fail(e);
   }
