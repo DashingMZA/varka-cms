@@ -57,7 +57,7 @@ export function NotFoundMonitor() {
 
   return (
     <div style={{ maxWidth: 900 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
         <h1 className="v-page-title">{L(t, 'notFoundMonitor', '404 Monitor')}</h1>
         {logs.length > 0 ? (
           <button type="button" className="v-btn" onClick={() => void handleClear()}>
