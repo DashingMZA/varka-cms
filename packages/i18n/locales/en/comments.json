@@ -16,5 +16,6 @@
   "submittedOn": "Submitted on",
   "bulkActions": "Bulk actions",
   "searchComments": "Search comments",
-  "noComments": "No comments yet."
+  "noComments": "No comments yet.",
+  "delete": "Delete permanently"
 }
