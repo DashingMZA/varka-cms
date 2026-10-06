@@ -19,20 +19,7 @@ type Profile = {
   nickname?: string | null;
   website?: string | null;
   bio?: string | null;
-  adminColorScheme?: string | null;
 };
-
-const COLOR_SCHEMES = [
-  { id: 'default', name: 'Default', colors: ['#1d2327', '#2271b1', '#72aee6'] },
-  { id: 'fresh', name: 'Fresh', colors: ['#1d2327', '#0073aa', '#00a0d2'] },
-  { id: 'light', name: 'Light', colors: ['#e5e5e5', '#888888', '#d64e07', '#04a4cc'] },
-  { id: 'blue', name: 'Blue', colors: ['#52accc', '#096484', '#e1a948'] },
-  { id: 'coffee', name: 'Coffee', colors: ['#59524c', '#c7a589', '#9ea476'] },
-  { id: 'ectoplasm', name: 'Ectoplasm', colors: ['#523f6d', '#a3b745', '#d46f15'] },
-  { id: 'midnight', name: 'Midnight', colors: ['#25282b', '#363b3f', '#69a8bb', '#e14d43'] },
-  { id: 'ocean', name: 'Ocean', colors: ['#738e96', '#9ebaa0', '#aa9d88'] },
-  { id: 'sunrise', name: 'Sunrise', colors: ['#cf4944', '#dd823b', '#ccaf0b'] },
-];
 
 export function UserProfileForm() {
   const { t } = useMessages();
@@ -46,7 +33,6 @@ export function UserProfileForm() {
   const [name, setName] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [colorScheme, setColorScheme] = useState('default');
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -67,7 +53,6 @@ export function UserProfileForm() {
       setBio(p.bio ?? '');
       setEmail(p.email ?? '');
       setName(p.name ?? '');
-      setColorScheme(p.adminColorScheme ?? 'default');
     })();
   }, []);
 
@@ -84,7 +69,6 @@ export function UserProfileForm() {
       bio,
       email,
       name,
-      adminColorScheme: colorScheme,
       ...(newPassword
         ? { newPassword, currentPassword }
         : {}),
@@ -97,18 +81,6 @@ export function UserProfileForm() {
     setMessage(L(t, 'profileUpdated', 'Profile updated'));
     setCurrentPassword('');
     setNewPassword('');
-    // Apply the new color scheme immediately without a full page reload
-    document.documentElement.dataset.adminScheme = colorScheme;
-    const vAdmin = document.querySelector('.v-admin');
-    if (vAdmin) vAdmin.setAttribute('data-admin-scheme', colorScheme);
-  }
-
-  // Apply color scheme live on selection (preview), saved on submit
-  function handleSchemeChange(value: string) {
-    setColorScheme(value);
-    document.documentElement.dataset.adminScheme = value;
-    const vAdmin = document.querySelector('.v-admin');
-    if (vAdmin) vAdmin.setAttribute('data-admin-scheme', value);
   }
 
   if (!profile && !error) return <p className="v-muted">{L(t, 'loading', 'Loading…')}</p>;
@@ -150,50 +122,6 @@ export function UserProfileForm() {
       <div className="v-field">
         <label htmlFor="pf-bio">{L(t, 'bio', 'Bio')}</label>
         <textarea id="pf-bio" value={bio} onChange={(e) => setBio(e.target.value)} rows={3} />
-      </div>
-
-      <h2 style={{ margin: '12px 0 0', fontSize: 16 }}>
-        {L(t, 'adminColorScheme', 'Administration Color Scheme')}
-      </h2>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 12 }}>
-        {COLOR_SCHEMES.map((scheme) => (
-          <label
-            key={scheme.id}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              cursor: 'pointer',
-              padding: 8,
-              border: colorScheme === scheme.id ? '2px solid var(--wp-accent)' : '1px solid #ddd',
-              borderRadius: 4,
-            }}
-          >
-            <input
-              type="radio"
-              name="colorScheme"
-              value={scheme.id}
-              checked={colorScheme === scheme.id}
-              onChange={(e) => handleSchemeChange(e.target.value)}
-              />
-            <span>
-              <span style={{ display: 'block', fontSize: 12, fontWeight: 600 }}>{scheme.name}</span>
-              <span style={{ display: 'flex', gap: 0 }}>
-                {scheme.colors.map((c, i) => (
-                  <span
-                    key={i}
-                    style={{
-                      width: 20,
-                      height: 16,
-                      background: c,
-                      display: 'inline-block',
-                    }}
-                  />
-                ))}
-              </span>
-            </span>
-          </label>
-        ))}
       </div>
 
       <h2 style={{ margin: '12px 0 0', fontSize: 16 }}>{L(t, 'changePassword', 'Change password')}</h2>
