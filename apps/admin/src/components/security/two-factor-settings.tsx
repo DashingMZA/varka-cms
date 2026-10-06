@@ -170,7 +170,7 @@ export function TwoFactorSettings({ enabled: initial }: Props) {
   const manualSecret = totpUri ? secretFromTotpUri(totpUri) : null;
 
   return (
-    <div className="v-card" style={{ padding: 16, display: 'grid', gap: 12, maxWidth: 480 }}>
+    <div className="v-card" style={{ display: 'grid', gap: 12 }}>
       <h2 style={{ margin: 0, fontSize: 16 }}>{t('auth', 'twoFactorTitle')}</h2>
       <p style={{ margin: 0, fontSize: 13, color: '#646970' }}>
         {enabled ? t('auth', 'twoFactorEnabled') : t('auth', 'twoFactorDisabled')}
