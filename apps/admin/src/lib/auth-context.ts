@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import type { AuthContext } from '@varka/permissions';
 import { getAuth } from '@/lib/auth';
 import { authHeadersFromNext, authHeadersFromRequest } from '@/lib/auth-headers';
@@ -7,8 +8,12 @@ import { authHeadersFromNext, authHeadersFromRequest } from '@/lib/auth-headers'
  * 1) Better Auth session → loadAuthContext(userId)
  * 2) Session table by cookie token
  * 3) Fallback owner only when ALLOW_DEV_AUTH_FALLBACK=true
+ *
+ * Cached per request — repeated auth checks in one request share a single
+ * session resolution instead of hitting the auth handler every time.
  */
-export async function getAuthContext(req?: Request): Promise<AuthContext> {
+export const getAuthContext = cache(
+  async function getAuthContext(req?: Request): Promise<AuthContext> {
   try {
     const auth = getAuth();
     const hdrs = req ? authHeadersFromRequest(req) : await authHeadersFromNext();
@@ -88,4 +93,4 @@ export async function getAuthContext(req?: Request): Promise<AuthContext> {
       'audit.read', 'security.read',
     ],
   };
-}
+});
