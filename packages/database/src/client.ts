@@ -126,18 +126,27 @@ function createClient(): PrismaClient {
     }
   }
 
+  // Prisma 7 + driver adapter: use $extends (middleware $use not supported).
+  // Converts string user IDs to Int for User-related models.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  client.$use(async (params: any, next: any) => {
-    const fields = INT_ID_FIELDS[params.model ?? ''];
-    if (fields && params.args) {
-      const args = params.args as Record<string, unknown>;
-      if (args.where) convertIds(args.where, fields);
-      if (args.data) convertIds(args.data, fields);
-    }
-    return next(params);
+  const extended = (client as any).$extends({
+    query: {
+      $allModels: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        async $allOperations({ model, args, query }: any) {
+          const fields = model ? INT_ID_FIELDS[model] : undefined;
+          if (fields && args) {
+            const a = args as Record<string, unknown>;
+            if (a.where) convertIds(a.where, fields);
+            if (a.data) convertIds(a.data, fields);
+          }
+          return query(args);
+        },
+      },
+    },
   });
 
-  return client;
+  return extended;
 }
 
 function getPrisma(): PrismaClient {
