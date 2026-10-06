@@ -102,14 +102,20 @@ input, select, textarea { font: inherit; color: var(--wp-ink); }
 .v-nav a.v-nav__link:hover,
 .v-nav button.v-nav__link:hover,
 .v-nav__link:hover {
-  background: var(--wp-sidebar-hover); color: #fff !important; text-decoration: none !important;
+  background: var(--wp-sidebar-hover); color: var(--wp-sidebar-text) !important; text-decoration: none !important;
 }
 .v-sidebar a.v-nav__link.is-active,
 .v-nav a.v-nav__link.is-active,
 .v-nav button.v-nav__link.is-active,
 .v-nav__link.is-active {
-  background: var(--wp-sidebar-hover); border-left-color: var(--wp-sidebar-current);
+  background: var(--wp-sidebar-current); border-left-color: var(--wp-sidebar-current);
   color: #fff !important; font-weight: 600;
+}
+/* Light theme: active item needs dark text on light accent */
+.v-admin[data-admin-scheme="light"] .v-nav__link.is-active,
+html[data-admin-scheme="light"] .v-nav__link.is-active {
+  color: #fff !important;
+  background: var(--wp-sidebar-current);
 }
 .v-nav__icon { width: 20px; text-align: center; font-size: 16px; flex-shrink: 0; opacity: 0.9; line-height: 1; }
 .v-nav__label { flex: 1; min-width: 0; }
