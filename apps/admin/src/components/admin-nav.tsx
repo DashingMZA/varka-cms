@@ -108,9 +108,13 @@ function buildNav(t: (ns: 'nav' | 'common', key: string) => string): NavItem[] {
       children: [
         { href: '/seo', label: L(t, 'seoSettings', 'SEO Settings') },
         { href: '/seo/titles-meta', label: L(t, 'titlesMeta', 'Titles & Meta') },
+        { href: '/seo/social-schema', label: 'Social & Schema' },
+        { href: '/seo/webmaster-tools', label: 'Webmaster Tools' },
+        { href: '/seo/local-seo', label: 'Local SEO' },
         { href: '/seo/sitemap', label: L(t, 'sitemap', 'Sitemap') },
         { href: '/seo/redirections', label: L(t, 'redirections', 'Redirections') },
         { href: '/seo/404-monitor', label: L(t, 'notFoundMonitor', '404 Monitor') },
+        { href: '/seo/robots', label: 'robots.txt' },
       ],
     },
     {
