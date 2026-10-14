@@ -58,6 +58,8 @@
   "noResults": "Sin resultados.",
   "error": "Algo salió mal.",
   "confirm": "Confirmar",
+  "resend": "Reenviar",
+  "verify": "Verificar",
   "update": "Actualizar",
   "create": "Crear",
   "submit": "Enviar",
