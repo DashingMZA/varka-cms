@@ -235,11 +235,29 @@ export function TwoFactorSettings({ enabled: initial }: Props) {
 
   const manualSecret = totpUri ? secretFromTotpUri(totpUri) : null;
 
+  const badgeOn = enabled;
   return (
     <div className="v-card" style={{ display: 'grid', gap: 12 }}>
-      <h2 style={{ margin: 0, fontSize: 16 }}>{t('auth', 'twoFactorTitle')}</h2>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <h2 style={{ margin: 0, fontSize: 16 }}>{t('auth', 'twoFactorTitle')}</h2>
+        <span
+          style={{
+            fontSize: 12,
+            fontWeight: 600,
+            lineHeight: 1.4,
+            padding: '4px 10px',
+            borderRadius: 999,
+            whiteSpace: 'nowrap',
+            background: badgeOn ? '#e7f6ec' : '#f0f0f1',
+            color: badgeOn ? '#1a7f37' : '#646970',
+            border: `1px solid ${badgeOn ? '#b7e2c3' : '#dcdcde'}`,
+          }}
+        >
+          {badgeOn ? t('auth', 'twoFactorBadgeOn') : t('auth', 'twoFactorBadgeOff')}
+        </span>
+      </div>
       <p style={{ margin: 0, fontSize: 13, color: '#646970' }}>
-        {enabled ? t('auth', 'twoFactorEnabled') : t('auth', 'twoFactorDisabled')}
+        {t('auth', 'twoFactorDescription')}
       </p>
 
       {!enabled && !pendingEnable ? (
@@ -274,7 +292,7 @@ export function TwoFactorSettings({ enabled: initial }: Props) {
               )}
               {manualSecret ? (
                 <p style={{ margin: 0, fontSize: 12, wordBreak: 'break-all' }}>
-                  <span style={{ color: '#646970' }}>Manual key: </span>
+                  <span style={{ color: '#646970' }}>{t('auth', 'twoFactorManualKey')} </span>
                   <code style={{ fontSize: 12 }}>{manualSecret}</code>
                 </p>
               ) : null}
@@ -284,7 +302,21 @@ export function TwoFactorSettings({ enabled: initial }: Props) {
           {backupCodes.length ? (
             <div>
               <strong style={{ fontSize: 13 }}>{t('auth', 'twoFactorBackupCodes')}</strong>
-              <ul style={{ fontSize: 12, fontFamily: 'monospace', margin: '6px 0 0' }}>
+              <ul
+                style={{
+                  fontSize: 12,
+                  fontFamily: 'monospace',
+                  margin: '6px 0 0',
+                  padding: '10px 12px 10px 30px',
+                  background: '#f6f7f7',
+                  border: '1px solid #dcdcde',
+                  borderRadius: 4,
+                  listStyle: 'none',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+                  gap: '4px 16px',
+                }}
+              >
                 {backupCodes.map((c) => (
                   <li key={c}>{c}</li>
                 ))}
@@ -338,7 +370,7 @@ export function TwoFactorSettings({ enabled: initial }: Props) {
           >
             <h3 style={{ margin: '0 0 8px', fontSize: 16 }}>{t('auth', 'confirmWithPassword')}</h3>
             <p className="v-muted" style={{ fontSize: 13, marginBottom: 16 }}>
-              Enter your current password to {pendingAction === 'enable' ? 'enable' : 'disable'} two-factor authentication.
+              {t('auth', pendingAction === 'enable' ? 'twoFactorConfirmEnableDesc' : 'twoFactorConfirmDisableDesc')}
             </p>
             <div className="v-field">
               <label htmlFor="2fa-confirm">{t('auth', 'password')}</label>
@@ -357,7 +389,7 @@ export function TwoFactorSettings({ enabled: initial }: Props) {
                 className="v-btn"
                 onClick={() => { setShowPasswordConfirm(false); setConfirmPassword(''); }}
               >
-                Cancel
+                {t('common', 'cancel') || 'Cancel'}
               </button>
               <button
                 type="button"
@@ -365,7 +397,7 @@ export function TwoFactorSettings({ enabled: initial }: Props) {
                 onClick={() => void onPasswordConfirm()}
                 disabled={loading || !confirmPassword}
               >
-                Confirm
+                {t('common', 'confirm') || 'Confirm'}
               </button>
             </div>
           </div>
@@ -443,7 +475,7 @@ export function TwoFactorSettings({ enabled: initial }: Props) {
                     className="v-btn"
                     onClick={() => { setShowOtp(false); setOtpCode(''); setOtpSent(false); }}
                   >
-                    Cancel
+                    {t('common', 'cancel') || 'Cancel'}
                   </button>
                   <button
                     type="button"
@@ -451,7 +483,7 @@ export function TwoFactorSettings({ enabled: initial }: Props) {
                     onClick={() => void onSendOtp()}
                     disabled={loading}
                   >
-                    Resend
+                    {t('common', 'resend') || 'Resend'}
                   </button>
                   <button
                     type="button"
@@ -459,7 +491,7 @@ export function TwoFactorSettings({ enabled: initial }: Props) {
                     onClick={() => void onVerifyOtp()}
                     disabled={loading || otpCode.length !== 6}
                   >
-                    Verify
+                    {t('common', 'verify') || 'Verify'}
                   </button>
                 </div>
               </>
